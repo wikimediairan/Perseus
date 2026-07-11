@@ -1,7 +1,6 @@
 <div align="center">
   <img src="docs/assets/development-status.svg" width="100%" alt="Development Status">
 </div>
-
 <div dir="ltr" align=center>
 
 [**فارسی**](docs/README/fa.md) / [**English**](README.md) / [**Тоҷикӣ**](docs/README/tj.md)
@@ -10,17 +9,9 @@
 
 # Perseus
 
-Perseus is a desktop application that helps Wikipedia editors translate English Wikipedia articles
-into Wikitext compatible with a supported target wiki (currently Persian Wikipedia and Tajik
-Wikipedia).
-
-Unlike browser-based translation tools, Perseus is designed as an editor's workspace. It combines
-deterministic processing with large language models to preserve Wikipedia structure while assisting
-with translation.
-
-Additional documentation is available under the [architecture](docs/architecture) directory.
-
 <div align="center">
+
+[![Perseus Logo](docs/assets/logo.png)](docs/assets/logo.png)
 
 [![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
 [![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
@@ -32,6 +23,16 @@ Additional documentation is available under the [architecture](docs/architecture
 [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
 
 </div>
+
+Perseus is a desktop application that helps Wikipedia editors translate English Wikipedia articles
+into Wikitext compatible with a supported target wiki (currently Persian Wikipedia and Tajik
+Wikipedia).
+
+Unlike browser-based translation tools, Perseus is designed as an editor's workspace. It combines
+deterministic processing with large language models to preserve Wikipedia structure while assisting
+with translation.
+
+Additional documentation is available under the [architecture](docs/architecture) directory.
 
 ## Project Status
 

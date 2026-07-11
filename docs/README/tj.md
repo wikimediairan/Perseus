@@ -1,7 +1,6 @@
-<p align="center">
+<div align="center">
   <img src="../assets/development-status.svg" width="100%" alt="Development Status">
-</p>
-
+</div>
 <div dir="ltr" align=center>
 
 [**فارسی**](./fa.md) / [**English**](../../README.md) / [**Тоҷикӣ**](./tj.md)
@@ -9,6 +8,21 @@
 </div>
 
 # Perseus
+
+<div align="center">
+
+[![Perseus Logo](../assets/logo.png)](docs/assets/logo.png)
+
+[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
+[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
+[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+
+</div>
 
 Perseus як барномаи мизи корӣ мебошад, ки ба саҳмгузорони Википедиа барои тарҷумаи мақолаҳои
 Википедияи англисӣ ба викиматне, ки бо викии мақсад мувофиқ аст (ҳоло Википедияи тоҷикӣ ва форсӣ),
@@ -19,19 +33,6 @@ Perseus як барномаи мизи корӣ мебошад, ки ба саҳ
 сохтори Википедиаро ҳангоми тарҷума нигоҳ медорад.
 
 Ҳуҷҷатҳои техникии лоиҳа дар феҳристи [architecture](../architecture) ҷойгиранд.
-
-<div align="center">
-
-[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](../../LICENSE)
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
-
-</div>
 
 ## Вазъи лоиҳа
 

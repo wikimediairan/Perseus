@@ -1,7 +1,6 @@
 <div align="center">
   <img src="../assets/development-status.svg" width="100%" alt="Development Status">
 </div>
-
 <div dir="ltr" align=center>
 
 [**فارسی**](./fa.md) / [**English**](../../README.md) / [**Тоҷикӣ**](./tj.md)
@@ -12,18 +11,12 @@
 
 # پرسیوس
 
-پرسیوس یک نرم‌افزار دسکتاپ است که به مشارکت‌کنندگان ویکی‌پدیا کمک می‌کند مقاله‌های ویکی‌پدیای
-انگلیسی را به wikitext سازگار با ویکی مقصد(در حال حاضر ویکی‌پدیای فارسی و تاجیکی) ترجمه کنند.
-
-برخلاف ابزارهای مبتنی بر مرورگر، پرسیوس به‌عنوان یک محیط کاری برای ویراستاران طراحی شده است. این
-برنامه ضمن کمک به ترجمه، ساختار ویکی‌پدیا را نیز کاملا حفظ می‌کند.
-
-مستندات فنی پروژه در پوشهٔ [architecture](../architecture) قرار دارد.
-
 <div align="center">
 
+[![Perseus Logo](../assets/logo.png)](docs/assets/logo.png)
+
 [![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](../../LICENSE)
+[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
@@ -32,6 +25,14 @@
 [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
 
 </div>
+
+پرسیوس یک نرم‌افزار دسکتاپ است که به مشارکت‌کنندگان ویکی‌پدیا کمک می‌کند مقاله‌های ویکی‌پدیای
+انگلیسی را به wikitext سازگار با ویکی مقصد(در حال حاضر ویکی‌پدیای فارسی و تاجیکی) ترجمه کنند.
+
+برخلاف ابزارهای مبتنی بر مرورگر، پرسیوس به‌عنوان یک محیط کاری برای ویراستاران طراحی شده است. این
+برنامه ضمن کمک به ترجمه، ساختار ویکی‌پدیا را نیز کاملا حفظ می‌کند.
+
+مستندات فنی پروژه در پوشهٔ [architecture](../architecture) قرار دارد.
 
 ## وضعیت پروژه
 
