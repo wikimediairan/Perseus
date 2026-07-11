@@ -45,8 +45,11 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 9
+
+      - name: Verify pnpm is on PATH
+        run: |
+          which pnpm || where pnpm
+          pnpm --version
 
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
