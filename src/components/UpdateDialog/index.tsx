@@ -1,4 +1,3 @@
-
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,9 @@ export function UpdateDialog({
 
         {result.releaseNotes && (
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-medium text-muted-foreground">{t("updateDialog.releaseNotesLabel")}</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              {t("updateDialog.releaseNotesLabel")}
+            </p>
             <p className="max-h-40 overflow-y-auto rounded-md bg-secondary p-3 text-sm whitespace-pre-wrap text-foreground">
               {result.releaseNotes}
             </p>

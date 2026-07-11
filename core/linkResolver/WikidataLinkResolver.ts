@@ -22,16 +22,14 @@
  * anonymous requests) to avoid one HTTP round trip per link.
  */
 
-import { WIKIDATA_API } from '@core/config/constants';
-import type { TargetWikiDefinition } from '@core/config/targetWikis';
-import { PerseusError } from '@core/errors/PerseusError';
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
-import type { Logger } from '@core/logging/Logger';
+import { WIKIDATA_API } from "@core/config/constants";
+import type { TargetWikiDefinition } from "@core/config/targetWikis";
+import { PerseusError } from "@core/errors/PerseusError";
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { Logger } from "@core/logging/Logger";
 
 export interface LinkResolver {
-  resolve(
-    ir: IntermediateRepresentation,
-  ): Promise<IntermediateRepresentation>,
+  resolve(ir: IntermediateRepresentation): Promise<IntermediateRepresentation>;
 }
 
 const BATCH_SIZE = 50;
@@ -40,10 +38,10 @@ interface WikidataEntitiesResponse {
   entities?: Record<
     string,
     {
-      missing?: string,
-      sitelinks?: Record<string, { title: string }>,
+      missing?: string;
+      sitelinks?: Record<string, { title: string }>;
     }
-  >,
+  >;
 }
 
 function chunk<T>(items: T[], size: number): T[][] {
@@ -57,7 +55,7 @@ function chunk<T>(items: T[], size: number): T[][] {
 }
 
 function normalizeTitle(title: string): string {
-  return title.replaceAll('_', ' ').trim();
+  return title.replaceAll("_", " ").trim();
 }
 
 export class WikidataLinkResolver implements LinkResolver {
@@ -66,9 +64,7 @@ export class WikidataLinkResolver implements LinkResolver {
     private readonly logger?: Logger,
   ) {}
 
-  async resolve(
-    ir: IntermediateRepresentation,
-  ): Promise<IntermediateRepresentation> {
+  async resolve(ir: IntermediateRepresentation): Promise<IntermediateRepresentation> {
     if (ir.links.length === 0) {
       return ir;
     }
@@ -83,13 +79,13 @@ export class WikidataLinkResolver implements LinkResolver {
 
     for (const batch of chunk(uniqueTitles, BATCH_SIZE)) {
       const params = new URLSearchParams({
-        action: 'wbgetentities',
-        sites: 'enwiki',
-        titles: batch.join('|'),
-        props: 'sitelinks',
+        action: "wbgetentities",
+        sites: "enwiki",
+        titles: batch.join("|"),
+        props: "sitelinks",
         sitefilter: `enwiki|${targetSiteKey}`,
-        format: 'json',
-        origin: '*',
+        format: "json",
+        origin: "*",
       });
 
       let response: Response;
@@ -101,10 +97,10 @@ export class WikidataLinkResolver implements LinkResolver {
         // "no target-wiki equivalent" result — surface it as an error rather than
         // silently resolving every link in this batch to null.
         throw new PerseusError(
-          'LinkResolutionError',
-          'Could not reach Wikidata to resolve article links.',
+          "LinkResolutionError",
+          "Could not reach Wikidata to resolve article links.",
           {
-            stage: 'resolve-wikidata-links',
+            stage: "resolve-wikidata-links",
             cause: error,
           },
         );
@@ -112,10 +108,10 @@ export class WikidataLinkResolver implements LinkResolver {
 
       if (!response.ok) {
         throw new PerseusError(
-          'LinkResolutionError',
+          "LinkResolutionError",
           `Wikidata returned an error while resolving links (HTTP ${response.status}).`,
           {
-            stage: 'resolve-wikidata-links',
+            stage: "resolve-wikidata-links",
             context: { status: response.status },
           },
         );
@@ -124,7 +120,9 @@ export class WikidataLinkResolver implements LinkResolver {
       const body = (await response.json()) as WikidataEntitiesResponse;
 
       for (const entity of Object.values(body.entities ?? {})) {
-        if (entity.missing !== undefined) { continue; }
+        if (entity.missing !== undefined) {
+          continue;
+        }
 
         const enTitle = entity.sitelinks?.enwiki?.title;
         const targetTitle = entity.sitelinks?.[targetSiteKey]?.title;
@@ -143,15 +141,14 @@ export class WikidataLinkResolver implements LinkResolver {
     }
 
     for (const link of ir.links) {
-      link.resolvedTarget =
-        resolved.get(normalizeTitle(link.originalTarget)) ?? null;
+      link.resolvedTarget = resolved.get(normalizeTitle(link.originalTarget)) ?? null;
 
       const anchor = ir.structure.linkElements.get(link.id);
 
       if (anchor && link.resolvedTarget) {
         anchor.setAttribute(
-          'href',
-          `./${encodeURIComponent(link.resolvedTarget.replaceAll(' ', '_'))}`,
+          "href",
+          `./${encodeURIComponent(link.resolvedTarget.replaceAll(" ", "_"))}`,
         );
       }
     }

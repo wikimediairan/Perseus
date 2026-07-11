@@ -10,7 +10,7 @@
     "build": "tsc --noEmit && vite build",
     "test": "vitest",
     "format": "prettier . --write",
-    "lint": "eslint . --fix && pnpm run format",
+    "lint": "eslint . --fix",
     "tauri": "tauri",
     "version": "node scripts/sync-version.mjs",
     "prepare": "simple-git-hooks"
@@ -71,10 +71,12 @@
     "vitest": "^4.1.9"
   },
   "nano-staged": {
-    "*.{js,cjs,mjs,ts,md,json}": []
+    "*.{js,cjs,mjs,ts,md,json}": [
+      "pnpm format"
+    ]
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm nano-staged",
-    "pre-push": "pnpm run version & pnpm run test"
+    "pre-push": "pnpm version & pnpm test"
   }
 }

@@ -48,42 +48,42 @@
  *                                             re-derived on resume.
  */
 
-import type { Chunk, Chunker } from '@core/chunker/Chunker';
-import type { TranslatedChunk } from '@core/chunker/segmentProtocol';
-import type { TargetWikiCode } from '@core/config/targetWikis';
-import { PerseusError } from '@core/errors/PerseusError';
-import type { Extractor, TranslationWorklist } from '@core/extractor/Extractor';
-import type { WikitextGenerator } from '@core/generator/WikitextGenerator';
-import type { InputLoader, ArticleSource } from '@core/input/InputLoader';
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
-import type { LinkResolver } from '@core/linkResolver/WikidataLinkResolver';
-import type { Logger } from '@core/logging/Logger';
-import type { Merger } from '@core/merge/Merger';
-import type { Parser } from '@core/parser/ParsoidParser';
-import { buildIRFromParsoidHtml } from '@core/parser/ParsoidParser';
-import type { ReferenceAttentionClassifier } from '@core/referenceAttention/ReferenceAttention';
-import { applySessionChunk } from '@core/translationPackage/import';
-import { calculateSessionProgress } from '@core/translationPackage/progress';
+import type { Chunk, Chunker } from "@core/chunker/Chunker";
+import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
+import type { TargetWikiCode } from "@core/config/targetWikis";
+import { PerseusError } from "@core/errors/PerseusError";
+import type { Extractor, TranslationWorklist } from "@core/extractor/Extractor";
+import type { WikitextGenerator } from "@core/generator/WikitextGenerator";
+import type { InputLoader, ArticleSource } from "@core/input/InputLoader";
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { LinkResolver } from "@core/linkResolver/WikidataLinkResolver";
+import type { Logger } from "@core/logging/Logger";
+import type { Merger } from "@core/merge/Merger";
+import type { Parser } from "@core/parser/ParsoidParser";
+import { buildIRFromParsoidHtml } from "@core/parser/ParsoidParser";
+import type { ReferenceAttentionClassifier } from "@core/referenceAttention/ReferenceAttention";
+import { applySessionChunk } from "@core/translationPackage/import";
+import { calculateSessionProgress } from "@core/translationPackage/progress";
 import type {
   TranslationSession,
   SessionProgress,
   ApplySessionChunkResult,
-} from '@core/translationPackage/types';
-import type { Translator } from '@core/translator/Translator';
+} from "@core/translationPackage/types";
+import type { Translator } from "@core/translator/Translator";
 
 /** Reads the current root HTML from the IR's live DOM. Called exactly once, right after extraction — see ExtractionResult.parsoidSnapshotHtml for why this must never be called again later, once the IR may have been mutated by Merge. */
 function captureSnapshotHtml(ir: IntermediateRepresentation): string {
-  const root = ir.structure.document.getElementById('perseus-root');
+  const root = ir.structure.document.getElementById("perseus-root");
 
   if (!root) {
-    throw new PerseusError('GenerationError', 'The parsed document is missing its root element.');
+    throw new PerseusError("GenerationError", "The parsed document is missing its root element.");
   }
 
   return root.innerHTML;
 }
 
-export { PIPELINE_STAGE_ORDER } from '@core/pipeline/PipelineStage';
-export type { PipelineStageName } from '@core/pipeline/PipelineStage';
+export { PIPELINE_STAGE_ORDER } from "@core/pipeline/PipelineStage";
+export type { PipelineStageName } from "@core/pipeline/PipelineStage";
 
 /**
  * Every collaborator the pipeline needs, injected explicitly (manual
@@ -92,22 +92,22 @@ export type { PipelineStageName } from '@core/pipeline/PipelineStage';
  * annotates the IR without gating pipeline progression.
  */
 export interface PipelineDependencies {
-  logger: Logger,
-  inputLoader: InputLoader,
-  parser: Parser,
-  linkResolver: LinkResolver,
-  extractor: Extractor,
-  chunker: Chunker,
-  translator: Translator,
-  merger: Merger,
-  generator: WikitextGenerator,
-  referenceAttention: ReferenceAttentionClassifier,
+  logger: Logger;
+  inputLoader: InputLoader;
+  parser: Parser;
+  linkResolver: LinkResolver;
+  extractor: Extractor;
+  chunker: Chunker;
+  translator: Translator;
+  merger: Merger;
+  generator: WikitextGenerator;
+  referenceAttention: ReferenceAttentionClassifier;
   /** The target wiki this Pipeline instance was built for (createPipeline reads this from PerseusConfig). Recorded on ExtractionResult so a later save/export can't drift from what Link Resolution actually ran against. */
-  targetWiki: TargetWikiCode,
+  targetWiki: TargetWikiCode;
 }
 
 export interface PipelineResult {
-  wikitext: string,
+  wikitext: string;
 }
 
 /**
@@ -128,11 +128,11 @@ export interface PipelineResult {
  * first one. See translationPackage/export.ts.
  */
 export interface ExtractionResult {
-  ir: IntermediateRepresentation,
-  worklist: TranslationWorklist,
-  rawWikitext: string,
-  targetWiki: TargetWikiCode,
-  parsoidSnapshotHtml: string,
+  ir: IntermediateRepresentation;
+  worklist: TranslationWorklist;
+  rawWikitext: string;
+  targetWiki: TargetWikiCode;
+  parsoidSnapshotHtml: string;
 }
 
 export class Pipeline {
@@ -142,18 +142,16 @@ export class Pipeline {
   async runToExtraction(source: ArticleSource): Promise<ExtractionResult> {
     const { logger } = this.deps;
 
-    logger.forStage('load-article').info('Loading article');
+    logger.forStage("load-article").info("Loading article");
     const article = await this.deps.inputLoader.load(source);
 
-    logger.forStage('parse-with-parsoid').info('Parsing with Parsoid');
+    logger.forStage("parse-with-parsoid").info("Parsing with Parsoid");
     const ir = await this.deps.parser.parse(article);
 
-    logger.forStage('resolve-wikidata-links').info('Resolving Wikidata links');
+    logger.forStage("resolve-wikidata-links").info("Resolving Wikidata links");
     await this.deps.linkResolver.resolve(ir);
 
-    logger
-      .forStage('extract-translatable-nodes')
-      .info('Extracting translatable nodes');
+    logger.forStage("extract-translatable-nodes").info("Extracting translatable nodes");
     const worklist = await this.deps.extractor.extract(ir);
 
     return {
@@ -188,17 +186,15 @@ export class Pipeline {
     const { logger } = this.deps;
 
     logger
-      .forStage('parse-with-parsoid')
-      .info('Reconstructing article from saved session snapshot (no network)');
+      .forStage("parse-with-parsoid")
+      .info("Reconstructing article from saved session snapshot (no network)");
     const ir = buildIRFromParsoidHtml(
       parsoidHtml,
       sourceTitle,
-      logger.forStage('parse-with-parsoid'),
+      logger.forStage("parse-with-parsoid"),
     );
 
-    logger
-      .forStage('extract-translatable-nodes')
-      .info('Extracting translatable nodes');
+    logger.forStage("extract-translatable-nodes").info("Extracting translatable nodes");
     const worklist = await this.deps.extractor.extract(ir);
 
     return { ir, worklist, rawWikitext, targetWiki, parsoidSnapshotHtml: parsoidHtml };
@@ -212,7 +208,7 @@ export class Pipeline {
    * the Design Proposal for why persisted grouping beats re-derivation.
    */
   async deriveChunks(worklist: TranslationWorklist): Promise<Chunk[]> {
-    this.deps.logger.forStage('chunking').info('Chunking');
+    this.deps.logger.forStage("chunking").info("Chunking");
     return this.deps.chunker.chunk(worklist);
   }
 
@@ -241,7 +237,7 @@ export class Pipeline {
    */
   async applySessionChunk(
     ir: IntermediateRepresentation,
-    sessionChunk: TranslationSession['chunks'][number],
+    sessionChunk: TranslationSession["chunks"][number],
   ): Promise<ApplySessionChunkResult> {
     return applySessionChunk(ir, sessionChunk, this.deps.merger);
   }
@@ -253,9 +249,9 @@ export class Pipeline {
 
   /** Generate Wikitext from the current IR. The one step in the whole flow that costs a real network call — always an explicit, final action. */
   async generateWikitext(ir: IntermediateRepresentation): Promise<string> {
-    this.deps.logger.forStage('generate-wikitext').info('Generating Wikitext');
+    this.deps.logger.forStage("generate-wikitext").info("Generating Wikitext");
     const wikitext = await this.deps.generator.generate(ir);
-    this.deps.logger.info('Finished');
+    this.deps.logger.info("Finished");
     return wikitext;
   }
 
@@ -266,9 +262,10 @@ export class Pipeline {
    * the whole thing automatically" is still the common case and
    * shouldn't require the caller to hand-roll the loop.
    */
-  async continueWithBuiltInTranslation(
-    { ir, worklist }: ExtractionResult,
-  ): Promise<PipelineResult> {
+  async continueWithBuiltInTranslation({
+    ir,
+    worklist,
+  }: ExtractionResult): Promise<PipelineResult> {
     const chunks = await this.deriveChunks(worklist);
 
     let currentIr = ir;
@@ -304,9 +301,9 @@ export class Pipeline {
    * simpler "just show me the current Wikitext" case.
    */
   async continueWithSavedSession(session: TranslationSession): Promise<{
-    wikitext: string,
-    progress: SessionProgress,
-    ignoredUnknownIds: string[],
+    wikitext: string;
+    progress: SessionProgress;
+    ignoredUnknownIds: string[];
   }> {
     const extraction = await this.reconstructFromSnapshot(
       session.snapshot.parsoidHtml,

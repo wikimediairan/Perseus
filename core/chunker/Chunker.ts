@@ -11,27 +11,22 @@
  * remain a known limitation (documented in the README).
  */
 
-import type {
-  TranslationUnit,
-  TranslationWorklist,
-} from '@core/extractor/Extractor';
+import type { TranslationUnit, TranslationWorklist } from "@core/extractor/Extractor";
 
 export interface Chunk {
-  id: string,
-  units: TranslationUnit[],
+  id: string;
+  units: TranslationUnit[];
 }
 
 export interface Chunker {
-  chunk(worklist: TranslationWorklist): Promise<Chunk[]>,
+  chunk(worklist: TranslationWorklist): Promise<Chunk[]>;
 }
 
 /** Roughly bounds the combined size of one LLM request's translatable text. Conservative default suitable for most local/hosted models. */
 export const DEFAULT_MAX_CHUNK_CHARS = 2500;
 
 export class SizeBoundedChunker implements Chunker {
-  constructor(
-    private readonly maxChunkChars: number = DEFAULT_MAX_CHUNK_CHARS,
-  ) {}
+  constructor(private readonly maxChunkChars: number = DEFAULT_MAX_CHUNK_CHARS) {}
 
   async chunk(worklist: TranslationWorklist): Promise<Chunk[]> {
     const chunks: Chunk[] = [];

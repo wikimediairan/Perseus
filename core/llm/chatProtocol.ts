@@ -10,28 +10,26 @@
  * defaults, per Provider Abstraction).
  */
 
-import { PerseusError } from '@core/errors/PerseusError';
+import { PerseusError } from "@core/errors/PerseusError";
 
 export interface ChatCompletionParams {
-  url: string,
-  apiKey?: string,
-  model: string,
-  systemPrompt: string,
-  userMessage: string,
-  extraHeaders?: Record<string, string>,
-  providerLabel: string,
+  url: string;
+  apiKey?: string;
+  model: string;
+  systemPrompt: string;
+  userMessage: string;
+  extraHeaders?: Record<string, string>;
+  providerLabel: string;
 }
 
 interface ChatCompletionResponse {
-  choices?: { message?: { content?: string } }[],
-  error?: { message?: string },
+  choices?: { message?: { content?: string } }[];
+  error?: { message?: string };
 }
 
-export async function chatCompletion(
-  params: ChatCompletionParams,
-): Promise<string> {
+export async function chatCompletion(params: ChatCompletionParams): Promise<string> {
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(params.apiKey ? { Authorization: `Bearer ${params.apiKey}` } : {}),
     ...params.extraHeaders,
   };
@@ -40,48 +38,46 @@ export async function chatCompletion(
 
   try {
     response = await fetch(params.url, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: JSON.stringify({
         model: params.model,
         messages: [
-          { role: 'system', content: params.systemPrompt },
-          { role: 'user', content: params.userMessage },
+          { role: "system", content: params.systemPrompt },
+          { role: "user", content: params.userMessage },
         ],
         temperature: 0.3,
       }),
     });
   } catch (error) {
     throw new PerseusError(
-      'ProviderError',
+      "ProviderError",
       `Could not reach ${params.providerLabel} at ${params.url}.`,
       {
-        stage: 'llm-translation',
+        stage: "llm-translation",
         cause: error,
       },
     );
   }
 
-  const body = (await response
-    .json()
-    .catch(() => ({}))) as ChatCompletionResponse;
+  const body = (await response.json().catch(() => ({}))) as ChatCompletionResponse;
 
   if (!response.ok) {
     throw new PerseusError(
-      'ProviderError',
-      `${params.providerLabel} request failed (HTTP ${response.status}): ${body.error?.message ?? 'unknown error'}`,
-      { stage: 'llm-translation', context: { status: response.status } },
+      "ProviderError",
+      `${params.providerLabel} request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
+      { stage: "llm-translation", context: { status: response.status } },
     );
   }
 
   const content = body.choices?.[0]?.message?.content;
 
-  if (typeof content !== 'string' || !content.trim()) {
+  if (typeof content !== "string" || !content.trim()) {
     throw new PerseusError(
-      'ProviderError',
+      "ProviderError",
       `${params.providerLabel} returned an empty translation.`,
       {
-        stage: 'llm-translation',
+        stage: "llm-translation",
       },
     );
   }

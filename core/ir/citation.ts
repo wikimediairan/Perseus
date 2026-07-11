@@ -16,7 +16,7 @@
  * consumes the registry during Merge/Generation.
  */
 
-import type { Logger } from '@core/logging/Logger';
+import type { Logger } from "@core/logging/Logger";
 
 /** Stable id for a citation definition or reference, same scheme as LinkNode/TextNode ids (e.g. "cite-1"). */
 export type CitationId = string;
@@ -27,11 +27,11 @@ export type CitationId = string;
  * this is purely for logging/UI/future extension.
  */
 export type CitationStyle =
-  | 'sfn' // {{sfn|...}} short-footnote
-  | 'harv' // {{harv|...}} / {{harvnb|...}}
-  | 'unknown' // couldn't classify — still preserved verbatim regardless
-  | 'plain-text' // free-text <ref> body, no recognized template
-  | 'cite-template'; // {{cite book}}, {{cite web}}, {{cite journal}}, ...
+  | "sfn" // {{sfn|...}} short-footnote
+  | "harv" // {{harv|...}} / {{harvnb|...}}
+  | "unknown" // couldn't classify — still preserved verbatim regardless
+  | "plain-text" // free-text <ref> body, no recognized template
+  | "cite-template"; // {{cite book}}, {{cite web}}, {{cite journal}}, ...
 
 /**
  * A single translatable parameter value inside a citation (e.g. a
@@ -40,9 +40,9 @@ export type CitationStyle =
  */
 export interface CitationParameterRef {
   /** id of an ordinary IR TextNode holding this parameter's value, reusing the existing Extract/Translate/Merge path. */
-  textNodeId: string,
+  textNodeId: string;
   /** e.g. "title", "quote" — informational only. */
-  parameterName: string,
+  parameterName: string;
 }
 
 /**
@@ -56,22 +56,22 @@ export interface CitationParameterRef {
  * `snapshotHtml` wins (see CitationRegistry.getReferenceHtml).
  */
 export interface CitationDefinition {
-  id: CitationId,
+  id: CitationId;
   /** null = anonymous <ref>...</ref>, never reused by name. */
-  name: null | string,
+  name: null | string;
   /** <ref group="..."> if present. */
-  group: null | string,
-  style: CitationStyle,
+  group: null | string;
+  style: CitationStyle;
   /** dir="ltr"/"rtl" if present, preserved verbatim regardless of this field's presence. */
-  dir: null | 'ltr' | 'rtl',
+  dir: null | "ltr" | "rtl";
   /** Live DOM node holding this citation's content. Identity/debugging only — never read from for reconstruction. */
-  element: null | Element,
+  element: null | Element;
   /** The registry's authoritative snapshot of this citation's HTML, captured once at build time. */
-  snapshotHtml: string,
+  snapshotHtml: string;
   /** ids of every CitationReference resolving to this definition, including the defining occurrence itself. */
-  referencedBy: CitationId[],
+  referencedBy: CitationId[];
   /** Reserved extension point — see CitationParameterRef. Always empty for now. */
-  translatableParameters: CitationParameterRef[],
+  translatableParameters: CitationParameterRef[];
 }
 
 /**
@@ -80,32 +80,32 @@ export interface CitationDefinition {
  * `snapshotHtml` — not `element` — is authoritative.
  */
 export interface CitationReference {
-  id: CitationId,
-  name: null | string,
-  group: null | string,
+  id: CitationId;
+  name: null | string;
+  group: null | string;
   /** True for the occurrence that carries the citation's body content. */
-  isDefining: boolean,
+  isDefining: boolean;
   /** Resolved id of the CitationDefinition this points to, or null if unresolved. */
-  definitionId: null | CitationId,
+  definitionId: null | CitationId;
   /** Live DOM node for this call site. Identity/debugging only — never read from for reconstruction. */
-  element: null | Element,
+  element: null | Element;
   /** The registry's authoritative snapshot of this reference's HTML, captured once at build time. */
-  snapshotHtml: string,
+  snapshotHtml: string;
 }
 
 export type CitationWarningKind =
-  | 'html-drift' // the live DOM's HTML no longer matches the registry's snapshot; the snapshot was used
-  | 'orphan-definition' // a definition nothing references
-  | 'malformed-reference' // couldn't parse this citation's data at all
-  | 'duplicate-definition' // the same name defines a body more than once
-  | 'unsupported-structure' // an unrecognized/unsupported citation structure
-  | 'missing-named-definition'; // a reference names a citation with no definition anywhere
+  | "html-drift" // the live DOM's HTML no longer matches the registry's snapshot; the snapshot was used
+  | "orphan-definition" // a definition nothing references
+  | "malformed-reference" // couldn't parse this citation's data at all
+  | "duplicate-definition" // the same name defines a body more than once
+  | "unsupported-structure" // an unrecognized/unsupported citation structure
+  | "missing-named-definition"; // a reference names a citation with no definition anywhere
 
 export interface CitationRegistryWarning {
-  kind: CitationWarningKind,
-  message: string,
-  citationId?: CitationId,
-  name?: null | string,
+  kind: CitationWarningKind;
+  message: string;
+  citationId?: CitationId;
+  name?: null | string;
 }
 
 /**
@@ -143,7 +143,7 @@ export class CitationRegistry {
 
       if (existingId !== undefined && existingId !== def.id) {
         this.warnings.push({
-          kind: 'duplicate-definition',
+          kind: "duplicate-definition",
           message: `Citation name "${def.name}" is defined more than once; keeping the first definition.`,
           citationId: def.id,
           name: def.name,
@@ -174,7 +174,7 @@ export class CitationRegistry {
         definitionId = resolved;
       } else {
         this.warnings.push({
-          kind: 'missing-named-definition',
+          kind: "missing-named-definition",
           message: `Reference to citation "${ref.name}" has no matching definition.`,
           citationId: ref.id,
           name: ref.name,
@@ -203,10 +203,10 @@ export class CitationRegistry {
     for (const def of this.definitions.values()) {
       if (def.referencedBy.length === 0) {
         this.warnings.push({
-          kind: 'orphan-definition',
+          kind: "orphan-definition",
           message: def.name
             ? `Citation "${def.name}" is defined but never referenced.`
-            : 'An anonymous citation is defined but never referenced.',
+            : "An anonymous citation is defined but never referenced.",
           citationId: def.id,
           name: def.name,
         });
@@ -244,24 +244,22 @@ export class CitationRegistry {
    * snapshot is returned either way — disagreement is resolved in the
    * registry's favor, not the DOM's.
    */
-  getReferenceHtml(
-    id: CitationId,
-    liveElement?: null | Element,
-  ): string | undefined {
+  getReferenceHtml(id: CitationId, liveElement?: null | Element): string | undefined {
     const ref = this.referencesById.get(id);
-    if (!ref) { return undefined; }
+    if (!ref) {
+      return undefined;
+    }
 
     this.checkDrift(id, ref.name, ref.snapshotHtml, liveElement);
     return ref.snapshotHtml;
   }
 
   /** Same rule as getReferenceHtml, for a definition's own HTML. */
-  getDefinitionHtml(
-    id: CitationId,
-    liveElement?: null | Element,
-  ): string | undefined {
+  getDefinitionHtml(id: CitationId, liveElement?: null | Element): string | undefined {
     const def = this.definitions.get(id);
-    if (!def) { return undefined; }
+    if (!def) {
+      return undefined;
+    }
 
     this.checkDrift(id, def.name, def.snapshotHtml, liveElement);
     return def.snapshotHtml;
@@ -273,11 +271,13 @@ export class CitationRegistry {
     snapshotHtml: string,
     liveElement?: null | Element,
   ): void {
-    if (!liveElement) { return; }
+    if (!liveElement) {
+      return;
+    }
 
     if (liveElement.outerHTML !== snapshotHtml) {
       this.warnings.push({
-        kind: 'html-drift',
+        kind: "html-drift",
         message: `Citation "${id}"'s current HTML no longer matches the registry's snapshot; using the registry's version.`,
         citationId: id,
         name,

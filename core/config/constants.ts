@@ -15,7 +15,7 @@
  */
 
 /** Source wiki. Fixed per the project's scope (English -> any supported target wiki only). */
-export const WIKIPEDIA_DOMAIN = 'en.wikipedia.org';
+export const WIKIPEDIA_DOMAIN = "en.wikipedia.org";
 
 /** Wikidata's own API, used for Link Resolution (Software Specification, Link Resolution). */
-export const WIKIDATA_API = 'https://www.wikidata.org/w/api.php';
+export const WIKIDATA_API = "https://www.wikidata.org/w/api.php";

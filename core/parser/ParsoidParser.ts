@@ -26,25 +26,22 @@
  * SAME builder, not two parsers — "shared reconstruction path."
  */
 
-import { WIKIPEDIA_DOMAIN } from '@core/config/constants';
-import { PerseusError } from '@core/errors/PerseusError';
-import type { LoadedArticle } from '@core/input/InputLoader';
-import type {
-  TextNode,
-  IntermediateRepresentation,
-} from '@core/ir/IntermediateRepresentation';
-import type { LinkNode } from '@core/ir/LinkNode';
-import type { Logger } from '@core/logging/Logger';
-import { buildCitationRegistry } from '@core/parser/citations';
-import { flattenToPlaceholderText } from '@core/parser/placeholders';
+import { WIKIPEDIA_DOMAIN } from "@core/config/constants";
+import { PerseusError } from "@core/errors/PerseusError";
+import type { LoadedArticle } from "@core/input/InputLoader";
+import type { TextNode, IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { LinkNode } from "@core/ir/LinkNode";
+import type { Logger } from "@core/logging/Logger";
+import { buildCitationRegistry } from "@core/parser/citations";
+import { flattenToPlaceholderText } from "@core/parser/placeholders";
 
 export interface Parser {
-  parse(article: LoadedArticle): Promise<IntermediateRepresentation>,
+  parse(article: LoadedArticle): Promise<IntermediateRepresentation>;
 }
 
 /** Block-level elements whose content is eligible for translation, provided they aren't inside a protected region. */
 const TRANSLATABLE_BLOCK_SELECTOR =
-  'p, li, dd, dt, th, td, h1, h2, h3, h4, h5, h6, blockquote, figcaption';
+  "p, li, dd, dt, th, td, h1, h2, h3, h4, h5, h6, blockquote, figcaption";
 
 /**
  * True if `el` is a template transclusion, OR is a citation definition
@@ -59,14 +56,12 @@ function isInsideProtectedRegion(el: Element): boolean {
   let node: null | Element = el;
 
   while (node) {
-    const typeofAttr = node.getAttribute('typeof') || '';
+    const typeofAttr = node.getAttribute("typeof") || "";
 
     if (
       typeofAttr
         .split(/\s+/)
-        .some(
-          (t) => t.startsWith('mw:Transclusion') || t.startsWith('mw:Extension/ref'),
-        )
+        .some((t) => t.startsWith("mw:Transclusion") || t.startsWith("mw:Extension/ref"))
     ) {
       return true;
     }
@@ -86,40 +81,33 @@ function isInsideProtectedRegion(el: Element): boolean {
  * POST body statelessly; `title` only provides template-expansion
  * context).
  */
-export async function fetchParsoidHtml(
-  rawWikitext: string,
-  sourceTitle: string,
-): Promise<string> {
-  const title = encodeURIComponent(sourceTitle || 'Untitled');
+export async function fetchParsoidHtml(rawWikitext: string, sourceTitle: string): Promise<string> {
+  const title = encodeURIComponent(sourceTitle || "Untitled");
   const endpoint = `https://${WIKIPEDIA_DOMAIN}/api/rest_v1/transform/wikitext/to/html/${title}`;
 
   let response: Response;
 
   try {
     response = await fetch(endpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         wikitext: rawWikitext,
-        body_only: 'true',
+        body_only: "true",
       }).toString(),
     });
   } catch (error) {
-    throw new PerseusError(
-      'ParsingError',
-      'Could not reach the Parsoid parsing service.',
-      {
-        stage: 'parse-with-parsoid',
-        cause: error,
-      },
-    );
+    throw new PerseusError("ParsingError", "Could not reach the Parsoid parsing service.", {
+      stage: "parse-with-parsoid",
+      cause: error,
+    });
   }
 
   if (!response.ok) {
     throw new PerseusError(
-      'ParsingError',
+      "ParsingError",
       `Parsoid parsing failed (HTTP ${response.status}). The article may contain markup Parsoid could not process.`,
-      { stage: 'parse-with-parsoid', context: { status: response.status } },
+      { stage: "parse-with-parsoid", context: { status: response.status } },
     );
   }
 
@@ -148,16 +136,16 @@ export function buildIRFromParsoidHtml(
 
   const document = new DOMParser().parseFromString(
     `<div id="perseus-root">${html}</div>`,
-    'text/html',
+    "text/html",
   );
-  const root = document.getElementById('perseus-root');
+  const root = document.getElementById("perseus-root");
 
   if (!root) {
     throw new PerseusError(
-      'ParsingError',
-      'Parsoid returned content that could not be parsed as HTML.',
+      "ParsingError",
+      "Parsoid returned content that could not be parsed as HTML.",
       {
-        stage: 'parse-with-parsoid',
+        stage: "parse-with-parsoid",
       },
     );
   }
@@ -167,7 +155,7 @@ export function buildIRFromParsoidHtml(
   const nodeElements = new Map<string, Element>();
   const placeholdersMap = new Map<
     string,
-    ReturnType<typeof flattenToPlaceholderText>['placeholders']
+    ReturnType<typeof flattenToPlaceholderText>["placeholders"]
   >();
   const linkElements = new Map<string, Element>();
 
@@ -181,11 +169,15 @@ export function buildIRFromParsoidHtml(
 
   // Links: every internal wiki link Parsoid identified, anywhere in the document.
   for (const a of root.querySelectorAll('a[rel~="mw:WikiLink"]')) {
-    if (isInsideProtectedRegion(a)) { continue; }
+    if (isInsideProtectedRegion(a)) {
+      continue;
+    }
 
-    const href = a.getAttribute('href') ?? '';
-    const originalTarget = decodeURIComponent(href.replace(/^\.\//, ''));
-    if (!originalTarget) { continue; }
+    const href = a.getAttribute("href") ?? "";
+    const originalTarget = decodeURIComponent(href.replace(/^\.\//, ""));
+    if (!originalTarget) {
+      continue;
+    }
 
     const id = `link-${++linkIdCounter}`;
     links.push({
@@ -200,13 +192,19 @@ export function buildIRFromParsoidHtml(
   // Text nodes: eligible block-level elements, skipping anything inside a
   // template or a citation definition/reference list (isInsideProtectedRegion).
   for (const block of root.querySelectorAll(TRANSLATABLE_BLOCK_SELECTOR)) {
-    if (isInsideProtectedRegion(block)) { continue; }
+    if (isInsideProtectedRegion(block)) {
+      continue;
+    }
 
     // Avoid double-extracting nested eligible blocks (e.g. <td><p>...) — only the innermost is a leaf.
-    if (block.querySelector(TRANSLATABLE_BLOCK_SELECTOR)) { continue; }
+    if (block.querySelector(TRANSLATABLE_BLOCK_SELECTOR)) {
+      continue;
+    }
 
     const { text, placeholders } = flattenToPlaceholderText(block, citations);
-    if (!text) { continue; }
+    if (!text) {
+      continue;
+    }
 
     const id = `text-${++textIdCounter}`;
     textNodes.push({ id, text });
@@ -232,10 +230,7 @@ export class WikipediaParsoidParser implements Parser {
   constructor(private readonly logger?: Logger) {}
 
   async parse(article: LoadedArticle): Promise<IntermediateRepresentation> {
-    const html = await fetchParsoidHtml(
-      article.rawWikitext,
-      article.sourceTitle,
-    );
+    const html = await fetchParsoidHtml(article.rawWikitext, article.sourceTitle);
     return buildIRFromParsoidHtml(html, article.sourceTitle, this.logger);
   }
 }

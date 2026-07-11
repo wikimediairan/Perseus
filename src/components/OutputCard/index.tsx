@@ -21,7 +21,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
-
 export function OutputCard({
   wikitext,
   targetWiki,

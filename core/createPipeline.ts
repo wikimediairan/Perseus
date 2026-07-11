@@ -11,23 +11,22 @@
  * injection" principle.
  */
 
-
-import { SizeBoundedChunker } from '@core/chunker/Chunker';
-import type { PerseusConfig } from '@core/config/Config';
-import { getTargetWiki } from '@core/config/targetWikis';
-import { WikipediaExtractor } from '@core/extractor/Extractor';
-import { WikipediaWikitextGenerator } from '@core/generator/WikitextGenerator';
-import { WikipediaInputLoader } from '@core/input/InputLoader';
-import { WikidataLinkResolver } from '@core/linkResolver/WikidataLinkResolver';
-import { createProvider } from '@core/llm/ProviderFactory';
-import { ConsoleLogger } from '@core/logging/Logger';
-import type { Logger } from '@core/logging/Logger';
-import { DomMerger } from '@core/merge/Merger';
-import { WikipediaParsoidParser } from '@core/parser/ParsoidParser';
-import { Pipeline } from '@core/pipeline/Pipeline';
-import { DefaultPromptManager } from '@core/prompt/PromptManager';
-import { HeuristicReferenceAttentionClassifier } from '@core/referenceAttention/ReferenceAttention';
-import { LLMTranslator } from '@core/translator/Translator';
+import { SizeBoundedChunker } from "@core/chunker/Chunker";
+import type { PerseusConfig } from "@core/config/Config";
+import { getTargetWiki } from "@core/config/targetWikis";
+import { WikipediaExtractor } from "@core/extractor/Extractor";
+import { WikipediaWikitextGenerator } from "@core/generator/WikitextGenerator";
+import { WikipediaInputLoader } from "@core/input/InputLoader";
+import { WikidataLinkResolver } from "@core/linkResolver/WikidataLinkResolver";
+import { createProvider } from "@core/llm/ProviderFactory";
+import { ConsoleLogger } from "@core/logging/Logger";
+import type { Logger } from "@core/logging/Logger";
+import { DomMerger } from "@core/merge/Merger";
+import { WikipediaParsoidParser } from "@core/parser/ParsoidParser";
+import { Pipeline } from "@core/pipeline/Pipeline";
+import { DefaultPromptManager } from "@core/prompt/PromptManager";
+import { HeuristicReferenceAttentionClassifier } from "@core/referenceAttention/ReferenceAttention";
+import { LLMTranslator } from "@core/translator/Translator";
 
 export function createPipeline(
   config: PerseusConfig,
@@ -40,21 +39,18 @@ export function createPipeline(
   return new Pipeline({
     logger,
     inputLoader: new WikipediaInputLoader(),
-    parser: new WikipediaParsoidParser(logger.forStage('parse-with-parsoid')),
-    linkResolver: new WikidataLinkResolver(
-      targetWiki,
-      logger.forStage('resolve-wikidata-links'),
-    ),
+    parser: new WikipediaParsoidParser(logger.forStage("parse-with-parsoid")),
+    linkResolver: new WikidataLinkResolver(targetWiki, logger.forStage("resolve-wikidata-links")),
     extractor: new WikipediaExtractor(),
     chunker: new SizeBoundedChunker(),
     translator: new LLMTranslator(
       provider,
       promptManager,
       targetWiki,
-      logger.forStage('llm-translation'),
+      logger.forStage("llm-translation"),
       config.prompt.userPrompt,
     ),
-    merger: new DomMerger(logger.forStage('merge')),
+    merger: new DomMerger(logger.forStage("merge")),
     generator: new WikipediaWikitextGenerator(),
     referenceAttention: new HeuristicReferenceAttentionClassifier(),
     targetWiki: config.targetWiki,

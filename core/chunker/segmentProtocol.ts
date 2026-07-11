@@ -16,40 +16,37 @@
  * addressable on the way back.
  */
 
-import type { Chunk } from '@core/chunker/Chunker';
+import type { Chunk } from "@core/chunker/Chunker";
 
 /** The translated result for one TranslationUnit — text only, no structural editing (Spec Section 10). */
 export interface TranslatedUnit {
-  nodeId: string,
-  sourceText: string,
-  translatedText: string,
+  nodeId: string;
+  sourceText: string;
+  translatedText: string;
 }
 
 /** The translated result for one Chunk — same `id` as the Chunk it came from. */
 export interface TranslatedChunk {
-  id: string,
-  units: TranslatedUnit[],
+  id: string;
+  units: TranslatedUnit[];
 }
 
 export const SEGMENT_FORMAT_INSTRUCTIONS = [
-  'The user message contains one or more numbered segments, each introduced',
+  "The user message contains one or more numbered segments, each introduced",
   'by a marker on its own line in the exact form "[[SEGMENT n]]" (n is an',
-  'integer). Translate the text of every segment. Reproduce',
+  "integer). Translate the text of every segment. Reproduce",
   'every "[[SEGMENT n]]" marker in your response, unchanged and in the same',
-  'order, immediately before the translation of that segment\'s text.',
-  'Do not add commentary, explanations, or any segments that were not present',
-  'in the input.',
-].join(' ');
+  "order, immediately before the translation of that segment's text.",
+  "Do not add commentary, explanations, or any segments that were not present",
+  "in the input.",
+].join(" ");
 
 /** Renders a Chunk as one piece of plain text — the built-in LLM provider's request body, and the exact text a "Copy" button in the UI copies. Single-unit chunks still get one marker, for consistency: the parser doesn't need a special case, and it costs nothing since there is no demultiplexing ambiguity anyway. */
 export function renderChunkForTranslation(chunk: Chunk): string {
-  return chunk.units
-    .map((unit, i) => `[[SEGMENT ${i + 1}]]\n${unit.sourceText}`)
-    .join('\n\n');
+  return chunk.units.map((unit, i) => `[[SEGMENT ${i + 1}]]\n${unit.sourceText}`).join("\n\n");
 }
 
-const SEGMENT_PATTERN =
-  /\[\[SEGMENT (\d+)\]\]\s*([\s\S]*?)(?=\[\[SEGMENT \d+\]\]|$)/g;
+const SEGMENT_PATTERN = /\[\[SEGMENT (\d+)\]\]\s*([\s\S]*?)(?=\[\[SEGMENT \d+\]\]|$)/g;
 
 /** Parses a segmented response text (from an LLM provider OR pasted by a human) back into a number -> translated-text map. Exported mainly for testing; callers should use `parseChunkTranslation`. */
 export function parseSegmentedText(responseText: string): Map<number, string> {
@@ -58,7 +55,9 @@ export function parseSegmentedText(responseText: string): Map<number, string> {
   for (const match of responseText.matchAll(SEGMENT_PATTERN)) {
     const n = Number(match[1]);
     const text = match[2].trim();
-    if (text) { result.set(n, text); }
+    if (text) {
+      result.set(n, text);
+    }
   }
 
   return result;
@@ -76,7 +75,7 @@ export function parseSegmentedText(responseText: string): Map<number, string> {
 export function parseChunkTranslation(
   chunk: Chunk,
   responseText: string,
-): { units: TranslatedUnit[], missingUnitIds: string[] } {
+): { units: TranslatedUnit[]; missingUnitIds: string[] } {
   const parsed = parseSegmentedText(responseText);
   const units: TranslatedUnit[] = [];
   const missingUnitIds: string[] = [];

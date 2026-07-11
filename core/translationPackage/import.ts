@@ -30,10 +30,10 @@
  * like the built-in LLM executor does via Pipeline.mergeChunk.
  */
 
-import type { TranslatedUnit } from '@core/chunker/segmentProtocol';
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
-import type { Merger } from '@core/merge/Merger';
-import type { SessionChunk, ApplySessionChunkResult } from '@core/translationPackage/types';
+import type { TranslatedUnit } from "@core/chunker/segmentProtocol";
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { Merger } from "@core/merge/Merger";
+import type { SessionChunk, ApplySessionChunkResult } from "@core/translationPackage/types";
 
 /**
  * Applies one session chunk's translation entries onto an IR that has
@@ -66,10 +66,7 @@ export async function applySessionChunk(
     units.push({ nodeId, sourceText: node.text, translatedText: text }); // rule 2
   }
 
-  const mergedIr =
-    units.length > 0
-      ? await merger.merge(ir, [{ id: sessionChunk.id, units }])
-      : ir;
+  const mergedIr = units.length > 0 ? await merger.merge(ir, [{ id: sessionChunk.id, units }]) : ir;
 
   return {
     ir: mergedIr,

@@ -66,7 +66,9 @@ export function ChunkWorkspace({
   async function handleCopyPrompt() {
     onCopyGeneralPrompt();
     setPromptCopied(true);
-    setTimeout(() => { setPromptCopied(false); }, 1500);
+    setTimeout(() => {
+      setPromptCopied(false);
+    }, 1500);
   }
 
   const allDone = progress.total > 0 && progress.translated === progress.total;
@@ -82,8 +84,15 @@ export function ChunkWorkspace({
           <Button type="button" variant="outline" size="sm" onClick={handleCopyPrompt}>
             {promptCopied ? t("common.copied") : t("chunkWorkspace.copyGeneralPrompt")}
           </Button>
-          <Button type="button" size="sm" disabled={disabled || translateAllBusy || allDone} onClick={onTranslateAllBuiltIn}>
-            {translateAllBusy ? t("chunkWorkspace.translatingAll") : t("chunkWorkspace.translateAllBuiltIn")}
+          <Button
+            type="button"
+            size="sm"
+            disabled={disabled || translateAllBusy || allDone}
+            onClick={onTranslateAllBuiltIn}
+          >
+            {translateAllBusy
+              ? t("chunkWorkspace.translatingAll")
+              : t("chunkWorkspace.translateAllBuiltIn")}
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={handleSave}>
             {saveState === "saved"
@@ -115,9 +124,15 @@ export function ChunkWorkspace({
               missingCount={chunkState.missingByChunkId.get(chunk.id) ?? 0}
               busy={chunkState.busyChunkIds.has(chunk.id)}
               disabled={disabled}
-              onCopy={() => { onCopyChunk(chunk); }}
-              onTranslateBuiltIn={() => { onTranslateChunkBuiltIn(chunk); }}
-              onPasteTranslation={(text) => { onPasteChunkTranslation(chunk, text); }}
+              onCopy={() => {
+                onCopyChunk(chunk);
+              }}
+              onTranslateBuiltIn={() => {
+                onTranslateChunkBuiltIn(chunk);
+              }}
+              onPasteTranslation={(text) => {
+                onPasteChunkTranslation(chunk, text);
+              }}
             />
           ))}
         </div>

@@ -26,10 +26,7 @@ import type {
   TranslationSession,
   TranslationEntryTuple,
 } from "@core/translationPackage/types";
-import {
-  PACKAGE_FORMAT_MARKER,
-  CURRENT_FORMAT_VERSION,
-} from "@core/translationPackage/types";
+import { PACKAGE_FORMAT_MARKER, CURRENT_FORMAT_VERSION } from "@core/translationPackage/types";
 
 /** Shown to the user alongside a saved session (e.g. in the UI) — not stored in the JSON itself, since the schema is fixed. */
 export const EXTERNAL_TRANSLATION_INSTRUCTIONS =

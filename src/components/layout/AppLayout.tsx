@@ -9,7 +9,9 @@ interface AppLayoutProps {
 export function AppLayout({ header, sidebar, children }: AppLayoutProps) {
   return (
     <div
-      onContextMenu={(e) => { e.preventDefault(); }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+      }}
       className="flex h-screen w-screen flex-col overflow-hidden bg-background select-none"
     >
       <div className="shrink-0 border-b border-border bg-background">

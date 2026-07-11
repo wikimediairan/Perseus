@@ -13,16 +13,16 @@
  * placeholder token with nothing else).
  */
 
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 
 export interface TranslationUnit {
-  nodeId: string,
-  sourceText: string,
+  nodeId: string;
+  sourceText: string;
 }
 export type TranslationWorklist = TranslationUnit[];
 
 export interface Extractor {
-  extract(ir: IntermediateRepresentation): Promise<TranslationWorklist>,
+  extract(ir: IntermediateRepresentation): Promise<TranslationWorklist>;
 }
 
 /** Matches strings with no meaningful letter content (pure numbers, punctuation, or placeholder tokens only). */
@@ -33,14 +33,9 @@ export class WikipediaExtractor implements Extractor {
     const worklist: TranslationWorklist = [];
 
     for (const node of ir.textNodes) {
-      const withoutPlaceholderTokens = node.text.replaceAll(
-        /\u27EA\/?\d+\u27EB/g,
-        '',
-      );
+      const withoutPlaceholderTokens = node.text.replaceAll(/\u27EA\/?\d+\u27EB/g, "");
 
-      if (
-        !withoutPlaceholderTokens.trim() || NO_LETTERS.test(withoutPlaceholderTokens)
-      ) {
+      if (!withoutPlaceholderTokens.trim() || NO_LETTERS.test(withoutPlaceholderTokens)) {
         continue;
       }
 

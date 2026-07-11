@@ -58,11 +58,15 @@ export function ChunkRow({
     return (
       <button
         type="button"
-        onClick={() => { setExpanded(true); }}
+        onClick={() => {
+          setExpanded(true);
+        }}
         className="flex w-full items-center justify-between gap-2 rounded-md border border-border bg-secondary/40 p-2.5 text-left text-xs transition-colors hover:bg-secondary"
       >
         <span className="flex items-center gap-2 text-muted-foreground">
-          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">✓</span>
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+            ✓
+          </span>
           {t("chunkWorkspace.chunkLabel", { index: index + 1 })}
         </span>
         <span className="text-muted-foreground">{t("chunkWorkspace.editAgain")}</span>
@@ -79,14 +83,20 @@ export function ChunkRow({
             isDone ? "text-primary" : "text-muted-foreground",
           )}
         >
-          {isDone && <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">✓</span>}
+          {isDone && (
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground">
+              ✓
+            </span>
+          )}
           {t("chunkWorkspace.chunkLabel", { index: index + 1 })}
         </span>
         {isDone && (
           <button
             type="button"
             className="text-xs text-muted-foreground hover:text-foreground"
-            onClick={() => { setExpanded(false); }}
+            onClick={() => {
+              setExpanded(false);
+            }}
           >
             {t("chunkWorkspace.collapse")}
           </button>
@@ -105,7 +115,13 @@ export function ChunkRow({
         <Button type="button" variant="outline" size="sm" disabled={disabled} onClick={onCopy}>
           {t("chunkWorkspace.copyChunk")}
         </Button>
-        <Button type="button" variant="outline" size="sm" disabled={disabled || busy} onClick={onTranslateBuiltIn}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={disabled || busy}
+          onClick={onTranslateBuiltIn}
+        >
           {busy ? t("chunkWorkspace.translating") : t("chunkWorkspace.translateWithBuiltIn")}
         </Button>
       </div>
@@ -115,7 +131,9 @@ export function ChunkRow({
         disabled={disabled}
         placeholder={t("chunkWorkspace.pastePlaceholder")}
         value={draft}
-        onChange={(e) => { setDraft(e.target.value); }}
+        onChange={(e) => {
+          setDraft(e.target.value);
+        }}
         onBlur={applyDraft}
       />
 

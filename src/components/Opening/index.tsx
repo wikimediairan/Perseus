@@ -10,12 +10,16 @@ export function Opening({ onFinished }: SplashProps) {
 
   useEffect(() => {
     const timer = setTimeout(onFinished, 5000);
-    return () => { clearTimeout(timer); };
+    return () => {
+      clearTimeout(timer);
+    };
   }, [onFinished]);
 
   return (
     <main
-      onContextMenu={(e) => { e.preventDefault(); }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+      }}
       className="flex h-screen w-screen items-center justify-center bg-background select-none"
     >
       <div className="animate-splash flex flex-col items-center gap-6 text-center">

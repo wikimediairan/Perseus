@@ -21,7 +21,6 @@ import { useChunkWorkspace } from "@/hooks/useChunkWorkspace";
 import { useConfig } from "@/hooks/useConfig";
 import { useUpdateChecker } from "@/hooks/useUpdateChecker";
 
-
 const LOAD_PHASE_STAGE_COUNT = 5;
 
 export default function App() {

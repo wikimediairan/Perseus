@@ -13,48 +13,42 @@
  * than bending a shared helper to fit a third shape.
  */
 
-import { PerseusError } from '@core/errors/PerseusError';
+import { PerseusError } from "@core/errors/PerseusError";
 import type {
   LLMProvider,
   LLMProviderKind,
   TranslationResult,
   TranslationRequest,
-} from '@core/llm/LLMProvider';
-
+} from "@core/llm/LLMProvider";
 
 export interface GeminiProviderConfig {
-  apiKey?: string,
-  model: string,
+  apiKey?: string;
+  model: string;
 }
 
-const GEMINI_API_BASE =
-  'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
 interface GeminiGenerateContentResponse {
-  candidates?: { content?: { parts?: { text?: string }[] } }[],
-  error?: { message?: string },
+  candidates?: { content?: { parts?: { text?: string }[] } }[];
+  error?: { message?: string };
 }
 
 export class GeminiProvider implements LLMProvider {
-  readonly kind: LLMProviderKind = 'gemini';
+  readonly kind: LLMProviderKind = "gemini";
 
   constructor(private readonly config: GeminiProviderConfig) {}
 
   async translate(request: TranslationRequest): Promise<TranslationResult> {
     if (!this.config.apiKey) {
-      throw new PerseusError(
-        'ConfigurationError',
-        'No API key configured for Gemini.',
-        { stage: 'llm-translation' },
-      );
+      throw new PerseusError("ConfigurationError", "No API key configured for Gemini.", {
+        stage: "llm-translation",
+      });
     }
 
     if (!this.config.model) {
-      throw new PerseusError(
-        'ConfigurationError',
-        'No model configured for Gemini.',
-        { stage: 'llm-translation' },
-      );
+      throw new PerseusError("ConfigurationError", "No model configured for Gemini.", {
+        stage: "llm-translation",
+      });
     }
 
     const url = `${GEMINI_API_BASE}/${encodeURIComponent(this.config.model)}:generateContent`;
@@ -63,46 +57,39 @@ export class GeminiProvider implements LLMProvider {
 
     try {
       response = await fetch(url, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': this.config.apiKey,
+          "Content-Type": "application/json",
+          "x-goog-api-key": this.config.apiKey,
         },
         body: JSON.stringify({
           system_instruction: { parts: [{ text: request.systemPrompt }] },
-          contents: [{ role: 'user', parts: [{ text: request.sourceText }] }],
+          contents: [{ role: "user", parts: [{ text: request.sourceText }] }],
         }),
       });
     } catch (error) {
-      throw new PerseusError(
-        'ProviderError',
-        'Could not reach the Gemini API.',
-        { stage: 'llm-translation', cause: error },
-      );
+      throw new PerseusError("ProviderError", "Could not reach the Gemini API.", {
+        stage: "llm-translation",
+        cause: error,
+      });
     }
 
-    const body = (await response
-      .json()
-      .catch(() => ({}))) as GeminiGenerateContentResponse;
+    const body = (await response.json().catch(() => ({}))) as GeminiGenerateContentResponse;
 
     if (!response.ok) {
       throw new PerseusError(
-        'ProviderError',
-        `Gemini request failed (HTTP ${response.status}): ${body.error?.message ?? 'unknown error'}`,
-        { stage: 'llm-translation', context: { status: response.status } },
+        "ProviderError",
+        `Gemini request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
+        { stage: "llm-translation", context: { status: response.status } },
       );
     }
 
-    const translatedText = body.candidates?.[0]?.content?.parts
-      ?.map((p) => p.text ?? '')
-      .join('');
+    const translatedText = body.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("");
 
     if (!translatedText?.trim()) {
-      throw new PerseusError(
-        'ProviderError',
-        'Gemini returned an empty translation.',
-        { stage: 'llm-translation' },
-      );
+      throw new PerseusError("ProviderError", "Gemini returned an empty translation.", {
+        stage: "llm-translation",
+      });
     }
 
     return { translatedText };

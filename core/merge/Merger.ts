@@ -22,18 +22,17 @@
  * accumulated during reconstruction (e.g. html-drift) to the logger.
  */
 
-import { PerseusError } from '@core/errors/PerseusError';
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
-import type { Logger } from '@core/logging/Logger';
-import { reconstructHtmlFromPlaceholders } from '@core/parser/placeholders';
-import type { TranslatedChunk } from '@core/translator/Translator';
-
+import { PerseusError } from "@core/errors/PerseusError";
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { Logger } from "@core/logging/Logger";
+import { reconstructHtmlFromPlaceholders } from "@core/parser/placeholders";
+import type { TranslatedChunk } from "@core/translator/Translator";
 
 export interface Merger {
   merge(
     ir: IntermediateRepresentation,
     translatedChunks: TranslatedChunk[],
-  ): Promise<IntermediateRepresentation>,
+  ): Promise<IntermediateRepresentation>;
 }
 
 export class DomMerger implements Merger {
@@ -54,10 +53,10 @@ export class DomMerger implements Merger {
       for (const unit of chunk.units) {
         if (!nodeById.has(unit.nodeId)) {
           throw new PerseusError(
-            'MergeError',
+            "MergeError",
             `Translated unit references unknown IR node "${unit.nodeId}" — refusing to merge.`,
             {
-              stage: 'merge',
+              stage: "merge",
               context: { chunkId: chunk.id, nodeId: unit.nodeId },
             },
           );
@@ -65,10 +64,10 @@ export class DomMerger implements Merger {
 
         if (!ir.structure.nodeElements.has(unit.nodeId)) {
           throw new PerseusError(
-            'MergeError',
+            "MergeError",
             `IR node "${unit.nodeId}" has no owning DOM element — refusing to merge.`,
             {
-              stage: 'merge',
+              stage: "merge",
               context: { chunkId: chunk.id, nodeId: unit.nodeId },
             },
           );

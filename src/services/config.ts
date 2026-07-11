@@ -1,6 +1,6 @@
 export const GITHUB_REPO = {
-  owner: 'NedaMani',
-  name: 'wikipedia-persius',
+  owner: "NedaMani",
+  name: "wikipedia-persius",
 } as const;
 
 export const GITHUB_RELEASES_URL = `https://github.com/${GITHUB_REPO.owner}/${GITHUB_REPO.name}/releases`;

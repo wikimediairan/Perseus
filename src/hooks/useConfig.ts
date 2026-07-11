@@ -1,9 +1,9 @@
 //? Loads PerseusConfig on mount and persists changes via the existing
 
-import type { PerseusConfig } from '@core/config/Config';
-import { DEFAULT_CONFIG } from '@core/config/Config';
-import { FileConfigLoader } from '@core/config/ConfigLoader';
-import { useState, useEffect, useCallback } from 'react';
+import type { PerseusConfig } from "@core/config/Config";
+import { DEFAULT_CONFIG } from "@core/config/Config";
+import { FileConfigLoader } from "@core/config/ConfigLoader";
+import { useState, useEffect, useCallback } from "react";
 
 const configLoader = new FileConfigLoader();
 

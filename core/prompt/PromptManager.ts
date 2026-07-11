@@ -19,24 +19,24 @@
  * them — built-in or manual) rather than folded in here.
  */
 
-import type { TargetWikiDefinition } from '@core/config/targetWikis';
+import type { TargetWikiDefinition } from "@core/config/targetWikis";
 
 function buildDefaultPrompt(targetWiki: TargetWikiDefinition): string {
   return [
-    'You are translating Wikipedia article text from English into formal,',
+    "You are translating Wikipedia article text from English into formal,",
     `encyclopaedic ${targetWiki.languageName} for ${targetWiki.domain}. Translate only the`,
-    'natural-language meaning. Do not add, remove, or reinterpret facts.',
+    "natural-language meaning. Do not add, remove, or reinterpret facts.",
     `Use standard ${targetWiki.languageName} numerals and register appropriate for an`,
-    'encyclopaedia article. Preserve any tokens or markers in the input',
-    'exactly as they appear, in the same relative order, even if they look',
-    'unusual — they are structural markers, not part of the text to',
-    'translate.',
-  ].join(' ');
+    "encyclopaedia article. Preserve any tokens or markers in the input",
+    "exactly as they appear, in the same relative order, even if they look",
+    "unusual — they are structural markers, not part of the text to",
+    "translate.",
+  ].join(" ");
 }
 
 export interface PromptManager {
-  getDefaultPrompt(targetWiki: TargetWikiDefinition): string,
-  buildPrompt(targetWiki: TargetWikiDefinition, userPrompt?: string): string,
+  getDefaultPrompt(targetWiki: TargetWikiDefinition): string;
+  buildPrompt(targetWiki: TargetWikiDefinition, userPrompt?: string): string;
 }
 
 export class DefaultPromptManager implements PromptManager {

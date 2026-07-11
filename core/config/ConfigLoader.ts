@@ -10,22 +10,17 @@
  * provider API keys.
  */
 
-import type { PerseusConfig } from '@core/config/Config';
-import { DEFAULT_CONFIG } from '@core/config/Config';
-import { PerseusError } from '@core/errors/PerseusError';
-import { join, appConfigDir } from '@tauri-apps/api/path';
-import {
-  mkdir,
-  exists,
-  readTextFile,
-  writeTextFile,
-} from '@tauri-apps/plugin-fs';
+import type { PerseusConfig } from "@core/config/Config";
+import { DEFAULT_CONFIG } from "@core/config/Config";
+import { PerseusError } from "@core/errors/PerseusError";
+import { join, appConfigDir } from "@tauri-apps/api/path";
+import { mkdir, exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
-const CONFIG_FILE_NAME = 'perseus.config.json';
+const CONFIG_FILE_NAME = "perseus.config.json";
 
 export interface ConfigLoader {
-  load(): Promise<PerseusConfig>,
-  save(config: PerseusConfig): Promise<void>,
+  load(): Promise<PerseusConfig>;
+  save(config: PerseusConfig): Promise<void>;
 }
 
 async function configFilePath(): Promise<string> {
@@ -66,11 +61,9 @@ export class FileConfigLoader implements ConfigLoader {
       const path = await configFilePath();
       await writeTextFile(path, JSON.stringify(config, null, 2));
     } catch (error) {
-      throw new PerseusError(
-        'ConfigurationError',
-        'Could not save Perseus configuration.',
-        { cause: error },
-      );
+      throw new PerseusError("ConfigurationError", "Could not save Perseus configuration.", {
+        cause: error,
+      });
     }
   }
 }

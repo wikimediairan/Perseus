@@ -29,7 +29,10 @@ export function LanguageSwitcher() {
         void i18n.changeLanguage(language);
       }}
     >
-      <SelectTrigger aria-label={t("languageSwitcher.label")} className="h-8 w-fit gap-1.5 px-2.5 text-xs">
+      <SelectTrigger
+        aria-label={t("languageSwitcher.label")}
+        className="h-8 w-fit gap-1.5 px-2.5 text-xs"
+      >
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

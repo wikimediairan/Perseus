@@ -9,14 +9,14 @@
  */
 export interface LinkNode {
   /** Stable identifier for addressing this node from intermediate artifacts (see Pipeline data ownership). */
-  id: string,
+  id: string;
   /** The original English article title/target, as parsed from the source. */
-  originalTarget: string,
+  originalTarget: string;
   /**
    * The resolved Persian title, or `null` if no Persian equivalent exists.
    * Populated only by the Link Resolution stage — the LLM must never set this.
    */
-  resolvedTarget: null | string,
+  resolvedTarget: null | string;
   /** The display text of the link as it appears in the article. */
-  label: string,
+  label: string;
 }

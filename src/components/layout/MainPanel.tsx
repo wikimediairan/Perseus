@@ -12,8 +12,6 @@ interface MainPanelProps {
  */
 export function MainPanel({ children }: MainPanelProps) {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-6 lg:min-h-0">
-      {children}
-    </div>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-6 lg:min-h-0">{children}</div>
   );
 }

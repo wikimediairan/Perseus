@@ -20,28 +20,28 @@
  * the whole chunk.
  */
 
-import type { Chunk } from '@core/chunker/Chunker';
-import type { TranslatedChunk } from '@core/chunker/segmentProtocol';
+import type { Chunk } from "@core/chunker/Chunker";
+import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
 import {
   renderChunkForTranslation,
   parseChunkTranslation,
   SEGMENT_FORMAT_INSTRUCTIONS,
-} from '@core/chunker/segmentProtocol';
-import type { TargetWikiDefinition } from '@core/config/targetWikis';
-import { PerseusError } from '@core/errors/PerseusError';
-import type { LLMProvider } from '@core/llm/LLMProvider';
-import type { Logger } from '@core/logging/Logger';
-import type { PromptManager } from '@core/prompt/PromptManager';
+} from "@core/chunker/segmentProtocol";
+import type { TargetWikiDefinition } from "@core/config/targetWikis";
+import { PerseusError } from "@core/errors/PerseusError";
+import type { LLMProvider } from "@core/llm/LLMProvider";
+import type { Logger } from "@core/logging/Logger";
+import type { PromptManager } from "@core/prompt/PromptManager";
 
 // Re-exported from their new home (core/chunker/segmentProtocol.ts) so existing
 // importers (Merger, core/index.ts) don't need to change their import path.
-export type { TranslatedUnit, TranslatedChunk } from '@core/chunker/segmentProtocol';
+export type { TranslatedUnit, TranslatedChunk } from "@core/chunker/segmentProtocol";
 
 export interface Translator {
   /** Translates a single chunk — the shared primitive both this class and `translate()` below build on. */
-  translateChunk(chunk: Chunk): Promise<TranslatedChunk>,
+  translateChunk(chunk: Chunk): Promise<TranslatedChunk>;
   /** Convenience: translates every chunk in order. Equivalent to calling `translateChunk` in a loop. */
-  translate(chunks: Chunk[]): Promise<TranslatedChunk[]>,
+  translate(chunks: Chunk[]): Promise<TranslatedChunk[]>;
 }
 
 export class LLMTranslator implements Translator {
@@ -88,15 +88,17 @@ export class LLMTranslator implements Translator {
 
     if (units.length !== chunk.units.length) {
       throw new PerseusError(
-        'TranslationError',
+        "TranslationError",
         `Chunk ${chunk.id} could not be fully translated.`,
-        { stage: 'llm-translation', context: { chunkId: chunk.id } },
+        { stage: "llm-translation", context: { chunkId: chunk.id } },
       );
     }
 
     // Restore original unit order (missing/retried units were appended out of order above).
     units.sort(
-      (a, b) => chunk.units.findIndex((u) => u.nodeId === a.nodeId) - chunk.units.findIndex((u) => u.nodeId === b.nodeId),
+      (a, b) =>
+        chunk.units.findIndex((u) => u.nodeId === a.nodeId) -
+        chunk.units.findIndex((u) => u.nodeId === b.nodeId),
     );
 
     return { id: chunk.id, units };

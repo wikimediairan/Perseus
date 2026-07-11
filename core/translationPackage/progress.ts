@@ -12,10 +12,10 @@
  * while this diff-based progress view stays in (it's the same mechanism
  * Merge already depends on, not a new tracked concept).
  */
-import type { SessionProgress, TranslationSession } from '@core/translationPackage/types';
+import type { SessionProgress, TranslationSession } from "@core/translationPackage/types";
 
 export function calculateSessionProgress(
-  session: Pick<TranslationSession, 'chunks'>,
+  session: Pick<TranslationSession, "chunks">,
   translatedCount: number,
 ): SessionProgress {
   const total = session.chunks.reduce((sum, chunk) => sum + chunk.translation.length, 0);

@@ -19,7 +19,6 @@ import { WIKIPEDIA_DOMAIN } from "@core/config/constants";
 import { PerseusError } from "@core/errors/PerseusError";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 
-
 export interface WikitextGenerator {
   generate(ir: IntermediateRepresentation): Promise<string>;
 }

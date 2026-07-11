@@ -7,7 +7,10 @@ export function refSup(id: string, dataMw: object, visible = "[1]"): string {
  * rendered chunk, leaving the segment markers and any placeholder tokens
  * untouched. Used to stub out an LLM's chat response deterministically.
  */
-export function translateSegments(userMessage: string, transform: (text: string) => string): string {
+export function translateSegments(
+  userMessage: string,
+  transform: (text: string) => string,
+): string {
   return userMessage.replace(
     /\[\[SEGMENT (\d+)\]\]\n([^\n]*(?:\n(?!\[\[SEGMENT)[^\n]*)*)/g,
     (_match, n: string, text: string) => `[[SEGMENT ${n}]]\n${transform(text)}`,

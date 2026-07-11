@@ -58,25 +58,25 @@
  *                 twice would be pure waste.
  */
 
-import type { TargetWikiCode } from '@core/config/targetWikis';
-import type { IntermediateRepresentation } from '@core/ir/IntermediateRepresentation';
+import type { TargetWikiCode } from "@core/config/targetWikis";
+import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 
-export const PACKAGE_FORMAT_MARKER = 'perseus-package' as const;
+export const PACKAGE_FORMAT_MARKER = "perseus-package" as const;
 export const CURRENT_FORMAT_VERSION = 2 as const;
 
 export interface TranslationSessionMeta {
-  articleTitle: string,
-  sourceLanguage: string,
-  targetWiki: TargetWikiCode,
+  articleTitle: string;
+  sourceLanguage: string;
+  targetWiki: TargetWikiCode;
   /** ISO 8601 timestamp of the last save. Informational only — nothing depends on it. */
-  exportedAt: string,
+  exportedAt: string;
   /**
    * The character budget SizeBoundedChunker used when this session's
    * chunks were first derived. Informational (chunks are persisted, not
    * re-derived from this — see `chunks` below), kept so the on-disk
    * file documents how its own grouping came about.
    */
-  chunkCharBudget: number,
+  chunkCharBudget: number;
 }
 
 /**
@@ -85,12 +85,12 @@ export interface TranslationSessionMeta {
  * so resolved target-wiki link targets are already baked into it.
  */
 export interface TranslationSessionSnapshot {
-  parsoidHtml: string,
+  parsoidHtml: string;
 }
 
 /** Auxiliary, non-authoritative. See the file-level doc comment. */
 export interface TranslationSessionProvenance {
-  rawWikitext: string,
+  rawWikitext: string;
 }
 
 /**
@@ -110,30 +110,30 @@ export type TranslationEntryTuple = [id: number, tag: string, text: string];
  * units' current translation state.
  */
 export interface SessionChunk {
-  id: string,
-  translation: TranslationEntryTuple[],
+  id: string;
+  translation: TranslationEntryTuple[];
 }
 
 export interface TranslationSession {
-  format: typeof PACKAGE_FORMAT_MARKER,
-  formatVersion: typeof CURRENT_FORMAT_VERSION,
-  meta: TranslationSessionMeta,
-  snapshot: TranslationSessionSnapshot,
-  provenance: TranslationSessionProvenance,
-  chunks: SessionChunk[],
+  format: typeof PACKAGE_FORMAT_MARKER;
+  formatVersion: typeof CURRENT_FORMAT_VERSION;
+  meta: TranslationSessionMeta;
+  snapshot: TranslationSessionSnapshot;
+  provenance: TranslationSessionProvenance;
+  chunks: SessionChunk[];
 }
 
 export interface SessionProgress {
-  translated: number,
-  total: number,
+  translated: number;
+  total: number;
   /** 0-100, rounded to the nearest whole percent. `0` when `total` is `0`. */
-  percent: number,
+  percent: number;
 }
 
 export interface ApplySessionChunkResult {
-  ir: IntermediateRepresentation,
+  ir: IntermediateRepresentation;
   /** How many entries in this chunk actually had a changed text applied to a known node. */
-  appliedCount: number,
+  appliedCount: number;
   /** Entry ids in this chunk that don't correspond to any node in this IR. */
-  ignoredUnknownIds: string[],
+  ignoredUnknownIds: string[];
 }

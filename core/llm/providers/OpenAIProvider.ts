@@ -7,7 +7,6 @@ import type {
   TranslationRequest,
 } from "@core/llm/LLMProvider";
 
-
 export interface OpenAIProviderConfig {
   apiKey?: string;
   model: string;

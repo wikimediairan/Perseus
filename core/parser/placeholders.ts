@@ -43,24 +43,24 @@
  * split on.
  */
 
-import type { CitationRegistry } from '@core/ir/citation';
-import type { PlaceholderSpan } from '@core/ir/IntermediateRepresentation';
+import type { CitationRegistry } from "@core/ir/citation";
+import type { PlaceholderSpan } from "@core/ir/IntermediateRepresentation";
 
 /** Inline elements that are "transparent": their own text is translatable, but the tag itself must be preserved verbatim. */
 export const TRANSPARENT_INLINE_TAGS = new Set([
-  'a',
-  'abbr',
-  'b',
-  'cite',
-  'em',
-  'i',
-  'q',
-  'small',
-  'span',
-  'strong',
-  'sub',
-  'sup',
-  'u',
+  "a",
+  "abbr",
+  "b",
+  "cite",
+  "em",
+  "i",
+  "q",
+  "small",
+  "span",
+  "strong",
+  "sub",
+  "sup",
+  "u",
 ]);
 
 const CITATION_MARKER_SELECTOR = '[typeof*="mw:Extension/ref"]';
@@ -83,8 +83,8 @@ function isCitationMarker(el: Element): boolean {
 }
 
 function isTransclusion(el: Element): boolean {
-  const typeofAttr = el.getAttribute('typeof') || '';
-  return typeofAttr.split(/\s+/).some((t) => t.startsWith('mw:Transclusion'));
+  const typeofAttr = el.getAttribute("typeof") || "";
+  return typeofAttr.split(/\s+/).some((t) => t.startsWith("mw:Transclusion"));
 }
 
 /**
@@ -103,14 +103,14 @@ function isTransclusion(el: Element): boolean {
 export function flattenToPlaceholderText(
   root: Element,
   registry: CitationRegistry,
-): { text: string, placeholders: PlaceholderSpan[] } {
+): { text: string; placeholders: PlaceholderSpan[] } {
   const placeholders: PlaceholderSpan[] = [];
   let nextId = 1;
-  let text = '';
+  let text = "";
 
   function walk(node: Node): void {
     if (node.nodeType === node.TEXT_NODE) {
-      text += node.textContent ?? '';
+      text += node.textContent ?? "";
       return;
     }
 
@@ -131,9 +131,9 @@ export function flattenToPlaceholderText(
         // via a direct outerHTML capture rather than dropping it, and record
         // why, so this is visible instead of silently producing a gap.
         registry.warnings.push({
-          kind: 'unsupported-structure',
+          kind: "unsupported-structure",
           message:
-            'A citation marker was found during translation extraction but is not in the registry; preserving it as-is.',
+            "A citation marker was found during translation extraction but is not in the registry; preserving it as-is.",
         });
       }
 
@@ -199,10 +199,7 @@ export function reconstructHtmlFromPlaceholders(
 
   for (const span of placeholders) {
     if (span.citationId !== undefined) {
-      let citationHtml = registry.getReferenceHtml(
-        span.citationId,
-        span.element,
-      );
+      let citationHtml = registry.getReferenceHtml(span.citationId, span.element);
 
       if (citationHtml === undefined) {
         // Registry has no record of this id at all (shouldn't happen — see the
@@ -210,7 +207,7 @@ export function reconstructHtmlFromPlaceholders(
         // rather than losing the citation outright, and make the fallback visible.
         citationHtml = span.element.outerHTML;
         registry.warnings.push({
-          kind: 'unsupported-structure',
+          kind: "unsupported-structure",
           message: `Citation "${span.citationId}" was not found in the registry during reconstruction; used a live DOM read instead.`,
           citationId: span.citationId,
         });
@@ -222,7 +219,7 @@ export function reconstructHtmlFromPlaceholders(
 
     const attrs = [...span.element.attributes]
       .map((attr) => `${attr.name}="${escapeAttr(attr.value)}"`)
-      .join(' ');
+      .join(" ");
     const openTag = attrs ? `<${span.tag} ${attrs}>` : `<${span.tag}>`;
     html = html.split(openToken(span.id)).join(openTag);
     html = html.split(closeToken(span.id)).join(`</${span.tag}>`);
@@ -232,13 +229,10 @@ export function reconstructHtmlFromPlaceholders(
 }
 
 function escapeAttr(value: string): string {
-  return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;');
+  return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;");
 }
 
 /** Escapes HTML-significant characters in translated text while leaving the placeholder tokens themselves untouched. */
 function escapeHtmlExceptTokens(text: string): string {
-  return text
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }

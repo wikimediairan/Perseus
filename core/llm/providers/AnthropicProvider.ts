@@ -25,7 +25,6 @@ import type {
   TranslationRequest,
 } from "@core/llm/LLMProvider";
 
-
 export interface AnthropicProviderConfig {
   apiKey?: string;
   model: string;

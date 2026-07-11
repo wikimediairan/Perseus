@@ -12,7 +12,7 @@
  * explicitly out of scope for this phase.
  */
 
-import type { PipelineStageName } from '@core/pipeline/PipelineStage';
+import type { PipelineStageName } from "@core/pipeline/PipelineStage";
 
 /**
  * Broad error categories. Kept intentionally small and mapped 1:1 to the
@@ -20,26 +20,26 @@ import type { PipelineStageName } from '@core/pipeline/PipelineStage';
  * section, rather than to specific implementation exceptions.
  */
 export type PerseusErrorCategory =
-  | 'InputError' // invalid/unreachable URL, unreadable or malformed .wiki file
-  | 'MergeError' // translated chunks could not be reconciled back into the IR
-  | 'ParsingError' // Parsoid unavailable or failed to parse the article
-  | 'ProviderError' // the configured LLM provider rejected or failed a request
-  | 'NotImplemented' // placeholder for functionality intentionally deferred past this phase
-  | 'GenerationError' // the IR could not be serialized into valid Wikitext
-  | 'TranslationError' // an individual chunk failed to translate
-  | 'ConfigurationError' // missing/invalid configuration (e.g. no provider selected)
-  | 'LinkResolutionError'; // Wikidata unreachable (distinct from "no Persian equivalent")
+  | "InputError" // invalid/unreachable URL, unreadable or malformed .wiki file
+  | "MergeError" // translated chunks could not be reconciled back into the IR
+  | "ParsingError" // Parsoid unavailable or failed to parse the article
+  | "ProviderError" // the configured LLM provider rejected or failed a request
+  | "NotImplemented" // placeholder for functionality intentionally deferred past this phase
+  | "GenerationError" // the IR could not be serialized into valid Wikitext
+  | "TranslationError" // an individual chunk failed to translate
+  | "ConfigurationError" // missing/invalid configuration (e.g. no provider selected)
+  | "LinkResolutionError"; // Wikidata unreachable (distinct from "no Persian equivalent")
 
 export interface PerseusErrorOptions {
   /** The pipeline stage active when the error occurred, if applicable. */
-  stage?: PipelineStageName,
+  stage?: PipelineStageName;
   /** The underlying cause, if this error wraps another error. */
-  cause?: unknown,
+  cause?: unknown;
   /**
    * Arbitrary structured context useful for diagnostics/logging.
    * Must never contain secrets (e.g. provider credentials).
    */
-  context?: Record<string, unknown>,
+  context?: Record<string, unknown>;
 }
 
 /**
@@ -53,13 +53,9 @@ export class PerseusError extends Error {
   public readonly stage?: PipelineStageName;
   public readonly context?: Record<string, unknown>;
 
-  constructor(
-    category: PerseusErrorCategory,
-    message: string,
-    options: PerseusErrorOptions = {},
-  ) {
+  constructor(category: PerseusErrorCategory, message: string, options: PerseusErrorOptions = {}) {
     super(message, { cause: options.cause });
-    this.name = 'PerseusError';
+    this.name = "PerseusError";
     this.category = category;
     this.stage = options.stage;
     this.context = options.context;
@@ -72,12 +68,9 @@ export class PerseusError extends Error {
  * Every placeholder stage/provider should throw this rather than silently
  * returning fabricated data.
  */
-export function notImplemented(
-  where: string,
-  stage?: PipelineStageName,
-): never {
+export function notImplemented(where: string, stage?: PipelineStageName): never {
   throw new PerseusError(
-    'NotImplemented',
+    "NotImplemented",
     `${where} is not implemented yet (Phase 2 — Project Scaffold contains no business logic).`,
     { stage },
   );
