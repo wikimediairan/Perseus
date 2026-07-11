@@ -1,32 +1,27 @@
-import { DOMParser } from "linkedom";
-
-(globalThis as any).DOMParser = DOMParser;
+import "./helpers/setupDom";
+import { jsonResponse, setGlobalFetch, urlOf } from "./helpers/fetchMock";
+import { isOllamaChatRequest, isWikidataRequest } from "./helpers/mediawikiEndpoints";
 
 describe("Edge Cases (E2E)", () => {
   it("missing segment triggers individual fallback retry", async () => {
     let chatCallCount = 0;
-    (globalThis as any).fetch = async (url: string, init?: RequestInit) => {
-      if (url.includes("/api/chat")) {
+    setGlobalFetch((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url = urlOf(input);
+      if (isOllamaChatRequest(url)) {
         chatCallCount++;
-        const bodyObj = JSON.parse(init!.body as string);
-        const userMsg: string = bodyObj.messages[1].content;
+        const bodyObj = JSON.parse(init!.body as string) as { messages: { content: string }[] };
+        const userMsg = bodyObj.messages[1].content;
         if (userMsg.includes("[[SEGMENT 2]]")) {
           // First call: only return SEGMENT 1, "drop" SEGMENT 2 to force fallback.
-          return {
-            ok: true,
-            status: 200,
-            json: async () => ({ message: { content: "[[SEGMENT 1]]\nترجمه یک." } }),
-          } as Response;
+          return Promise.resolve(
+            jsonResponse({ message: { content: "[[SEGMENT 1]]\nترجمه یک." } }),
+          );
         }
         // Fallback individual call for the missing unit.
-        return {
-          ok: true,
-          status: 200,
-          json: async () => ({ message: { content: "ترجمه دو." } }),
-        } as Response;
+        return Promise.resolve(jsonResponse({ message: { content: "ترجمه دو." } }));
       }
       throw new Error("unexpected fetch: " + url);
-    };
+    });
 
     const { SizeBoundedChunker } = await import("@core/chunker/Chunker");
     const { LLMTranslator } = await import("@core/translator/Translator");
@@ -65,7 +60,7 @@ describe("Edge Cases (E2E)", () => {
     const { createEmptyIR } = await import("@core/ir/IntermediateRepresentation");
     const { DOMParser: DP } = await import("linkedom");
     const doc = new DP().parseFromString("<div></div>", "text/html");
-    const ir = createEmptyIR("Test", doc as any);
+    const ir = createEmptyIR("Test", doc as unknown as Document);
     ir.textNodes = [
       { id: "a", text: "The population grew by 42% last year." },
       { id: "b", text: "The treatment caused a severe reaction in some patients." },
@@ -87,17 +82,19 @@ describe("Edge Cases (E2E)", () => {
   });
 
   it("Wikidata connectivity failure raises a stage-attributed PerseusError", async () => {
-    (globalThis as any).fetch = async (url: string) => {
-      if (url.includes("wikidata.org")) throw new Error("network down");
+    setGlobalFetch((input: RequestInfo | URL): Promise<Response> => {
+      const url = urlOf(input);
+      if (isWikidataRequest(url)) throw new Error("network down");
       throw new Error("unexpected fetch: " + url);
-    };
+    });
+
     const { WikidataLinkResolver } = await import("@core/linkResolver/WikidataLinkResolver");
     const { createEmptyIR } = await import("@core/ir/IntermediateRepresentation");
     const { PerseusError } = await import("@core/errors/PerseusError");
     const { TARGET_WIKIS } = await import("@core/config/targetWikis");
     const { DOMParser: DP } = await import("linkedom");
     const doc = new DP().parseFromString("<div></div>", "text/html");
-    const ir = createEmptyIR("Test", doc as any);
+    const ir = createEmptyIR("Test", doc as unknown as Document);
     ir.links = [{ id: "link-1", originalTarget: "Sun", resolvedTarget: null, label: "Sun" }];
 
     expect.assertions(3);
@@ -105,8 +102,12 @@ describe("Edge Cases (E2E)", () => {
       await new WikidataLinkResolver(TARGET_WIKIS.fa).resolve(ir);
     } catch (err) {
       expect(err, "error is a PerseusError").toBeInstanceOf(PerseusError);
-      expect((err as any).category, "category is LinkResolutionError").toBe("LinkResolutionError");
-      expect((err as any).stage, "stage is resolve-wikidata-links").toBe("resolve-wikidata-links");
+      expect((err as PerseusError).category, "category is LinkResolutionError").toBe(
+        "LinkResolutionError",
+      );
+      expect((err as PerseusError).stage, "stage is resolve-wikidata-links").toBe(
+        "resolve-wikidata-links",
+      );
     }
   });
 });

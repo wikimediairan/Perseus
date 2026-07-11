@@ -1,7 +1,9 @@
-import type { Logger } from "@core/logging/Logger";
-import { DOMParser } from "linkedom";
-
-(globalThis as unknown as { DOMParser: typeof DOMParser }).DOMParser = DOMParser;
+import "./helpers/setupDom";
+import { refSup } from "./fixtures/citations";
+import { createCitationPipelineFetch } from "./helpers/citationPipelineFetch";
+import { setGlobalFetch } from "./helpers/fetchMock";
+import { createCapturingLogger } from "./helpers/logger";
+import { createOllamaPipeline, SUN_ARTICLE_REQUEST } from "./helpers/pipeline";
 
 /**
  * Verifies the actual bug fix: citations surviving translation and
@@ -11,146 +13,35 @@ import { DOMParser } from "linkedom";
  * reference order, and definitions inside a rendered reference list.
  */
 
-function refSup(id: string, dataMw: object, visible = "[1]"): string {
-  return `<sup typeof="mw:Extension/ref" data-mw='${JSON.stringify(dataMw)}' id="${id}">${visible}</sup>`;
-}
-
-let capturedGeneratorHtml = "";
-
-function mockFetch(parsoidHtml: string) {
-  // eslint-disable-next-line @typescript-eslint/require-await
-  return async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url =
-      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
-    if (url.includes("/w/rest.php/v1/page/"))
-      return {
-        ok: true,
-        status: 200,
-        // eslint-disable-next-line @typescript-eslint/require-await
-        json: async () => ({ title: "Sun", source: "x" }),
-      } as Response;
-    if (url.includes("/api/rest_v1/transform/wikitext/to/html/"))
-      // eslint-disable-next-line @typescript-eslint/require-await
-      return { ok: true, status: 200, text: async () => parsoidHtml } as Response;
-    if (url.includes("wikidata.org"))
-      // eslint-disable-next-line @typescript-eslint/require-await
-      return { ok: true, status: 200, json: async () => ({ entities: {} }) } as Response;
-    if (url.includes("/api/chat")) {
-      // Ollama: translate every [[SEGMENT n]] by prefixing with "TR:" and leave all placeholder tokens untouched.
-      let parsedBody: unknown;
-      try {
-        parsedBody = JSON.parse(init?.body as string);
-      } catch {
-        parsedBody = undefined;
-      }
-      const body =
-        typeof parsedBody === "object" && parsedBody !== null
-          ? (parsedBody as { messages?: { content?: string }[] })
-          : { messages: [] };
-      const userMsg: string =
-        typeof body.messages?.[1]?.content === "string" ? body.messages[1].content : "";
-      const translated = userMsg.replace(
-        /\[\[SEGMENT (\d+)\]\]\n([^\n]*(?:\n(?!\[\[SEGMENT)[^\n]*)*)/g,
-        (_m: string, n: string, text: string) => `[[SEGMENT ${n}]]\nTR:${text}`,
-      );
-      return {
-        ok: true,
-        status: 200,
-        // eslint-disable-next-line @typescript-eslint/require-await
-        json: async () => ({ message: { content: translated } }),
-      } as Response;
-    }
-    if (url.includes("/api/rest_v1/transform/html/to/wikitext/")) {
-      // Safely parse the request body and extract .html if present
-      if (init?.body) {
-        try {
-          const parsed = JSON.parse(init.body as string) as { html?: unknown };
-          if (typeof parsed.html === "string") {
-            capturedGeneratorHtml = parsed.html;
-          }
-        } catch {
-          // ignore parse errors and leave capturedGeneratorHtml as-is
-        }
-      }
-      // eslint-disable-next-line @typescript-eslint/require-await
-      return { ok: true, status: 200, text: async () => "GENERATED" } as Response;
-    }
-    throw new Error("unexpected fetch: " + url);
-  };
-}
-
-/**
- * A Logger implementation (not a ConsoleLogger monkey-patch) whose
- * forStage() children all write into the SAME shared array — necessary
- * because ConsoleLogger.forStage() constructs a brand-new instance that
- * wouldn't inherit a post-construction override of .warn on the parent.
- */
-function createCapturingLogger(): {
-  logger: Logger;
-  warnings: string[];
-} {
-  const warnings: string[] = [];
-  function build(): Logger {
-    return {
-      debug: () => undefined,
-      info: () => undefined,
-      warn: (m: string) => {
-        warnings.push(m);
-      },
-      error: () => undefined,
-      forStage: () => build(),
-    };
-  }
-  return { logger: build(), warnings };
-}
-
 async function runFullPipeline(html: string) {
-  (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(html);
-  const { createPipeline } = await import("@core/createPipeline");
-  const { DEFAULT_CONFIG } = await import("@core/config/Config");
-  const config = {
-    ...DEFAULT_CONFIG,
-    activeProvider: { kind: "ollama" as const, model: "llama3", baseUrl: "http://localhost:11434" },
-  };
+  const { handler, getCapturedHtml } = createCitationPipelineFetch(html);
+  setGlobalFetch(handler);
   const { logger, warnings: logLines } = createCapturingLogger();
-  const pipeline = createPipeline(config, logger);
-  const result = await pipeline.run({ kind: "url", url: "https://en.wikipedia.org/wiki/Sun" });
-  return { result, logLines };
+  const pipeline = await createOllamaPipeline(logger);
+  const result = await pipeline.run(SUN_ARTICLE_REQUEST);
+  return { result, logLines, getCapturedHtml };
 }
 
 describe("Citation Preservation (E2E)", () => {
   it("a named reference defined inline in a translated paragraph survives merge verbatim", async () => {
-    capturedGeneratorHtml = "";
     const html =
       `<p>The Sun is a star.${refSup("cn-1", { name: "ref", attrs: { name: "smith2020" }, body: { html: "cite web rendered" } })}` +
       ` It is very hot.${refSup("cn-2", { name: "ref", attrs: { name: "smith2020" } })}</p>`;
 
-    (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(html);
-    const { createPipeline } = await import("@core/createPipeline");
-    const { DEFAULT_CONFIG } = await import("@core/config/Config");
-    const { ConsoleLogger } = await import("@core/logging/Logger");
-    const config = {
-      ...DEFAULT_CONFIG,
-      activeProvider: {
-        kind: "ollama" as const,
-        model: "llama3",
-        baseUrl: "http://localhost:11434",
-      },
-    };
-    const pipeline = createPipeline(config, new ConsoleLogger());
+    const { handler, getCapturedHtml } = createCitationPipelineFetch(html);
+    setGlobalFetch(handler);
+    const pipeline = await createOllamaPipeline();
 
     // Capture what the DOM itself considers each marker's canonical serialized form (its own
     // snapshot, taken at parse time) — comparing against a hand-typed literal would be comparing
     // against the wrong thing, since DOM serializers normalize attribute quoting on output.
-    const extraction = await pipeline.runToExtraction({
-      kind: "url",
-      url: "https://en.wikipedia.org/wiki/Sun",
-    });
+    const extraction = await pipeline.runToExtraction(SUN_ARTICLE_REQUEST);
     const refs = extraction.ir.citations.allReferences();
     const definingSnapshot = refs.find((r) => r.isDefining)?.snapshotHtml;
     const reuseSnapshot = refs.find((r) => !r.isDefining)?.snapshotHtml;
 
     const result = await pipeline.continueWithBuiltInTranslation(extraction);
+    const capturedGeneratorHtml = getCapturedHtml();
 
     expect(result.wikitext, "pipeline completed and produced wikitext").toBe("GENERATED");
     expect(
@@ -172,12 +63,12 @@ describe("Citation Preservation (E2E)", () => {
   });
 
   it("reference order is preserved across a translated paragraph", async () => {
-    capturedGeneratorHtml = "";
     const html =
       `<p>First claim${refSup("cn-a", { name: "ref", attrs: { name: "alpha" }, body: { html: "Alpha source" } }, "[1]")} then ` +
       `second claim${refSup("cn-b", { name: "ref", attrs: { name: "beta" }, body: { html: "Beta source" } }, "[2]")}.</p>`;
 
-    const { result } = await runFullPipeline(html);
+    const { result, getCapturedHtml } = await runFullPipeline(html);
+    const capturedGeneratorHtml = getCapturedHtml();
 
     const alphaPos = capturedGeneratorHtml.indexOf('id="cn-a"');
     const betaPos = capturedGeneratorHtml.indexOf('id="cn-b"');
@@ -188,14 +79,14 @@ describe("Citation Preservation (E2E)", () => {
   });
 
   it("a citation's rendered <li> entry in the references list is never translated/mangled", async () => {
-    capturedGeneratorHtml = "";
     const originalLi =
       '<li about="#cite_note-1" id="cite_note-1"><span class="mw-reference-text">Smith, J. (2020). <i>Example Title</i>. Publisher.</span></li>';
     const html =
       `<p>A fact.${refSup("cn-1", { name: "ref", attrs: { name: "x" }, body: { html: "body" } })}</p>` +
       `<ol class="mw-references" typeof="mw:Extension/references">${originalLi}</ol>`;
 
-    const { result } = await runFullPipeline(html);
+    const { result, getCapturedHtml } = await runFullPipeline(html);
+    const capturedGeneratorHtml = getCapturedHtml();
 
     expect(result.wikitext, "pipeline completed").toBe("GENERATED");
     expect(
@@ -220,29 +111,13 @@ describe("Citation Preservation (E2E)", () => {
   });
 
   it("if the live DOM disagrees with the registry snapshot, the registry wins and a warning is logged", async () => {
-    capturedGeneratorHtml = "";
-    (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(
-      `<p>The Sun is a star.${refSup("cn-1", { name: "ref", attrs: { name: "x" }, body: { html: "body" } })}</p>`,
-    );
-
-    const { createPipeline } = await import("@core/createPipeline");
-    const { DEFAULT_CONFIG } = await import("@core/config/Config");
-    const config = {
-      ...DEFAULT_CONFIG,
-      activeProvider: {
-        kind: "ollama" as const,
-        model: "llama3",
-        baseUrl: "http://localhost:11434",
-      },
-    };
+    const html = `<p>The Sun is a star.${refSup("cn-1", { name: "ref", attrs: { name: "x" }, body: { html: "body" } })}</p>`;
+    const { handler, getCapturedHtml } = createCitationPipelineFetch(html);
+    setGlobalFetch(handler);
 
     const { logger, warnings: logLines } = createCapturingLogger();
-
-    const pipeline = createPipeline(config, logger);
-    const extraction = await pipeline.runToExtraction({
-      kind: "url",
-      url: "https://en.wikipedia.org/wiki/Sun",
-    });
+    const pipeline = await createOllamaPipeline(logger);
+    const extraction = await pipeline.runToExtraction(SUN_ARTICLE_REQUEST);
 
     // Simulate unexpected drift: something mutates the live citation element after parsing.
     const citationRef = extraction.ir.citations.allReferences()[0];
@@ -250,6 +125,7 @@ describe("Citation Preservation (E2E)", () => {
     citationRef.element?.setAttribute("data-mw", '{"tampered":true}');
 
     const result = await pipeline.continueWithBuiltInTranslation(extraction);
+    const capturedGeneratorHtml = getCapturedHtml();
 
     expect(result.wikitext, "pipeline still completed").toBe("GENERATED");
     expect(
