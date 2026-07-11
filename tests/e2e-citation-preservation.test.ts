@@ -1,6 +1,7 @@
+import type { Logger } from "@core/logging/Logger";
 import { DOMParser } from "linkedom";
 
-(globalThis as any).DOMParser = DOMParser;
+(globalThis as unknown as { DOMParser: typeof DOMParser }).DOMParser = DOMParser;
 
 /**
  * Verifies the actual bug fix: citations surviving translation and
@@ -17,21 +18,37 @@ function refSup(id: string, dataMw: object, visible = "[1]"): string {
 let capturedGeneratorHtml = "";
 
 function mockFetch(parsoidHtml: string) {
-  return async (url: string, init?: RequestInit) => {
+  // eslint-disable-next-line @typescript-eslint/require-await
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url =
+      typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
     if (url.includes("/w/rest.php/v1/page/"))
       return {
         ok: true,
         status: 200,
+        // eslint-disable-next-line @typescript-eslint/require-await
         json: async () => ({ title: "Sun", source: "x" }),
       } as Response;
     if (url.includes("/api/rest_v1/transform/wikitext/to/html/"))
+      // eslint-disable-next-line @typescript-eslint/require-await
       return { ok: true, status: 200, text: async () => parsoidHtml } as Response;
     if (url.includes("wikidata.org"))
+      // eslint-disable-next-line @typescript-eslint/require-await
       return { ok: true, status: 200, json: async () => ({ entities: {} }) } as Response;
     if (url.includes("/api/chat")) {
       // Ollama: translate every [[SEGMENT n]] by prefixing with "TR:" and leave all placeholder tokens untouched.
-      const body = JSON.parse(init!.body as string);
-      const userMsg: string = body.messages[1].content;
+      let parsedBody: unknown;
+      try {
+        parsedBody = JSON.parse(init?.body as string);
+      } catch {
+        parsedBody = undefined;
+      }
+      const body =
+        typeof parsedBody === "object" && parsedBody !== null
+          ? (parsedBody as { messages?: { content?: string }[] })
+          : { messages: [] };
+      const userMsg: string =
+        typeof body.messages?.[1]?.content === "string" ? body.messages[1].content : "";
       const translated = userMsg.replace(
         /\[\[SEGMENT (\d+)\]\]\n([^\n]*(?:\n(?!\[\[SEGMENT)[^\n]*)*)/g,
         (_m: string, n: string, text: string) => `[[SEGMENT ${n}]]\nTR:${text}`,
@@ -39,11 +56,23 @@ function mockFetch(parsoidHtml: string) {
       return {
         ok: true,
         status: 200,
+        // eslint-disable-next-line @typescript-eslint/require-await
         json: async () => ({ message: { content: translated } }),
       } as Response;
     }
     if (url.includes("/api/rest_v1/transform/html/to/wikitext/")) {
-      capturedGeneratorHtml = JSON.parse(init!.body as string).html;
+      // Safely parse the request body and extract .html if present
+      if (init?.body) {
+        try {
+          const parsed = JSON.parse(init.body as string) as { html?: unknown };
+          if (typeof parsed.html === "string") {
+            capturedGeneratorHtml = parsed.html;
+          }
+        } catch {
+          // ignore parse errors and leave capturedGeneratorHtml as-is
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/require-await
       return { ok: true, status: 200, text: async () => "GENERATED" } as Response;
     }
     throw new Error("unexpected fetch: " + url);
@@ -57,18 +86,18 @@ function mockFetch(parsoidHtml: string) {
  * wouldn't inherit a post-construction override of .warn on the parent.
  */
 function createCapturingLogger(): {
-  logger: import("@core/logging/Logger").Logger;
+  logger: Logger;
   warnings: string[];
 } {
   const warnings: string[] = [];
-  function build(): import("@core/logging/Logger").Logger {
+  function build(): Logger {
     return {
-      debug: () => {},
-      info: () => {},
+      debug: () => undefined,
+      info: () => undefined,
       warn: (m: string) => {
         warnings.push(m);
       },
-      error: () => {},
+      error: () => undefined,
       forStage: () => build(),
     };
   }
@@ -76,7 +105,7 @@ function createCapturingLogger(): {
 }
 
 async function runFullPipeline(html: string) {
-  (globalThis as any).fetch = mockFetch(html);
+  (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(html);
   const { createPipeline } = await import("@core/createPipeline");
   const { DEFAULT_CONFIG } = await import("@core/config/Config");
   const config = {
@@ -96,7 +125,7 @@ describe("Citation Preservation (E2E)", () => {
       `<p>The Sun is a star.${refSup("cn-1", { name: "ref", attrs: { name: "smith2020" }, body: { html: "cite web rendered" } })}` +
       ` It is very hot.${refSup("cn-2", { name: "ref", attrs: { name: "smith2020" } })}</p>`;
 
-    (globalThis as any).fetch = mockFetch(html);
+    (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(html);
     const { createPipeline } = await import("@core/createPipeline");
     const { DEFAULT_CONFIG } = await import("@core/config/Config");
     const { ConsoleLogger } = await import("@core/logging/Logger");
@@ -192,7 +221,7 @@ describe("Citation Preservation (E2E)", () => {
 
   it("if the live DOM disagrees with the registry snapshot, the registry wins and a warning is logged", async () => {
     capturedGeneratorHtml = "";
-    (globalThis as any).fetch = mockFetch(
+    (globalThis as unknown as { fetch: typeof fetch }).fetch = mockFetch(
       `<p>The Sun is a star.${refSup("cn-1", { name: "ref", attrs: { name: "x" }, body: { html: "body" } })}</p>`,
     );
 

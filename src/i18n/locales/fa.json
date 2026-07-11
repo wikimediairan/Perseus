@@ -1,0 +1,115 @@
+{
+  "common": {
+    "copied": "کپی شد",
+    "saved": "ذخیره شد",
+    "notSaved": "ذخیره نشد"
+  },
+  "app": {
+    "title": "Perseus",
+    "version": "بتا",
+    "sourceAction": {
+      "loadArticle": "بارگذاری مقاله"
+    },
+    "sourceBusy": {
+      "loading": "در حال بارگذاری…"
+    },
+    "promptCopied": "پرامپت در بریده‌دان کپی شد",
+    "chunkCopied": "بخش در بریده‌دان کپی شد",
+    "pastePartial": "{{count}} بخش تطبیق داده نشد و بدون ترجمه باقی ماند"
+  },
+  "opening": {
+    "tagline1": "زمان کمتر برای ترجمه",
+    "tagline2": "زمان بیشتر برای حقیقت‌جویی"
+  },
+  "sourceCard": {
+    "tabUrl": "نشانی ویکی‌پدیا",
+    "tabFile": "فایل wiki. محلی",
+    "articleUrlLabel": "آدرس ویکی مبدا",
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
+    "localFileLabel": "فایل ویکی مبدا",
+    "noFileSelected": "هیچ فایلی انتخاب نشده است",
+    "browse": "مرور…"
+  },
+  "providerCard": {
+    "targetWikiLabel": "ویکی مقصد",
+    "targetWikis": {
+      "fa": "ویکی‌پدیای فارسی",
+      "tj": "ویکی‌پدیای تاجیکی"
+    },
+    "providerLabel": "ارائه‌دهنده",
+    "modelLabel": "مدل",
+    "baseUrlLabel": "نشانی پایه",
+    "apiKeyLabel": "کلید API",
+    "additionalPromptsLabel": "دستور (اختیاری)",
+    "additionalPromptsPlaceholder": "دستوری که وارد می‌کنید به دستور پیش‌فرض برنامه افزوده می‌شود.",
+    "providers": {
+      "ollama": "Ollama(Local)",
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "anthropic": "Anthropic",
+      "gemini": "Google Gemini"
+    }
+  },
+  "outputCard": {
+    "title": "ویکی‌متن {{wiki}}",
+    "description": "نتیجه را بررسی کنید، سپس آن را کپی یا ذخیره کنید — پرسیوس هرگز از طرف شما منتشر نمی‌کند.",
+    "draftLinkText": "ایجاد پیش‌نویس",
+    "moveLinkText": "درخواست انتقال پیش‌نویس",
+    "copyButton": "کپی ویکی‌متن",
+    "saveButton": "ذخیره فایل wiki."
+  },
+  "chunkWorkspace": {
+    "title": "ترجمه",
+    "description": "هر بخش را با هوش مصنوعی داخلی ترجمه کنید، یا آن را در ChatGPT، Claude، Gemini یا هر هوش مصنوعی دیگری کپی کرده و پاسخ را اینجا بازگردانید — یا ترجمه را خودتان تایپ کنید. روش کار برای هر بخش، صرف‌نظر از مترجم، یکسان است.",
+    "copyGeneralPrompt": "کپی پرامپت",
+    "translateAllBuiltIn": "ترجمه همه با هوش مصنوعی",
+    "translatingAll": "در حال ترجمه…",
+    "openSession": "باز کردن نشست",
+    "saveSession": "ذخیره کردن نشست",
+    "progress": "{{translated}} / {{total}} ترجمه‌شده ({{percent}}%)",
+    "chunkLabel": "بخش {{index}}",
+    "collapse": "جمع کردن",
+    "editAgain": "برای ویرایش دوباره کلیک کنید",
+    "copyChunk": "کپی بخش",
+    "translateWithBuiltIn": "ترجمه با هوش مصنوعی",
+    "translating": "در حال ترجمه…",
+    "pastePlaceholder": "پاسخ ترجمه‌شده را اینجا بچسبانید، یا ترجمه را خودتان تایپ کنید…",
+    "missingSegments": "{{count}} بخش در این تکه با متن اصلی مطابقت داده نشد — متن چسبانده‌شده را بررسی کنید.",
+    "generateWikitext": "تولید ویکی‌متن",
+    "generating": "در حال تولید…"
+  },
+  "stageRail": {
+    "load": "بارگذاری",
+    "parse": "تجزیه",
+    "resolveLinks": "رفع پیوندها",
+    "extract": "استخراج",
+    "chunk": "تقسیم"
+  },
+  "updateDialog": {
+    "title": "نسخه جدید پرسیوس در دسترس است",
+    "currentVersion": "نسخه فعلی:",
+    "latestVersion": "آخرین نسخه:",
+    "releaseNotesLabel": "یادداشت‌های انتشار",
+    "remindLater": "بعداً یادآوری کن",
+    "openReleases": "باز کردن انتشارهای GitHub"
+  },
+  "errors": {
+    "noArticle": "چیزی بارگذاری نشده است.",
+    "pasteNoMatch": "هیچ بخشی از متن چسبانده‌شده تشخیص داده نشد. فرمت را بررسی کن و دوباره امتحان کن.",
+    "parsing": "مقاله قابل تجزیه نبود. {{message}}",
+    "linkResolution": "پیوندهای مقاله از طریق ویکی‌داده قابل رفع نبودند. {{message}}",
+    "translation": "ترجمه در میانه راه با شکست مواجه شد. {{message}}",
+    "merge": "ادغام ترجمه با مقاله ممکن نشد. {{message}}",
+    "generation": "تولید ویکی‌متن نهایی ممکن نشد. {{message}}",
+    "configuration": "ارائه‌دهنده به‌طور کامل پیکربندی نشده است. {{message}}",
+    "provider": "ارائه‌دهنده ترجمه خطایی گزارش داد. {{message}}",
+    "unexpected": "خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.",
+    "ignoredEntries": "{{count}} شناسه ورودی که در عکس فوری این نشست یافت نشد نادیده گرفته شد."
+  },
+  "languageSwitcher": {
+    "label": "زبان",
+    "en": "English",
+    "fa": "فارسی",
+    "tj": "тоҷикӣ"
+  }
+}

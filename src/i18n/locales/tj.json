@@ -1,0 +1,115 @@
+{
+  "common": {
+    "copied": "Нусхабардорӣ шуд",
+    "saved": "Захира шуд",
+    "notSaved": "Захира нашуд"
+  },
+  "app": {
+    "title": "Perseus",
+    "version": "бета",
+    "sourceAction": {
+      "loadArticle": "Боркунии мақола"
+    },
+    "sourceBusy": {
+      "loading": "Боркунӣ…"
+    },
+    "promptCopied": "Дархост дар клипборд нусхабардорӣ шуд",
+    "chunkCopied": "Порча дар клипборд нусхабардорӣ шуд",
+    "pastePartial": "{{count}} порча мутобиқат наёфт ва бе тарҷума монд"
+  },
+  "opening": {
+    "tagline1": "Вақти камтар барои тарҷума",
+    "tagline2": "Вақти бештар барои ҷустуҷӯи ҳақиқат"
+  },
+  "sourceCard": {
+    "tabUrl": "Суроғаи Википедия",
+    "tabFile": "Файли маҳаллии .wiki",
+    "articleUrlLabel": "Википедияи манбаъ",
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
+    "localFileLabel": "Файли маҳаллӣ",
+    "noFileSelected": "Ҳеҷ файл интихоб нашудааст",
+    "browse": "Тамошо…"
+  },
+  "providerCard": {
+    "targetWikiLabel": "Викии мақсаднок",
+    "targetWikis": {
+      "fa": "Википедияи форсӣ",
+      "tj": "Википедияи тоҷикӣ"
+    },
+    "providerLabel": "Провайдер",
+    "modelLabel": "Модел",
+    "baseUrlLabel": "Суроғаи асосӣ",
+    "apiKeyLabel": "Калиди API",
+    "additionalPromptsLabel": "Дастур (ихтиёрӣ)",
+    "additionalPromptsPlaceholder": "Дастуре, ки ворид мекунед, ба дастури пешфарзи барнома илова карда мешавад.",
+    "providers": {
+      "ollama": "Ollama(Local)",
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "anthropic": "Anthropic",
+      "gemini": "Google Gemini"
+    }
+  },
+  "outputCard": {
+    "title": "Викиматни {{wiki}}",
+    "description": "Натиҷаро дида бароед, сипас онро нусхабардорӣ ё захира кунед — Perseus ҳеҷ гоҳ аз номи шумо интишор намекунад.",
+    "draftLinkText": "Эҷоди лоиҳа",
+    "moveLinkText": "Дархости интиқоли лоиҳа",
+    "copyButton": "Нусхабардории викиматн",
+    "saveButton": "Захираи файли .wiki"
+  },
+  "chunkWorkspace": {
+    "title": "Тарҷума",
+    "description": "Ҳар қисмро бо зеҳни сунъии дарунсохт тарҷума кунед, ё онро дар ChatGPT, Claude, Gemini ё ҳар зеҳни сунъии дигар нусхабардорӣ карда, ҷавобро дар ин ҷо баргардонед — ё тарҷумаро худатон чоп кунед. Тарзи кор барои ҳар қисм новобаста аз тарҷумон якхела аст.",
+    "copyGeneralPrompt": "Нусхабардории дастури умумӣ",
+    "translateAllBuiltIn": "Тарҷумаи ҳама бо зеҳни сунъӣ",
+    "translatingAll": "Тарҷумашавӣ…",
+    "openSession": "Кушодани ҷаласаи захирашуда…",
+    "saveSession": "Захираи ҷаласа",
+    "progress": "{{translated}} / {{total}} тарҷумашуда ({{percent}}%)",
+    "chunkLabel": "Қисми {{index}}",
+    "collapse": "Пӯшидан",
+    "editAgain": "Барои таҳрири дубора клик кунед",
+    "copyChunk": "Нусхабардории қисм",
+    "translateWithBuiltIn": "Бо зеҳни сунъӣ тарҷума кунед",
+    "translating": "Тарҷумашавӣ…",
+    "pastePlaceholder": "Ҷавоби тарҷумашударо дар ин ҷо гузоред, ё тарҷумаро худатон чоп кунед…",
+    "missingSegments": "{{count}} қисм дар ин порча бо матни аслӣ мувофиқат накард — матни гузошташударо тафтиш кунед.",
+    "generateWikitext": "Тавлиди викиматн",
+    "generating": "Тавлидшавӣ…"
+  },
+  "stageRail": {
+    "load": "Боркунӣ",
+    "parse": "Таҳлил",
+    "resolveLinks": "Ҳалли пайвандҳо",
+    "extract": "Истихроҷ",
+    "chunk": "Тақсим"
+  },
+  "updateDialog": {
+    "title": "Версияи нави Perseus дастрас аст",
+    "currentVersion": "Версияи ҷорӣ:",
+    "latestVersion": "Версияи охирин:",
+    "releaseNotesLabel": "Қайдҳои интишор",
+    "remindLater": "Баъдтар хотиррасон кун",
+    "openReleases": "Кушодани нашрҳои GitHub"
+  },
+  "errors": {
+    "noArticle": "Ҳеҷ чиз бор карда нашудааст.",
+    "pasteNoMatch": "Ҳеҷ бахше аз матни часпонидашуда мутобиқат наёфт. Форматро санҷед ва аз нав кӯшиш кунед.",
+    "parsing": "Мақола таҳлил нашуд. {{message}}",
+    "linkResolution": "Пайвандҳои мақола тавассути Викидода ҳал нашуданд. {{message}}",
+    "translation": "Тарҷума дар миёнароҳ ноком шуд. {{message}}",
+    "merge": "Муттаҳидсозии тарҷума бо мақола имконнопазир буд. {{message}}",
+    "generation": "Тавлиди викиматни ниҳоӣ имконнопазир буд. {{message}}",
+    "configuration": "Провайдер пурра танзим нашудааст. {{message}}",
+    "provider": "Провайдери тарҷума хатогӣ гузориш дод. {{message}}",
+    "unexpected": "Хатогии ногаҳонӣ рух дод. Лутфан бори дигар кӯшиш кунед.",
+    "ignoredEntries": "{{count}} рамзи вурудӣ, ки дар нусхаи фаврии ин ҷаласа ёфт нашуд, нодида гирифта шуд."
+  },
+  "languageSwitcher": {
+    "label": "Забон",
+    "en": "English",
+    "fa": "فارسی",
+    "tj": "тоҷикӣ"
+  }
+}

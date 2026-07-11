@@ -1,0 +1,114 @@
+{
+  "common": {
+    "copied": "Copied",
+    "saved": "Saved",
+    "notSaved": "Not saved"
+  },
+  "app": {
+    "title": "Perseus",
+    "version": "beta",
+    "sourceAction": {
+      "loadArticle": "Load Article"
+    },
+    "sourceBusy": {
+      "loading": "Loading…"
+    },
+    "promptCopied": "Prompt copied to clipboard",
+    "chunkCopied": "Chunk copied to clipboard",
+    "pastePartial": "{{count}} segment(s) couldn't be matched and were left untranslated"
+  },
+  "opening": {
+    "tagline1": "Less time translating",
+    "tagline2": "More time seeking truth"
+  },
+  "sourceCard": {
+    "tabUrl": "Wikipedia URL",
+    "tabFile": "Local .wiki file",
+    "articleUrlLabel": "Source Wikipedia",
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
+    "localFileLabel": "Local file",
+    "noFileSelected": "No file selected",
+    "browse": "Browse…"
+  },
+  "providerCard": {
+    "targetWikiLabel": "Target wiki",
+    "targetWikis": {
+      "fa": "Persian Wikipedia",
+      "tj": "Tajik Wikipedia"
+    },
+    "providerLabel": "Provider",
+    "modelLabel": "Model",
+    "baseUrlLabel": "Base URL",
+    "apiKeyLabel": "API key",
+    "additionalPromptsLabel": "Prompt (optional)",
+    "additionalPromptsPlaceholder": "The prompt you enter will be appended to the application's default prompt.",
+    "providers": {
+      "ollama": "Ollama(Local)",
+      "openai": "OpenAI",
+      "openrouter": "OpenRouter",
+      "anthropic": "Anthropic",
+      "gemini": "Google Gemini"
+    }
+  },
+  "outputCard": {
+    "title": "{{wiki}} Wikitext",
+    "description": "Review the result, then copy or save it — Perseus never publishes for you.",
+    "draftLinkText": "Create draft",
+    "moveLinkText": "Request draft move",
+    "copyButton": "Copy Wikitext",
+    "saveButton": "Save .wiki file"
+  },
+  "chunkWorkspace": {
+    "title": "Translate",
+    "description": "Translate each chunk below with the built-in LLM, or copy it into ChatGPT, Claude, Gemini, or any other AI and paste the reply back — or type a translation by hand. Every chunk works the same way no matter who translates it.",
+    "copyGeneralPrompt": "Copy general prompt",
+    "translateAllBuiltIn": "Translate All with Built-in LLM",
+    "translatingAll": "Translating…",
+    "openSession": "Open saved session…",
+    "saveSession": "Save session",
+    "progress": "{{translated}} / {{total}} translated ({{percent}}%)",
+    "chunkLabel": "Chunk {{index}}",
+    "collapse": "Collapse",
+    "editAgain": "Click to edit again",
+    "copyChunk": "Copy chunk",
+    "translateWithBuiltIn": "Translate with Built-in LLM",
+    "translating": "Translating…",
+    "pastePlaceholder": "Paste the translated reply here, or type a translation by hand…",
+    "missingSegments": "{{count}} segment(s) in this chunk couldn't be matched — check the pasted text.",
+    "generateWikitext": "Generate Wikitext",
+    "generating": "Generating…"
+  },
+  "stageRail": {
+    "load": "Load",
+    "parse": "Parse",
+    "resolveLinks": "Resolve links",
+    "extract": "Extract",
+    "chunk": "Chunk"
+  },
+  "updateDialog": {
+    "title": "A new version of Perseus is available",
+    "currentVersion": "Current version:",
+    "latestVersion": "Latest version:",
+    "releaseNotesLabel": "Release notes",
+    "remindLater": "Remind me later",
+    "openReleases": "Open GitHub Releases"
+  },
+  "errors": {
+    "noArticle": "Nothing has been loaded.",
+    "parsing": "The article could not be parsed. {{message}}",
+    "linkResolution": "Could not resolve article links via Wikidata. {{message}}",
+    "translation": "Translation failed partway through. {{message}}",
+    "merge": "Could not merge the translation back into the article. {{message}}",
+    "generation": "Could not generate the final Wikitext. {{message}}",
+    "configuration": "Provider is not fully configured. {{message}}",
+    "provider": "The translation provider reported an error. {{message}}",
+    "unexpected": "Something unexpected went wrong. Please try again.",
+    "ignoredEntries": "Ignored {{count}} entry id(s) not found in this session's own snapshot."
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "fa": "فارسی",
+    "tj": "Тоҷикӣ"
+  }
+}
