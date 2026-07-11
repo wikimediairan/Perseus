@@ -102,12 +102,8 @@ describe("Edge Cases (E2E)", () => {
       await new WikidataLinkResolver(TARGET_WIKIS.fa).resolve(ir);
     } catch (err) {
       expect(err, "error is a PerseusError").toBeInstanceOf(PerseusError);
-      expect((err as PerseusError).category, "category is LinkResolutionError").toBe(
-        "LinkResolutionError",
-      );
-      expect((err as PerseusError).stage, "stage is resolve-wikidata-links").toBe(
-        "resolve-wikidata-links",
-      );
+      expect((err as any).category, "category is LinkResolutionError").toBe("LinkResolutionError");
+      expect((err as any).stage, "stage is resolve-wikidata-links").toBe("resolve-wikidata-links");
     }
   });
 });

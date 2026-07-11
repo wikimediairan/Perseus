@@ -1,6 +1,6 @@
 {
   "name": "perseus",
-  "version": "0.2.0-beta",
+  "version": "0.2.0",
   "private": true,
   "description": "Perseus is a desktop tool for translating English Wikipedia articles into Persian or Tajik Wikipedia-compatible Wikitext, helping bridge the gap in quality and completeness across languages.",
   "type": "module",
