@@ -54,11 +54,17 @@ direction of the project and provides a realistic view of how Perseus is designe
 
 ## Manifesto
 
-Perseus exists to strengthen non-English Wikipedia communities by reducing repetitive work while improving the quality of article translation. It is currently designed for Persian and Tajik Wikipedia.
+Perseus exists to strengthen non-English Wikipedia communities by reducing repetitive work while
+improving the quality of article translation. It is currently designed for Persian and Tajik
+Wikipedia.
 
-Perseus aims to redefine the contributor's role in the age of AI. Rather than spending time on repetitive tasks such as formatting Wikitext, creating wikilinks, or adapting citations, contributors can focus on what matters most: exercising human judgment.
+Perseus aims to redefine the contributor's role in the age of AI. Rather than spending time on
+repetitive tasks such as formatting Wikitext, creating wikilinks, or adapting citations,
+contributors can focus on what matters most: exercising human judgment.
 
-We hope the time saved through automation will be invested in verifying sources, fact-checking content, evaluating neutrality, and making thoughtful editorial decisions that no automated system should make on its own.
+We hope the time saved through automation will be invested in verifying sources, fact-checking
+content, evaluating neutrality, and making thoughtful editorial decisions that no automated system
+should make on its own.
 
 ## Features
 
