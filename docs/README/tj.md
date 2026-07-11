@@ -11,7 +11,9 @@
 
 <div align="center">
 
-[![Perseus Logo](../assets/logo.png)](docs/assets/logo.png)
+<p align="center">
+  <img src="../assets/logo.png" alt="Perseus Logo" width="200">
+</p>
 
 [![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
 [![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
