@@ -71,9 +71,12 @@
     "vitest": "^4.1.9"
   },
   "nano-staged": {
-    "*.{js,cjs,mjs,ts,md,json}": []
+    "*.{js,cjs,mjs,ts,md,json}": [
+      "pnpm run lint"
+    ]
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm nano-staged"
+    "pre-commit": "pnpm nano-staged",
+    "pre-push": "pnpm run version & pnpm run test"
   }
 }
