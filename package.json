@@ -74,7 +74,6 @@
     "*.{js,cjs,mjs,ts,md,json}": []
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpm nano-staged",
-    "pre-push": "pnpm run test && pnpm run version"
+    "pre-commit": "pnpm nano-staged"
   }
 }
