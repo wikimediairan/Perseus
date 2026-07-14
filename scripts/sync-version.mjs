@@ -24,6 +24,6 @@ fs.writeFileSync(cargoTomlPath, cargoToml);
 const tauriConf = JSON.parse(fs.readFileSync(tauriConfPath, "utf8"));
 tauriConf.version = version;
 
-fs.writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2) + "\n");
+fs.writeFileSync(tauriConfPath, `${JSON.stringify(tauriConf, null, 2)}\n`);
 
 console.log(`Synced version ${version}`);

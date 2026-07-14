@@ -49,9 +49,10 @@ export function StageRail({
         const isErrored = i === currentIndex && status === "error";
 
         return (
-          <li key={stage} className="flex flex-1 items-center last:flex-none">
+          <li className="flex flex-1 items-center last:flex-none" key={stage}>
             <div className="flex flex-col items-center gap-1">
               <div
+                aria-current={isActive ? "step" : undefined}
                 className={cn(
                   "flex h-5 w-5 items-center justify-center rounded-full border-2 text-[10px] font-semibold transition-colors",
                   isDone && "border-primary bg-primary text-primary-foreground",
@@ -62,7 +63,6 @@ export function StageRail({
                     !isErrored &&
                     "border-border bg-background text-muted-foreground",
                 )}
-                aria-current={isActive ? "step" : undefined}
               >
                 {isDone ? "✓" : i + 1}
               </div>

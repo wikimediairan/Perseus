@@ -7,7 +7,13 @@ import { Toaster } from "sonner";
 
 import App from "./App";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root");
+
+if (!root) {
+  throw new Error("index.html - Root element not found!");
+}
+
+ReactDOM.createRoot(root).render(
   <React.StrictMode>
     <Toaster dir="ltr" position="top-center" />
     <App />

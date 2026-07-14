@@ -33,7 +33,7 @@
 import type { TranslatedUnit } from "@core/chunker/segmentProtocol";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 import type { Merger } from "@core/merge/Merger";
-import type { SessionChunk, ApplySessionChunkResult } from "@core/translationPackage/types";
+import type { ApplySessionChunkResult, SessionChunk } from "@core/translationPackage/types";
 
 /**
  * Applies one session chunk's translation entries onto an IR that has

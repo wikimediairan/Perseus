@@ -14,8 +14,8 @@ import { chatCompletion } from "@core/llm/chatProtocol";
 import type {
   LLMProvider,
   LLMProviderKind,
-  TranslationResult,
   TranslationRequest,
+  TranslationResult,
 } from "@core/llm/LLMProvider";
 
 export interface OpenRouterProviderConfig {

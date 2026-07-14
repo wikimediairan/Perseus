@@ -129,7 +129,7 @@ describe("Translation Session (E2E)", () => {
         capturedHtml = body?.html ?? "";
         return Promise.resolve(textResponse("GENERATED"));
       }
-      throw new Error("unexpected fetch during reconstruction: " + url);
+      throw new Error(`unexpected fetch during reconstruction: ${url}`);
     });
 
     const { createPipeline, DEFAULT_CONFIG, ConsoleLogger } = await loadPipelineModules();
@@ -167,7 +167,7 @@ describe("Translation Session (E2E)", () => {
     setGlobalFetch((input: RequestInfo | URL): Promise<Response> => {
       const url = typeof input === "string" ? input : input.toString();
       if (isHtmlToWikitextRequest(url)) return Promise.resolve(textResponse("GENERATED"));
-      throw new Error("unexpected fetch: " + url);
+      throw new Error(`unexpected fetch: ${url}`);
     });
 
     // Unknown id should be ignored by apply, not throw — this is a session that

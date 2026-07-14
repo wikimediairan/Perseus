@@ -21,8 +21,8 @@ import { PerseusError } from "@core/errors/PerseusError";
 import type {
   LLMProvider,
   LLMProviderKind,
-  TranslationResult,
   TranslationRequest,
+  TranslationResult,
 } from "@core/llm/LLMProvider";
 
 export interface AnthropicProviderConfig {

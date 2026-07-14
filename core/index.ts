@@ -10,86 +10,76 @@
  * assembles a fully wired, real (non-stub) Pipeline.
  */
 
-export type { Merger } from "@core/merge/Merger";
-export type { LinkNode } from "@core/ir/LinkNode";
-export { DEFAULT_CONFIG } from "@core/config/Config";
-
-export { ConsoleLogger } from "@core/logging/Logger";
-export { createPipeline } from "@core/createPipeline";
-
-export { createProvider } from "@core/llm/ProviderFactory";
-export { SizeBoundedChunker, DEFAULT_MAX_CHUNK_CHARS } from "@core/chunker/Chunker";
 export type { Chunk, Chunker } from "@core/chunker/Chunker";
-
-export { FileConfigLoader } from "@core/config/ConfigLoader";
-export type { ConfigLoader } from "@core/config/ConfigLoader";
-
+export { DEFAULT_MAX_CHUNK_CHARS, SizeBoundedChunker } from "@core/chunker/Chunker";
+export type { TranslatedChunk, TranslatedUnit } from "@core/chunker/segmentProtocol";
 export {
-  TARGET_WIKIS,
+  parseChunkTranslation,
+  renderChunkForTranslation,
+  SEGMENT_FORMAT_INSTRUCTIONS,
+} from "@core/chunker/segmentProtocol";
+export type { LLMProviderConfig, PerseusConfig, PromptConfig } from "@core/config/Config";
+export { DEFAULT_CONFIG } from "@core/config/Config";
+export type { ConfigLoader } from "@core/config/ConfigLoader";
+export { FileConfigLoader } from "@core/config/ConfigLoader";
+export type { TargetWikiCode, TargetWikiDefinition } from "@core/config/targetWikis";
+export {
+  DEFAULT_TARGET_WIKI,
   getTargetWiki,
   isTargetWikiCode,
-  DEFAULT_TARGET_WIKI,
+  TARGET_WIKIS,
 } from "@core/config/targetWikis";
-export type { TargetWikiCode, TargetWikiDefinition } from "@core/config/targetWikis";
-
-export { WikipediaInputLoader } from "@core/input/InputLoader";
-export type { PromptManager } from "@core/prompt/PromptManager";
-export type { OutputDelivery } from "@core/output/OutputDelivery";
-export { TauriOutputDelivery } from "@core/output/OutputDelivery";
-export { DefaultPromptManager } from "@core/prompt/PromptManager";
-export type { Logger, LogEntry, LogLevel } from "@core/logging/Logger";
-
-export { PerseusError, notImplemented } from "@core/errors/PerseusError";
-export { Pipeline, PIPELINE_STAGE_ORDER } from "@core/pipeline/Pipeline";
-
-export type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-export type { PerseusErrorOptions, PerseusErrorCategory } from "@core/errors/PerseusError";
-
-export type { InputLoader, ArticleSource, LoadedArticle } from "@core/input/InputLoader";
-export type { PromptConfig, PerseusConfig, LLMProviderConfig } from "@core/config/Config";
-export type { TextNode, IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
-export type { Translator } from "@core/translator/Translator";
-export {
-  SEGMENT_FORMAT_INSTRUCTIONS,
-  renderChunkForTranslation,
-  parseChunkTranslation,
-} from "@core/chunker/segmentProtocol";
-export type { TranslatedUnit, TranslatedChunk } from "@core/chunker/segmentProtocol";
-
+export { createPipeline } from "@core/createPipeline";
+export type { PerseusErrorCategory, PerseusErrorOptions } from "@core/errors/PerseusError";
+export { notImplemented, PerseusError } from "@core/errors/PerseusError";
 export type { Extractor, TranslationUnit, TranslationWorklist } from "@core/extractor/Extractor";
+export type { WikitextGenerator } from "@core/generator/WikitextGenerator";
+export type { ArticleSource, InputLoader, LoadedArticle } from "@core/input/InputLoader";
+export { WikipediaInputLoader } from "@core/input/InputLoader";
+export type { IntermediateRepresentation, TextNode } from "@core/ir/IntermediateRepresentation";
+export type { LinkNode } from "@core/ir/LinkNode";
 export type {
   LLMProvider,
   LLMProviderKind,
-  TranslationResult,
   TranslationRequest,
+  TranslationResult,
 } from "@core/llm/LLMProvider";
-
+export { createProvider } from "@core/llm/ProviderFactory";
+export type { LogEntry, Logger, LogLevel } from "@core/logging/Logger";
+export { ConsoleLogger } from "@core/logging/Logger";
+export type { Merger } from "@core/merge/Merger";
+export type { OutputDelivery } from "@core/output/OutputDelivery";
+export { TauriOutputDelivery } from "@core/output/OutputDelivery";
 export type {
-  PipelineResult,
   ExtractionResult,
-  PipelineStageName,
   PipelineDependencies,
+  PipelineResult,
+  PipelineStageName,
 } from "@core/pipeline/Pipeline";
+export { PIPELINE_STAGE_ORDER, Pipeline } from "@core/pipeline/Pipeline";
+export type { PromptManager } from "@core/prompt/PromptManager";
+export { DefaultPromptManager } from "@core/prompt/PromptManager";
 export type {
   ReferenceAttentionAnnotation,
-  ReferenceAttentionClassifier,
   ReferenceAttentionClassification,
+  ReferenceAttentionClassifier,
 } from "@core/referenceAttention/ReferenceAttention";
+export type {
+  ApplySessionChunkResult,
+  SessionChunk,
+  SessionProgress,
+  TranslationEntryTuple,
+  TranslationSession,
+  TranslationSessionMeta,
+  TranslationSessionProvenance,
+  TranslationSessionSnapshot,
+} from "@core/translationPackage";
 
 export {
   applySessionChunk,
-  exportTranslationSession,
-  validateTranslationSession,
   calculateSessionProgress,
   EXTERNAL_TRANSLATION_INSTRUCTIONS,
+  exportTranslationSession,
+  validateTranslationSession,
 } from "@core/translationPackage";
-export type {
-  SessionChunk,
-  SessionProgress,
-  TranslationSession,
-  TranslationEntryTuple,
-  ApplySessionChunkResult,
-  TranslationSessionMeta,
-  TranslationSessionSnapshot,
-  TranslationSessionProvenance,
-} from "@core/translationPackage";
+export type { Translator } from "@core/translator/Translator";

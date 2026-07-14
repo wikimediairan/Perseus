@@ -84,7 +84,7 @@ describe("Smoke Test (E2E)", () => {
   });
 
   it("sent HTML link href was updated to the Persian-resolved target", () => {
-    expect(sentHtml.includes('href="./' + encodeURIComponent("خورشید") + '"')).toBe(true);
+    expect(sentHtml.includes(`href="./${encodeURIComponent("خورشید")}"`)).toBe(true);
   });
 
   it("sent HTML contains second paragraph's translation", () => {

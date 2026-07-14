@@ -38,7 +38,7 @@ export function createCitationPipelineFetch(parsoidHtml: string) {
       return Promise.resolve(jsonResponse({ message: { content: translated } }));
     }
     if (isHtmlToWikitextRequest(url)) return Promise.resolve(capture.handle(init));
-    throw new Error("unexpected fetch: " + url);
+    throw new Error(`unexpected fetch: ${url}`);
   }) as typeof fetch;
 
   return { handler, getCapturedHtml: capture.getCapturedHtml };

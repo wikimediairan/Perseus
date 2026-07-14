@@ -13,8 +13,8 @@
 import type { PerseusConfig } from "@core/config/Config";
 import { DEFAULT_CONFIG } from "@core/config/Config";
 import { PerseusError } from "@core/errors/PerseusError";
-import { join, appConfigDir } from "@tauri-apps/api/path";
-import { mkdir, exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { appConfigDir, join } from "@tauri-apps/api/path";
+import { exists, mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
 const CONFIG_FILE_NAME = "perseus.config.json";
 

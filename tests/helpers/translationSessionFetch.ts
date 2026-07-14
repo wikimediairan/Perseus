@@ -39,7 +39,7 @@ export function createTranslationSessionFetch(
         }),
       );
     }
-    throw new Error("unexpected fetch: " + url);
+    throw new Error(`unexpected fetch: ${url}`);
   };
 }
 

@@ -5,18 +5,18 @@ import packageJson from "../package.json";
 export const APP_VERSION = packageJson.version;
 
 import { ChunkWorkspace } from "@/components/ChunkWorkspace";
+import { LogPanel } from "@/components/LogPanel";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Header } from "@/components/layout/Header";
 import { MainPanel } from "@/components/layout/MainPanel";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { LogPanel } from "@/components/LogPanel";
 import { Opening } from "@/components/Opening";
 import { OutputCard } from "@/components/OutputCard";
 import { ProviderCard } from "@/components/ProviderCard";
 import { SourceCard } from "@/components/SourceCard";
 import { StageRail } from "@/components/StageRail";
-import { Separator } from "@/components/ui/separator";
 import { UpdateDialog } from "@/components/UpdateDialog";
+import { Separator } from "@/components/ui/separator";
 import { useChunkWorkspace } from "@/hooks/useChunkWorkspace";
 import { useConfig } from "@/hooks/useConfig";
 import { useUpdateChecker } from "@/hooks/useUpdateChecker";
@@ -98,19 +98,19 @@ export default function App() {
           <ProviderCard config={config} disabled={hasArticle || busy} onChange={updateConfig} />
 
           <SourceCard
-            disabled={busy}
             actionLabel={t("app.sourceAction.loadArticle")}
             busyLabel={t("app.sourceBusy.loading")}
-            onSubmit={loadArticle}
             config={config}
+            disabled={busy}
             onChange={updateConfig}
+            onSubmit={loadArticle}
           />
 
           <button
-            type="button"
+            className="w-fit cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-50"
             disabled={busy}
             onClick={openSession}
-            className="w-fit cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-50"
+            type="button"
           >
             {t("chunkWorkspace.openSession")}
           </button>
@@ -120,8 +120,8 @@ export default function App() {
               <Separator />
               <div className="flex flex-col gap-3">
                 <StageRail
-                  stages={stages.slice(0, LOAD_PHASE_STAGE_COUNT)}
                   currentStage={currentStage}
+                  stages={stages.slice(0, LOAD_PHASE_STAGE_COUNT)}
                   status={status}
                 />
                 <LogPanel log={log} />
@@ -140,39 +140,39 @@ export default function App() {
 
         {hasArticle && chunks && (
           <ChunkWorkspace
-            chunks={chunks}
             chunkState={chunkState}
-            progress={progress}
+            chunks={chunks}
             disabled={busy}
-            translateAllBusy={translateAllBusy}
-            onCopyGeneralPrompt={copyGeneralPrompt}
+            generateBusy={generateBusy}
             onCopyChunk={copyChunk}
-            onTranslateChunkBuiltIn={translateChunkBuiltIn}
+            onCopyGeneralPrompt={copyGeneralPrompt}
+            onGenerateWikitext={generateWikitext}
             onPasteChunkTranslation={pasteChunkTranslation}
-            onTranslateAllBuiltIn={translateAllBuiltIn}
             onSaveSession={() => {
               void saveSession("translation-session.perseus");
             }}
-            onGenerateWikitext={generateWikitext}
-            generateBusy={generateBusy}
+            onTranslateAllBuiltIn={translateAllBuiltIn}
+            onTranslateChunkBuiltIn={translateChunkBuiltIn}
+            progress={progress}
+            translateAllBusy={translateAllBusy}
           />
         )}
 
         {wikitext !== null && targetWiki && (
           <OutputCard
-            wikitext={wikitext}
-            targetWiki={targetWiki}
             onCopy={copyToClipboard}
             onSave={saveToFile}
+            targetWiki={targetWiki}
+            wikitext={wikitext}
           />
         )}
       </MainPanel>
 
       {updateAvailable && updateResult && (
         <UpdateDialog
-          result={updateResult}
-          onOpenReleases={openReleases}
           onDismiss={dismissUpdate}
+          onOpenReleases={openReleases}
+          result={updateResult}
         />
       )}
     </AppLayout>

@@ -11,11 +11,11 @@ import { Button } from "@/components/ui/button";
  */
 import {
   Dialog,
-  DialogTitle,
-  DialogFooter,
-  DialogHeader,
   DialogContent,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import type { UpdateCheckResult } from "@/services/updateChecker";
 
@@ -31,7 +31,7 @@ export function UpdateDialog({
   const { t } = useTranslation();
 
   return (
-    <Dialog open onOpenChange={(open) => !open && onDismiss()}>
+    <Dialog onOpenChange={(open) => !open && onDismiss()} open>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("updateDialog.title")}</DialogTitle>
@@ -53,10 +53,10 @@ export function UpdateDialog({
         )}
 
         <DialogFooter>
-          <Button variant="ghost" size="sm" onClick={onDismiss}>
+          <Button onClick={onDismiss} size="sm" variant="ghost">
             {t("updateDialog.remindLater")}
           </Button>
-          <Button size="sm" onClick={onOpenReleases}>
+          <Button onClick={onOpenReleases} size="sm">
             {t("updateDialog.openReleases")}
           </Button>
         </DialogFooter>

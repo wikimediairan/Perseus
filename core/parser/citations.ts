@@ -34,10 +34,10 @@
  */
 
 import type {
-  CitationId,
-  CitationStyle,
-  CitationReference,
   CitationDefinition,
+  CitationId,
+  CitationReference,
+  CitationStyle,
 } from "@core/ir/citation";
 import { CitationRegistry } from "@core/ir/citation";
 

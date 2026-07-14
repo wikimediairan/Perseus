@@ -5,21 +5,22 @@
  * validate, import (apply), and progress calculation. One supported
  * format — see types.ts for the versioning policy.
  */
-export { calculateSessionProgress } from "@core/translationPackage/progress";
-export { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "@core/translationPackage/types";
-export { validateTranslationSession } from "@core/translationPackage/validate";
-export { applySessionChunk } from "@core/translationPackage/import";
+
 export {
-  exportTranslationSession,
   EXTERNAL_TRANSLATION_INSTRUCTIONS,
+  exportTranslationSession,
 } from "@core/translationPackage/export";
+export { applySessionChunk } from "@core/translationPackage/import";
+export { calculateSessionProgress } from "@core/translationPackage/progress";
 export type {
+  ApplySessionChunkResult,
   SessionChunk,
   SessionProgress,
-  TranslationSession,
   TranslationEntryTuple,
-  ApplySessionChunkResult,
+  TranslationSession,
   TranslationSessionMeta,
-  TranslationSessionSnapshot,
   TranslationSessionProvenance,
+  TranslationSessionSnapshot,
 } from "@core/translationPackage/types";
+export { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "@core/translationPackage/types";
+export { validateTranslationSession } from "@core/translationPackage/validate";

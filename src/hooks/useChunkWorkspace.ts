@@ -8,17 +8,18 @@ import { PerseusError } from "@core/errors/PerseusError";
 import type { ArticleSource } from "@core/input/InputLoader";
 import type { Logger } from "@core/logging/Logger";
 import { TauriOutputDelivery } from "@core/output/OutputDelivery";
-import { PIPELINE_STAGE_ORDER } from "@core/pipeline/Pipeline";
 import type { ExtractionResult, PipelineStageName } from "@core/pipeline/Pipeline";
+import { PIPELINE_STAGE_ORDER } from "@core/pipeline/Pipeline";
 import { exportTranslationSession } from "@core/translationPackage/export";
 import type { TFunction } from "i18next";
-import { useRef, useMemo, useState, useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { useAsyncAction } from "./useAsyncAction";
 
 export interface LogLine {
+  id: string;
   level: "info" | "warn" | "debug" | "error";
   message: string;
 }
@@ -109,7 +110,10 @@ export function useChunkWorkspace(config: PerseusConfig) {
         setCurrentStage(stage);
       }
 
-      setLog((prev) => [...prev, { level, message: stage ? `${stage}: ${message}` : message }]);
+      setLog((prev) => [
+        ...prev,
+        { id: crypto.randomUUID(), level, message: stage ? `${stage}: ${message}` : message },
+      ]);
     };
 
     const build = (stage?: PipelineStageName): Logger => ({

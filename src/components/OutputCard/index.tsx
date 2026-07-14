@@ -11,14 +11,15 @@
  * Persian-speaking editor using the English UI to produce a Tajik
  * article should still see the output rendered LTR.
  */
-import { TARGET_WIKIS } from "@core/config/targetWikis";
+
 import type { TargetWikiCode } from "@core/config/targetWikis";
+import { TARGET_WIKIS } from "@core/config/targetWikis";
 import { open } from "@tauri-apps/plugin-shell";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
 export function OutputCard({
@@ -64,8 +65,7 @@ export function OutputCard({
           {t("outputCard.description")}
 
           <div className="flex flex-col">
-            <a
-              href="#"
+            <button
               className="text-accent-foreground transition-all hover:opacity-80"
               onClick={async (e) => {
                 e.preventDefault();
@@ -73,12 +73,12 @@ export function OutputCard({
                   `https://${TARGET_WIKIS[targetWiki].domain}/wiki/${TARGET_WIKIS[targetWiki].draft}`,
                 );
               }}
+              type="button"
             >
               {t("outputCard.draftLinkText")}
-            </a>
+            </button>
 
-            <a
-              href="#"
+            <button
               className="text-accent-foreground transition-all hover:opacity-80"
               onClick={async (e) => {
                 e.preventDefault();
@@ -86,18 +86,19 @@ export function OutputCard({
                   `https://${TARGET_WIKIS[targetWiki].domain}/wiki/${TARGET_WIKIS[targetWiki].move}`,
                 );
               }}
+              type="button"
             >
               {t("outputCard.moveLinkText")}
-            </a>
+            </button>
           </div>
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={handleCopy}>
+          <Button onClick={handleCopy} size="sm" variant="outline">
             {copyState === "copied" ? t("common.copied") : t("outputCard.copyButton")}
           </Button>
-          <Button variant="outline" size="sm" onClick={handleSave}>
+          <Button onClick={handleSave} size="sm" variant="outline">
             {saveState === "saved"
               ? t("common.saved")
               : saveState === "cancelled"
@@ -106,14 +107,14 @@ export function OutputCard({
           </Button>
         </div>
         <Textarea
-          readOnly
-          dir={direction}
-          value={wikitext}
           className={
             direction === "rtl"
               ? "font-persian min-h-72 text-[15px] leading-relaxed"
               : "min-h-72 text-[15px] leading-relaxed"
           }
+          dir={direction}
+          readOnly
+          value={wikitext}
         />
       </CardContent>
     </Card>

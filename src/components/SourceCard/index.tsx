@@ -14,15 +14,13 @@ import { open } from "@tauri-apps/plugin-dialog";
  */
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
-import { TextContextMenu } from "../ContextMenu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { TextContextMenu } from "../ContextMenu";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export function SourceCard({
   disabled,
@@ -70,16 +68,16 @@ export function SourceCard({
         <div className="inline-flex w-fit rounded-md border border-border bg-secondary p-0.5">
           {(["url", "file"] as const).map((m) => (
             <button
-              key={m}
-              type="button"
-              disabled={disabled}
-              onClick={() => {
-                setMode(m);
-              }}
               className={cn(
                 "cursor-pointer rounded-[5px] px-3 py-1 text-xs font-medium transition-colors",
                 mode === m ? "bg-card shadow-sm" : "text-muted-foreground hover:text-foreground",
               )}
+              disabled={disabled}
+              key={m}
+              onClick={() => {
+                setMode(m);
+              }}
+              type="button"
             >
               {m === "url" ? t("sourceCard.tabUrl") : t("sourceCard.tabFile")}
             </button>
@@ -92,15 +90,15 @@ export function SourceCard({
             <Label htmlFor="article-url">{t("sourceCard.articleUrlLabel")}</Label>
             <TextContextMenu>
               <Input
-                id="article-url"
-                dir="ltr"
                 autoComplete="off"
-                placeholder={t("sourceCard.articleUrlPlaceholder")}
-                value={url}
+                dir="ltr"
                 disabled={disabled}
+                id="article-url"
                 onChange={(e) => {
                   setUrl(e.target.value);
                 }}
+                placeholder={t("sourceCard.articleUrlPlaceholder")}
+                value={url}
               />
             </TextContextMenu>
           </div>
@@ -109,12 +107,12 @@ export function SourceCard({
             <Label>{t("sourceCard.localFileLabel")}</Label>
             <div>
               <Input
+                className="flex-1 cursor-pointer"
                 disabled={disabled}
                 onClick={pickFile}
+                placeholder={t("sourceCard.noFileSelected")}
                 readOnly
                 value={filePath ?? ""}
-                placeholder={t("sourceCard.noFileSelected")}
-                className="flex-1 cursor-pointer"
               />
             </div>
           </div>
@@ -123,11 +121,11 @@ export function SourceCard({
         <div className="flex flex-col gap-1.5">
           <Label>{t("providerCard.targetWikiLabel")}</Label>
           <Select
-            value={config.targetWiki}
             disabled={disabled}
             onValueChange={(code) => {
               onChange({ ...config, targetWiki: code as TargetWikiCode });
             }}
+            value={config.targetWiki}
           >
             <SelectTrigger>
               <SelectValue />

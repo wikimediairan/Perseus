@@ -49,7 +49,7 @@ Several areas are still being actively improved, including:
 - Backend service implementation
 - Desktop-specific user experience improvements
 - Codebase cleanup and modularization
-- Lint cleanup and general refactoring
+- General refactoring
 
 Although this is not yet considered a production-ready release, the repository reflects the current
 direction of the project and provides a realistic view of how Perseus is designed to work.

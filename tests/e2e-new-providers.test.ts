@@ -27,7 +27,7 @@ describe("New LLM Providers (E2E)", () => {
     });
 
     const headers = capturedInit?.headers as Record<string, string>;
-    const body = JSON.parse(capturedInit!.body as string) as Record<string, unknown>;
+    const body = JSON.parse(capturedInit?.body as string) as Record<string, unknown>;
 
     expect(provider.kind, "provider.kind is 'anthropic'").toBe("anthropic");
     expect(capturedUrl, "correct endpoint").toBe("https://api.anthropic.com/v1/messages");
@@ -70,7 +70,7 @@ describe("New LLM Providers (E2E)", () => {
     });
 
     const headers = capturedInit?.headers as Record<string, string>;
-    const body = JSON.parse(capturedInit!.body as string) as {
+    const body = JSON.parse(capturedInit?.body as string) as {
       system_instruction: { parts: { text: string }[] };
       contents: { parts: { text: string }[] }[];
     };

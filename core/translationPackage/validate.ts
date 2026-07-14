@@ -19,10 +19,10 @@ import { isTargetWikiCode } from "@core/config/targetWikis";
 import { PerseusError } from "@core/errors/PerseusError";
 import type {
   SessionChunk,
-  TranslationSession,
   TranslationEntryTuple,
+  TranslationSession,
 } from "@core/translationPackage/types";
-import { PACKAGE_FORMAT_MARKER, CURRENT_FORMAT_VERSION } from "@core/translationPackage/types";
+import { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "@core/translationPackage/types";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

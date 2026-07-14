@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import { ChunkRow } from "@/components/ChunkWorkspace/ChunkRow";
 import { Button } from "@/components/ui/button";
-import { Card, CardTitle, CardHeader, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import type { ChunkState } from "@/hooks/useChunkWorkspace";
 
@@ -81,20 +81,20 @@ export function ChunkWorkspace({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" size="sm" onClick={handleCopyPrompt}>
+          <Button onClick={handleCopyPrompt} size="sm" type="button" variant="outline">
             {promptCopied ? t("common.copied") : t("chunkWorkspace.copyGeneralPrompt")}
           </Button>
           <Button
-            type="button"
-            size="sm"
             disabled={disabled || translateAllBusy || allDone}
             onClick={onTranslateAllBuiltIn}
+            size="sm"
+            type="button"
           >
             {translateAllBusy
               ? t("chunkWorkspace.translatingAll")
               : t("chunkWorkspace.translateAllBuiltIn")}
           </Button>
-          <Button type="button" variant="outline" size="sm" onClick={handleSave}>
+          <Button onClick={handleSave} size="sm" type="button" variant="outline">
             {saveState === "saved"
               ? t("common.saved")
               : saveState === "cancelled"
@@ -117,30 +117,30 @@ export function ChunkWorkspace({
         <div className="flex flex-col gap-2">
           {chunks.map((chunk, i) => (
             <ChunkRow
-              key={chunk.id}
-              index={i}
-              chunk={chunk}
-              isDone={isChunkDone(chunk, chunkState.translatedByNodeId)}
-              missingCount={chunkState.missingByChunkId.get(chunk.id) ?? 0}
               busy={chunkState.busyChunkIds.has(chunk.id)}
+              chunk={chunk}
               disabled={disabled}
+              index={i}
+              isDone={isChunkDone(chunk, chunkState.translatedByNodeId)}
+              key={chunk.id}
+              missingCount={chunkState.missingByChunkId.get(chunk.id) ?? 0}
               onCopy={() => {
                 onCopyChunk(chunk);
               }}
-              onTranslateBuiltIn={() => {
-                onTranslateChunkBuiltIn(chunk);
-              }}
               onPasteTranslation={(text) => {
                 onPasteChunkTranslation(chunk, text);
+              }}
+              onTranslateBuiltIn={() => {
+                onTranslateChunkBuiltIn(chunk);
               }}
             />
           ))}
         </div>
 
         <Button
-          type="button"
           disabled={progress.translated === 0 || generateBusy}
           onClick={onGenerateWikitext}
+          type="button"
         >
           {generateBusy ? t("chunkWorkspace.generating") : t("chunkWorkspace.generateWikitext")}
         </Button>

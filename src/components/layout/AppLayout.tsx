@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 
 interface AppLayoutProps {
   header: ReactNode;
@@ -7,13 +7,20 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ header, sidebar, children }: AppLayoutProps) {
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+
+    document.addEventListener("contextmenu", handler);
+
+    return () => {
+      document.removeEventListener("contextmenu", handler);
+    };
+  }, []);
+
   return (
-    <div
-      onContextMenu={(e) => {
-        e.preventDefault();
-      }}
-      className="flex h-screen w-screen flex-col overflow-hidden bg-background select-none"
-    >
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-background select-none">
       <div className="shrink-0 border-b border-border bg-background">
         <div className="flex items-center gap-2 px-4 py-3">
           <div className="min-w-0 flex-1">{header}</div>

@@ -2,7 +2,7 @@
 
 import { getVersion } from "@tauri-apps/api/app";
 import { open } from "@tauri-apps/plugin-shell";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { GITHUB_RELEASES_URL } from "@/services/config";
 import type { UpdateCheckResult } from "@/services/updateChecker";

@@ -54,7 +54,7 @@ import type { TargetWikiCode } from "@core/config/targetWikis";
 import { PerseusError } from "@core/errors/PerseusError";
 import type { Extractor, TranslationWorklist } from "@core/extractor/Extractor";
 import type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-import type { InputLoader, ArticleSource } from "@core/input/InputLoader";
+import type { ArticleSource, InputLoader } from "@core/input/InputLoader";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 import type { LinkResolver } from "@core/linkResolver/WikidataLinkResolver";
 import type { Logger } from "@core/logging/Logger";
@@ -65,9 +65,9 @@ import type { ReferenceAttentionClassifier } from "@core/referenceAttention/Refe
 import { applySessionChunk } from "@core/translationPackage/import";
 import { calculateSessionProgress } from "@core/translationPackage/progress";
 import type {
-  TranslationSession,
-  SessionProgress,
   ApplySessionChunkResult,
+  SessionProgress,
+  TranslationSession,
 } from "@core/translationPackage/types";
 import type { Translator } from "@core/translator/Translator";
 
@@ -82,8 +82,8 @@ function captureSnapshotHtml(ir: IntermediateRepresentation): string {
   return root.innerHTML;
 }
 
-export { PIPELINE_STAGE_ORDER } from "@core/pipeline/PipelineStage";
 export type { PipelineStageName } from "@core/pipeline/PipelineStage";
+export { PIPELINE_STAGE_ORDER } from "@core/pipeline/PipelineStage";
 
 /**
  * Every collaborator the pipeline needs, injected explicitly (manual

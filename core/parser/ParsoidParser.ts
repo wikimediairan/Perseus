@@ -29,7 +29,7 @@
 import { WIKIPEDIA_DOMAIN } from "@core/config/constants";
 import { PerseusError } from "@core/errors/PerseusError";
 import type { LoadedArticle } from "@core/input/InputLoader";
-import type { TextNode, IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
+import type { IntermediateRepresentation, TextNode } from "@core/ir/IntermediateRepresentation";
 import type { LinkNode } from "@core/ir/LinkNode";
 import type { Logger } from "@core/logging/Logger";
 import { buildCitationRegistry } from "@core/parser/citations";

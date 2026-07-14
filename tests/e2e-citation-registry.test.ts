@@ -24,7 +24,7 @@ async function runExtraction(html: string) {
       return Promise.resolve(jsonResponse({ title: "Sun", source: "x" }));
     if (isWikitextToHtmlRequest(url)) return Promise.resolve(textResponse(html));
     if (isWikidataRequest(url)) return Promise.resolve(jsonResponse({ entities: {} }));
-    throw new Error("unexpected fetch: " + url);
+    throw new Error(`unexpected fetch: ${url}`);
   });
 
   const { createPipeline, DEFAULT_CONFIG, ConsoleLogger } = await loadPipelineModules();

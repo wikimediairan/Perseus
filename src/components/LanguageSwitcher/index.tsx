@@ -12,10 +12,10 @@ import { useTranslation } from "react-i18next";
 
 import {
   Select,
-  SelectItem,
-  SelectValue,
   SelectContent,
+  SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 
@@ -24,10 +24,10 @@ export function LanguageSwitcher() {
 
   return (
     <Select
-      value={i18n.resolvedLanguage ?? i18n.language}
       onValueChange={(language) => {
         void i18n.changeLanguage(language);
       }}
+      value={i18n.resolvedLanguage ?? i18n.language}
     >
       <SelectTrigger
         aria-label={t("languageSwitcher.label")}

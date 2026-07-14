@@ -1,4 +1,4 @@
-import type { PerseusConfig, LLMProviderConfig } from "@core/config/Config";
+import type { LLMProviderConfig, PerseusConfig } from "@core/config/Config";
 import type { TFunction } from "i18next";
 
 /**
@@ -20,15 +20,15 @@ import type { TFunction } from "i18next";
  */
 import { useTranslation } from "react-i18next";
 
-import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
-  SelectItem,
-  SelectValue,
   SelectContent,
+  SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -85,11 +85,11 @@ export function ProviderCard({
           <div className="flex flex-col gap-1.5">
             <Label>{t("providerCard.providerLabel")}</Label>
             <Select
-              value={provider.kind}
               disabled={disabled}
               onValueChange={(kind) => {
                 updateProvider({ kind: kind as LLMProviderConfig["kind"] });
               }}
+              value={provider.kind}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -107,14 +107,14 @@ export function ProviderCard({
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="model">{t("providerCard.modelLabel")}</Label>
             <Input
-              id="model"
               dir="ltr"
-              placeholder={MODEL_PLACEHOLDER[provider.kind]}
-              value={provider.model}
               disabled={disabled}
+              id="model"
               onChange={(e) => {
                 updateProvider({ model: e.target.value });
               }}
+              placeholder={MODEL_PLACEHOLDER[provider.kind]}
+              value={provider.model}
             />
           </div>
         </div>
@@ -124,14 +124,14 @@ export function ProviderCard({
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="base-url">{t("providerCard.baseUrlLabel")}</Label>
             <Input
-              id="base-url"
               dir="ltr"
-              placeholder="http://localhost:11434"
-              value={provider.baseUrl ?? ""}
               disabled={disabled}
+              id="base-url"
               onChange={(e) => {
                 updateProvider({ baseUrl: e.target.value });
               }}
+              placeholder="http://localhost:11434"
+              value={provider.baseUrl ?? ""}
             />
           </div>
         )}
@@ -140,15 +140,15 @@ export function ProviderCard({
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="api-key">{t("providerCard.apiKeyLabel")}</Label>
             <Input
-              id="api-key"
               dir="ltr"
-              type="password"
-              placeholder="sk-…"
-              value={provider.apiKey ?? ""}
               disabled={disabled}
+              id="api-key"
               onChange={(e) => {
                 updateProvider({ apiKey: e.target.value });
               }}
+              placeholder="sk-…"
+              type="password"
+              value={provider.apiKey ?? ""}
             />
           </div>
         )}
@@ -156,14 +156,14 @@ export function ProviderCard({
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="user-prompt">{t("providerCard.additionalPromptsLabel")}</Label>
           <Textarea
-            id="user-prompt"
-            rows={2}
-            placeholder={t("providerCard.additionalPromptsPlaceholder")}
-            value={config.prompt.userPrompt ?? ""}
             disabled={disabled}
+            id="user-prompt"
             onChange={(e) => {
               updateUserPrompt(e.target.value);
             }}
+            placeholder={t("providerCard.additionalPromptsPlaceholder")}
+            rows={2}
+            value={config.prompt.userPrompt ?? ""}
           />
         </div>
       </CardContent>

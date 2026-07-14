@@ -9,7 +9,7 @@ describe("Edge Cases (E2E)", () => {
       const url = urlOf(input);
       if (isOllamaChatRequest(url)) {
         chatCallCount++;
-        const bodyObj = JSON.parse(init!.body as string) as { messages: { content: string }[] };
+        const bodyObj = JSON.parse(init?.body as string) as { messages: { content: string }[] };
         const userMsg = bodyObj.messages[1].content;
         if (userMsg.includes("[[SEGMENT 2]]")) {
           // First call: only return SEGMENT 1, "drop" SEGMENT 2 to force fallback.
@@ -20,7 +20,7 @@ describe("Edge Cases (E2E)", () => {
         // Fallback individual call for the missing unit.
         return Promise.resolve(jsonResponse({ message: { content: "ترجمه دو." } }));
       }
-      throw new Error("unexpected fetch: " + url);
+      throw new Error(`unexpected fetch: ${url}`);
     });
 
     const { SizeBoundedChunker } = await import("@core/chunker/Chunker");
@@ -55,8 +55,9 @@ describe("Edge Cases (E2E)", () => {
   });
 
   it("Reference Attention heuristics", async () => {
-    const { HeuristicReferenceAttentionClassifier } =
-      await import("@core/referenceAttention/ReferenceAttention");
+    const { HeuristicReferenceAttentionClassifier } = await import(
+      "@core/referenceAttention/ReferenceAttention"
+    );
     const { createEmptyIR } = await import("@core/ir/IntermediateRepresentation");
     const { DOMParser: DP } = await import("linkedom");
     const doc = new DP().parseFromString("<div></div>", "text/html");
@@ -85,7 +86,7 @@ describe("Edge Cases (E2E)", () => {
     setGlobalFetch((input: RequestInfo | URL): Promise<Response> => {
       const url = urlOf(input);
       if (isWikidataRequest(url)) throw new Error("network down");
-      throw new Error("unexpected fetch: " + url);
+      throw new Error(`unexpected fetch: ${url}`);
     });
 
     const { WikidataLinkResolver } = await import("@core/linkResolver/WikidataLinkResolver");

@@ -23,8 +23,8 @@
 import type { Chunk } from "@core/chunker/Chunker";
 import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
 import {
-  renderChunkForTranslation,
   parseChunkTranslation,
+  renderChunkForTranslation,
   SEGMENT_FORMAT_INSTRUCTIONS,
 } from "@core/chunker/segmentProtocol";
 import type { TargetWikiDefinition } from "@core/config/targetWikis";
@@ -35,7 +35,7 @@ import type { PromptManager } from "@core/prompt/PromptManager";
 
 // Re-exported from their new home (core/chunker/segmentProtocol.ts) so existing
 // importers (Merger, core/index.ts) don't need to change their import path.
-export type { TranslatedUnit, TranslatedChunk } from "@core/chunker/segmentProtocol";
+export type { TranslatedChunk, TranslatedUnit } from "@core/chunker/segmentProtocol";
 
 export interface Translator {
   /** Translates a single chunk — the shared primitive both this class and `translate()` below build on. */

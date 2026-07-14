@@ -17,13 +17,13 @@ export function Opening({ onFinished }: SplashProps) {
 
   return (
     <main
+      className="flex h-screen w-screen items-center justify-center bg-background select-none"
       onContextMenu={(e) => {
         e.preventDefault();
       }}
-      className="flex h-screen w-screen items-center justify-center bg-background select-none"
     >
       <div className="animate-splash flex flex-col items-center gap-6 text-center">
-        <img src="/icon.png" alt={t("app.title")} className="h-32 w-32" draggable={false} />
+        <img alt={t("app.title")} className="h-32 w-32" draggable={false} src="/icon.png" />
 
         <div className="space-y-2">
           <h1 className="font-display text-3xl font-semibold tracking-tight">{t("app.title")}</h1>

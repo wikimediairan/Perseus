@@ -12,11 +12,11 @@ const SelectTrigger = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Trigger
-    ref={ref}
     className={cn(
       "flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-card px-3 py-2 text-sm shadow-sm focus:ring-1 focus:ring-ring focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
       className,
     )}
+    ref={ref}
     {...props}
   >
     {children}
@@ -33,13 +33,13 @@ const SelectContent = React.forwardRef<
 >(({ className, children, position = "popper", ...props }, ref) => (
   <SelectPrimitive.Portal>
     <SelectPrimitive.Content
-      ref={ref}
-      position={position}
       className={cn(
         "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 relative z-50 min-w-32 overflow-hidden rounded-md border border-border bg-card text-card-foreground shadow-md",
         position === "popper" && "translate-y-1",
         className,
       )}
+      position={position}
+      ref={ref}
       {...props}
     >
       <SelectPrimitive.Viewport className="p-1">{children}</SelectPrimitive.Viewport>
@@ -53,11 +53,11 @@ const SelectItem = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
 >(({ className, children, ...props }, ref) => (
   <SelectPrimitive.Item
-    ref={ref}
     className={cn(
       "relative flex w-full cursor-pointer items-center rounded-sm py-1.5 pr-2 pl-8 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50",
       className,
     )}
+    ref={ref}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -70,4 +70,4 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
-export { Select, SelectItem, SelectValue, SelectContent, SelectTrigger };
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };
