@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect } from "react";
+import type { ReactNode } from "react";
+import { useEffect } from "react";
 
 interface AppLayoutProps {
   header: ReactNode;
