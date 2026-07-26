@@ -63,7 +63,7 @@ export function ProviderCard({
 
   return (
     <Card>
-      <CardContent className="grid grid-cols-2 gap-3">
+      <CardContent className="grid grid-cols-2 gap-3 pt-4">
         <div className="flex flex-col gap-1.5">
           <Label>{t("providerCard.providerLabel")}</Label>
           <Select
