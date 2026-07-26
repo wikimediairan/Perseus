@@ -20,6 +20,8 @@ jobs:
       release_id: ${{ steps.release.outputs.release_id }}
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Create Draft Release
         id: release
         env:
@@ -33,7 +35,6 @@ jobs:
           RELEASE_ID=$(gh api repos/${{ github.repository }}/releases/tags/${{ github.ref_name }} --jq '.id')
 
           echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-
   build:
     needs: create-release
 
