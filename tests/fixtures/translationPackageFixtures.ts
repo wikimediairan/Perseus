@@ -1,19 +1,24 @@
 export const BASE_SESSION_META = {
-  articleTitle: "X",
   sourceLanguage: "en",
   targetWiki: "fa",
   exportedAt: "now",
   chunkCharBudget: 2500,
 };
 
+export const BASE_SESSION_SOURCE = {
+  wiki: "enwiki",
+  pageId: 736,
+  title: "X",
+  revisionId: 123456789,
+};
+
 export const INVALID_TRANSLATION_SESSIONS: [string, unknown][] = [
   [
-    "missing snapshot",
+    "missing source",
     {
       format: "perseus-package",
-      formatVersion: 2,
+      formatVersion: 3,
       meta: BASE_SESSION_META,
-      provenance: { rawWikitext: "x" },
       chunks: [],
     },
   ],
@@ -21,10 +26,9 @@ export const INVALID_TRANSLATION_SESSIONS: [string, unknown][] = [
     "wrong format marker",
     {
       format: "some-other-format",
-      formatVersion: 2,
+      formatVersion: 3,
       meta: BASE_SESSION_META,
-      snapshot: { parsoidHtml: "<p></p>" },
-      provenance: { rawWikitext: "x" },
+      source: BASE_SESSION_SOURCE,
       chunks: [],
     },
   ],
@@ -34,8 +38,7 @@ export const INVALID_TRANSLATION_SESSIONS: [string, unknown][] = [
       format: "perseus-package",
       formatVersion: 99,
       meta: BASE_SESSION_META,
-      snapshot: { parsoidHtml: "<p></p>" },
-      provenance: { rawWikitext: "x" },
+      source: BASE_SESSION_SOURCE,
       chunks: [],
     },
   ],
@@ -43,10 +46,19 @@ export const INVALID_TRANSLATION_SESSIONS: [string, unknown][] = [
     "unsupported target wiki",
     {
       format: "perseus-package",
-      formatVersion: 2,
+      formatVersion: 3,
       meta: { ...BASE_SESSION_META, targetWiki: "xx" },
-      snapshot: { parsoidHtml: "<p></p>" },
-      provenance: { rawWikitext: "x" },
+      source: BASE_SESSION_SOURCE,
+      chunks: [],
+    },
+  ],
+  [
+    "unsupported source wiki",
+    {
+      format: "perseus-package",
+      formatVersion: 3,
+      meta: BASE_SESSION_META,
+      source: { ...BASE_SESSION_SOURCE, wiki: "fawiki" },
       chunks: [],
     },
   ],
@@ -54,10 +66,9 @@ export const INVALID_TRANSLATION_SESSIONS: [string, unknown][] = [
     "tuple with wrong arity",
     {
       format: "perseus-package",
-      formatVersion: 2,
+      formatVersion: 3,
       meta: BASE_SESSION_META,
-      snapshot: { parsoidHtml: "<p></p>" },
-      provenance: { rawWikitext: "x" },
+      source: BASE_SESSION_SOURCE,
       chunks: [{ id: "chunk-1", translation: [[1, "p"]] }],
     },
   ],

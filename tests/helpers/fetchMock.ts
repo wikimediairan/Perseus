@@ -35,11 +35,6 @@ export function parseJsonBody<T>(init: RequestInit | undefined): T | undefined {
   }
 }
 
-/**
- * The `html/to/wikitext` endpoint is the reconstruction/generation step in
- * nearly every pipeline test. Centralizing the "capture the request body,
- * return a fixed wikitext result" behavior avoids reimplementing it per file.
- */
 export function createHtmlToWikitextCapture(resultWikitext = "GENERATED") {
   let capturedHtml = "";
   const handle = (init?: RequestInit): Response => {

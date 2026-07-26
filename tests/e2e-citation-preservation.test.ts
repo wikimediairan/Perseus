@@ -5,14 +5,6 @@ import { setGlobalFetch } from "./helpers/fetchMock";
 import { createCapturingLogger } from "./helpers/logger";
 import { createOllamaPipeline, SUN_ARTICLE_REQUEST } from "./helpers/pipeline";
 
-/**
- * Verifies the actual bug fix: citations surviving translation and
- * merge, deterministically, with the CitationRegistry as the sole
- * source of truth for reconstruction (never a live HTML read). This is
- * the scenario from the original bug report: named refs, repeated refs,
- * reference order, and definitions inside a rendered reference list.
- */
-
 async function runFullPipeline(html: string) {
   const { handler, getCapturedHtml } = createCitationPipelineFetch(html);
   setGlobalFetch(handler);
@@ -31,10 +23,6 @@ describe("Citation Preservation (E2E)", () => {
     const { handler, getCapturedHtml } = createCitationPipelineFetch(html);
     setGlobalFetch(handler);
     const pipeline = await createOllamaPipeline();
-
-    // Capture what the DOM itself considers each marker's canonical serialized form (its own
-    // snapshot, taken at parse time) — comparing against a hand-typed literal would be comparing
-    // against the wrong thing, since DOM serializers normalize attribute quoting on output.
     const extraction = await pipeline.runToExtraction(SUN_ARTICLE_REQUEST);
     const refs = extraction.ir.citations.allReferences();
     const definingSnapshot = refs.find((r) => r.isDefining)?.snapshotHtml;
@@ -118,8 +106,6 @@ describe("Citation Preservation (E2E)", () => {
     const { logger, warnings: logLines } = createCapturingLogger();
     const pipeline = await createOllamaPipeline(logger);
     const extraction = await pipeline.runToExtraction(SUN_ARTICLE_REQUEST);
-
-    // Simulate unexpected drift: something mutates the live citation element after parsing.
     const citationRef = extraction.ir.citations.allReferences()[0];
     const beforeSnapshot = citationRef.snapshotHtml;
     citationRef.element?.setAttribute("data-mw", '{"tampered":true}');

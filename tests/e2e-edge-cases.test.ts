@@ -12,12 +12,10 @@ describe("Edge Cases (E2E)", () => {
         const bodyObj = JSON.parse(init?.body as string) as { messages: { content: string }[] };
         const userMsg = bodyObj.messages[1].content;
         if (userMsg.includes("[[SEGMENT 2]]")) {
-          // First call: only return SEGMENT 1, "drop" SEGMENT 2 to force fallback.
           return Promise.resolve(
             jsonResponse({ message: { content: "[[SEGMENT 1]]\nترجمه یک." } }),
           );
         }
-        // Fallback individual call for the missing unit.
         return Promise.resolve(jsonResponse({ message: { content: "ترجمه دو." } }));
       }
       throw new Error(`unexpected fetch: ${url}`);

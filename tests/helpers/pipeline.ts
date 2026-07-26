@@ -13,7 +13,6 @@ export const OLLAMA_TEST_PROVIDER: OllamaProviderConfig = {
 };
 
 export const SUN_ARTICLE_REQUEST = {
-  kind: "url" as const,
   url: "https://en.wikipedia.org/wiki/Sun",
 };
 

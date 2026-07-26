@@ -1,12 +1,5 @@
 import { jsonResponse, setGlobalFetch } from "./helpers/fetchMock";
 
-/**
- * Verifies the Anthropic and Gemini providers speak their real wire
- * protocols correctly, and that ProviderFactory routes to them — plus
- * that Provider Abstraction still holds: the Translator/Pipeline code
- * that calls a provider never needs to know which one it got.
- */
-
 describe("New LLM Providers (E2E)", () => {
   it("AnthropicProvider sends the correct request shape and parses the response", async () => {
     let capturedUrl = "";

@@ -1,4 +1,5 @@
 import "./helpers/setupDom";
+import { SUN_PAGE_ID, SUN_REVISION_ID } from "./fixtures/articles";
 import {
   createHtmlToWikitextCapture,
   jsonResponse,
@@ -29,7 +30,12 @@ describe("Smoke Test (E2E)", () => {
 
       if (isPageSourceRequest(url)) {
         return Promise.resolve(
-          jsonResponse({ title: "Sun", source: "The [[Sun]] is a star. It is very hot." }),
+          jsonResponse({
+            title: "Sun",
+            source: "The [[Sun]] is a star. It is very hot.",
+            id: SUN_PAGE_ID,
+            latest: { id: SUN_REVISION_ID },
+          }),
         );
       }
       if (isWikitextToHtmlRequest(url)) {

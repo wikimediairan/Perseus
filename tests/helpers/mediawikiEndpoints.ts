@@ -1,4 +1,5 @@
 const PAGE_SOURCE_PATH = "/w/rest.php/v1/page/";
+const REVISION_HTML_PATH = "/w/rest.php/v1/revision/";
 const WIKITEXT_TO_HTML_PATH = "/api/rest_v1/transform/wikitext/to/html/";
 const HTML_TO_WIKITEXT_PATH = "/api/rest_v1/transform/html/to/wikitext/";
 const WIKIDATA_HOST = "wikidata.org";
@@ -6,6 +7,10 @@ const OLLAMA_CHAT_PATH = "/api/chat";
 
 export function isPageSourceRequest(url: string): boolean {
   return url.includes(PAGE_SOURCE_PATH);
+}
+
+export function isRevisionHtmlRequest(url: string): boolean {
+  return url.includes(REVISION_HTML_PATH) && url.endsWith("/html");
 }
 
 export function isWikitextToHtmlRequest(url: string): boolean {

@@ -1,3 +1,4 @@
+import { SUN_PAGE_ID, SUN_REVISION_ID } from "../fixtures/articles";
 import { translateSegments } from "../fixtures/citations";
 
 import {
@@ -15,19 +16,20 @@ import {
   isWikitextToHtmlRequest,
 } from "./mediawikiEndpoints";
 
-/**
- * Builds a fetch mock that serves `parsoidHtml` as the article, translates
- * every `[[SEGMENT n]]` block by prefixing it with "TR:" (leaving all
- * placeholder tokens untouched), and captures the HTML sent to the
- * `html/to/wikitext` reconstruction endpoint.
- */
 export function createCitationPipelineFetch(parsoidHtml: string) {
   const capture = createHtmlToWikitextCapture();
 
   const handler = ((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = urlOf(input);
     if (isPageSourceRequest(url))
-      return Promise.resolve(jsonResponse({ title: "Sun", source: "x" }));
+      return Promise.resolve(
+        jsonResponse({
+          title: "Sun",
+          source: "x",
+          id: SUN_PAGE_ID,
+          latest: { id: SUN_REVISION_ID },
+        }),
+      );
     if (isWikitextToHtmlRequest(url)) return Promise.resolve(textResponse(parsoidHtml));
     if (isWikidataRequest(url)) return Promise.resolve(jsonResponse({ entities: {} }));
     if (isOllamaChatRequest(url)) {

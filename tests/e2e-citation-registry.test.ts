@@ -1,4 +1,5 @@
 import "./helpers/setupDom";
+import { SUN_PAGE_ID, SUN_REVISION_ID } from "./fixtures/articles";
 import { refSup } from "./fixtures/citations";
 import { jsonResponse, setGlobalFetch, textResponse, urlOf } from "./helpers/fetchMock";
 import {
@@ -8,20 +9,18 @@ import {
 } from "./helpers/mediawikiEndpoints";
 import { loadPipelineModules, SUN_ARTICLE_REQUEST } from "./helpers/pipeline";
 
-/**
- * Verifies Task 2 (build the CitationRegistry during parsing) in
- * isolation: the registry is populated correctly, and — just as
- * importantly — nothing about existing extraction/merge/generation
- * behavior changes as a result (the registry is not consumed anywhere
- * yet). Each scenario below is deliberately kept small and separate so
- * a failing assertion points at one specific behavior.
- */
-
 async function runExtraction(html: string) {
   setGlobalFetch((input: RequestInfo | URL): Promise<Response> => {
     const url = urlOf(input);
     if (isPageSourceRequest(url))
-      return Promise.resolve(jsonResponse({ title: "Sun", source: "x" }));
+      return Promise.resolve(
+        jsonResponse({
+          title: "Sun",
+          source: "x",
+          id: SUN_PAGE_ID,
+          latest: { id: SUN_REVISION_ID },
+        }),
+      );
     if (isWikitextToHtmlRequest(url)) return Promise.resolve(textResponse(html));
     if (isWikidataRequest(url)) return Promise.resolve(jsonResponse({ entities: {} }));
     throw new Error(`unexpected fetch: ${url}`);
