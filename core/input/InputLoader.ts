@@ -1,31 +1,51 @@
 /**
  * InputLoader
  *
- * Real implementation. Responsibility: obtain raw English Wikitext from
- * exactly one of the two supported input types (Software Specification,
- * Section 4.1). Does NOT parse Wikitext — that is ParsoidParser's job.
+ * Real implementation. Responsibility: obtain raw English Wikitext for an
+ * `en.wikipedia.org` article URL (Software Specification, Section 4.1).
+ * Does NOT parse Wikitext — that is ParsoidParser's job.
  *
- * URL case: uses the MediaWiki core REST API's page-source endpoint,
- * which returns the current wikitext for a page without any HTML
- * rendering involved (`GET /w/rest.php/v1/page/{title}` -> `.source`).
+ * Uses the MediaWiki core REST API's page-source endpoint, which returns
+ * the current wikitext for a page without any HTML rendering involved
+ * (`GET /w/rest.php/v1/page/{title}` -> `.source`). The same response
+ * also captures `revision` (page id + revision id) straight off the wire
+ * — no extra request needed. This is what lets a Translation Session
+ * later reference an immutable revision instead of embedding a copy of
+ * the article (see translationPackage/types.ts).
  *
- * File case: uses the Tauri filesystem plugin to read the file directly
- * by path. This is the one place in the core engine that depends on a
- * Tauri-specific API rather than a pure web API, because reading an
- * arbitrary local file by path has no browser equivalent — this keeps
- * that dependency isolated to a single, narrow function.
+ * Perseus only operates on Wikipedia revisions: a live article URL (this
+ * module) or a previously saved JSON session (see
+ * translationPackage/validate.ts, Pipeline.reconstructFromRevision) are
+ * the only two ways to get an article into the pipeline. There is no
+ * local-file input path.
  */
 
-import { WIKIPEDIA_DOMAIN } from "@core/config/constants";
+import { SOURCE_WIKI_CODE, WIKIPEDIA_DOMAIN } from "@core/config/constants";
 import { PerseusError } from "@core/errors/PerseusError";
-import { readTextFile } from "@tauri-apps/plugin-fs";
 
-export type ArticleSource = { kind: "url"; url: string } | { kind: "file"; path: string };
+export interface ArticleSource {
+  url: string;
+}
+
+/**
+ * The metadata needed to re-fetch this exact Wikipedia revision later,
+ * without embedding a copy of the article itself (see
+ * translationPackage/types.ts). `title` is kept only for display — the
+ * exact article content is always reconstructed via `revisionId`, never
+ * by re-resolving `title` against the live/latest article.
+ */
+export interface ArticleRevisionSource {
+  wiki: string;
+  pageId: number;
+  title: string;
+  revisionId: number;
+}
 
 export interface LoadedArticle {
   sourceTitle: string;
   rawWikitext: string;
   source: ArticleSource;
+  revision: ArticleRevisionSource;
 }
 
 export interface InputLoader {
@@ -72,99 +92,78 @@ function extractTitleFromUrl(rawUrl: string): string {
   return title.replaceAll("_", " ");
 }
 
-/** Derives a title for a locally loaded file: its filename without extension, or its first `= Heading =` line if present. */
-function deriveTitleFromFile(path: string, wikitext: string): string {
-  const headingMatch = /^=\s*(.+?)\s*=\s*$/m.exec(wikitext);
-  if (headingMatch) {
-    return headingMatch[1];
-  }
-
-  const base = path.split(/[/\\]/).pop() ?? path;
-  return base.replace(/\.wiki$/i, "");
-}
-
 export class WikipediaInputLoader implements InputLoader {
   async load(source: ArticleSource): Promise<LoadedArticle> {
-    if (source.kind === "url") {
-      const title = extractTitleFromUrl(source.url);
-      const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/page/${encodeURIComponent(title)}`;
+    const title = extractTitleFromUrl(source.url);
+    const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/page/${encodeURIComponent(title)}`;
 
-      let response: Response;
-
-      try {
-        response = await fetch(endpoint);
-      } catch (error) {
-        throw new PerseusError("InputError", `Could not reach Wikipedia to load "${title}".`, {
-          stage: "load-article",
-          cause: error,
-        });
-      }
-
-      if (response.status === 404) {
-        throw new PerseusError(
-          "InputError",
-          `No English Wikipedia article titled "${title}" was found.`,
-          {
-            stage: "load-article",
-          },
-        );
-      }
-
-      if (!response.ok) {
-        throw new PerseusError(
-          "InputError",
-          `Failed to load "${title}" (HTTP ${response.status}).`,
-          {
-            stage: "load-article",
-            context: { status: response.status },
-          },
-        );
-      }
-
-      const body = (await response.json()) as {
-        source?: string;
-        title?: string;
-      };
-
-      if (typeof body.source !== "string") {
-        throw new PerseusError(
-          "InputError",
-          `Wikipedia's response for "${title}" did not include article source.`,
-          {
-            stage: "load-article",
-          },
-        );
-      }
-
-      return {
-        sourceTitle: body.title ?? title,
-        rawWikitext: body.source,
-        source,
-      };
-    }
-
-    // source.kind === "file"
-    let rawWikitext: string;
+    let response: Response;
 
     try {
-      rawWikitext = await readTextFile(source.path);
+      response = await fetch(endpoint);
     } catch (error) {
-      throw new PerseusError("InputError", `Could not read file "${source.path}".`, {
+      throw new PerseusError("InputError", `Could not reach Wikipedia to load "${title}".`, {
         stage: "load-article",
         cause: error,
       });
     }
 
-    if (!rawWikitext.trim()) {
-      throw new PerseusError("InputError", `File "${source.path}" is empty.`, {
+    if (response.status === 404) {
+      throw new PerseusError(
+        "InputError",
+        `No English Wikipedia article titled "${title}" was found.`,
+        {
+          stage: "load-article",
+        },
+      );
+    }
+
+    if (!response.ok) {
+      throw new PerseusError("InputError", `Failed to load "${title}" (HTTP ${response.status}).`, {
         stage: "load-article",
+        context: { status: response.status },
       });
     }
 
+    const body = (await response.json()) as {
+      source?: string;
+      title?: string;
+      id?: number;
+      latest?: { id?: number };
+    };
+
+    if (typeof body.source !== "string") {
+      throw new PerseusError(
+        "InputError",
+        `Wikipedia's response for "${title}" did not include article source.`,
+        {
+          stage: "load-article",
+        },
+      );
+    }
+
+    if (typeof body.id !== "number" || typeof body.latest?.id !== "number") {
+      throw new PerseusError(
+        "InputError",
+        `Wikipedia's response for "${title}" did not include page/revision identifiers.`,
+        {
+          stage: "load-article",
+        },
+      );
+    }
+
+    const sourceTitle = body.title ?? title;
+
     return {
-      sourceTitle: deriveTitleFromFile(source.path, rawWikitext),
-      rawWikitext,
+      sourceTitle,
+      rawWikitext: body.source,
       source,
+      revision: {
+        wiki: SOURCE_WIKI_CODE,
+        pageId: body.id,
+        title: sourceTitle,
+        revisionId: body.latest.id,
+      },
     };
   }
 }

@@ -14,9 +14,8 @@
  * dialog — shape validation is delegated to
  * `translationPackage/validate.ts`, so this module still only knows
  * about "files and the clipboard," not about what a Translation Session
- * means. Files use the `.perseus` extension (JSON underneath, see
- * translationPackage/types.ts for why a plain, versioned JSON document
- * rather than a container format).
+ * means. Files use the standard `.json` extension (see
+ * translationPackage/types.ts for the schema).
  *
  * All four actions depend on Tauri plugins rather than web APIs: the
  * Clipboard API and native `<a download>` file saving are unreliable or
@@ -31,14 +30,14 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
-const SESSION_EXTENSION = "perseus";
+const SESSION_EXTENSION = "json";
 const SESSION_FILTER_NAME = "Perseus Translation Session";
 
 export interface OutputDelivery {
   copyToClipboard(text: string): Promise<void>;
   /** Opens a native save dialog and writes the file if the user confirms; resolves to the chosen path, or null if cancelled. */
   saveToFile(wikitext: string, suggestedName: string): Promise<string | null>;
-  /** Saves a Translation Session as pretty-printed JSON with a `.perseus` extension; resolves to the chosen path, or null if cancelled. */
+  /** Saves a Translation Session as pretty-printed JSON with a `.json` extension; resolves to the chosen path, or null if cancelled. */
   saveSession(session: TranslationSession, suggestedName: string): Promise<string | null>;
   /** Opens a native open dialog, reads and validates the chosen file; resolves to the session, or null if cancelled. */
   openSession(): Promise<TranslationSession | null>;
@@ -108,7 +107,7 @@ export class TauriOutputDelivery implements OutputDelivery {
     try {
       path = await open({
         multiple: false,
-        filters: [{ name: SESSION_FILTER_NAME, extensions: [SESSION_EXTENSION, "json"] }],
+        filters: [{ name: SESSION_FILTER_NAME, extensions: [SESSION_EXTENSION] }],
       });
     } catch (cause) {
       throw new PerseusError("InputError", "Could not open the file dialog.", { cause });

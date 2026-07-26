@@ -65,21 +65,6 @@ export default function App() {
   const hasArticle = status === "ready" && chunks !== null;
   const showLoadProgress = busy || status === "error" || hasArticle;
 
-  // useEffect(async () => {
-  //   const unlistenOpen = await listen("menu://open-session", async () => {
-  //     await openSession();
-  //   });
-
-  //   const unlistenSave = await listen("menu://save-session", async () => {
-  //     await saveSession();
-  //   });
-
-  //   return () => {
-  //     unlistenOpen();
-  //     unlistenSave();
-  //   };
-  // }, []);
-
   if (showSplash) {
     return (
       <Opening
@@ -149,7 +134,7 @@ export default function App() {
             onGenerateWikitext={generateWikitext}
             onPasteChunkTranslation={pasteChunkTranslation}
             onSaveSession={() => {
-              void saveSession("translation-session.perseus");
+              void saveSession("translation-session.json");
             }}
             onTranslateAllBuiltIn={translateAllBuiltIn}
             onTranslateChunkBuiltIn={translateChunkBuiltIn}

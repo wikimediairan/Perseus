@@ -2,8 +2,8 @@
  * Translation Session — import (apply)
  *
  * Applies ONE chunk's translation entries onto an IR that has ALREADY
- * been reconstructed from that SAME session's own snapshot (see
- * Pipeline.reconstructFromSnapshot) — so this function has no
+ * been reconstructed from that SAME session's own `source` revision (see
+ * Pipeline.reconstructFromRevision) — so this function has no
  * network/reconstruction concerns at all, only diff-and-merge logic.
  * "Translated" is determined by comparing each tuple's current text
  * against the freshly reconstructed node's original text — a tuple
@@ -37,9 +37,9 @@ import type { ApplySessionChunkResult, SessionChunk } from "@core/translationPac
 
 /**
  * Applies one session chunk's translation entries onto an IR that has
- * already been reconstructed from that SAME session's snapshot — never
- * onto an unrelated live-fetched IR, since ids are only guaranteed to
- * line up against the snapshot they were derived from.
+ * already been reconstructed from that SAME session's `source` revision
+ * — never onto an unrelated live-fetched IR, since ids are only
+ * guaranteed to line up against the revision they were derived from.
  */
 export async function applySessionChunk(
   ir: IntermediateRepresentation,

@@ -3,19 +3,16 @@
  *
  * Builds a self-contained TranslationSession from an ExtractionResult
  * plus its derived Chunk list (Pipeline.runToExtraction +
- * Pipeline.deriveChunks have already happened by this point). The
- * snapshot is captured from the IR's live DOM AFTER link resolution, so
- * resolved target-wiki link targets are already baked into it.
+ * Pipeline.deriveChunks have already happened by this point). `source` is
+ * taken verbatim from `extraction.source` — the immutable Wikipedia
+ * revision this article was loaded from — never a copy of the article's
+ * rendered content.
  *
  * Reads each unit's CURRENT text from `ir.textNodes` (not from the
  * Chunk's frozen `sourceText`), so saving mid-session correctly captures
  * whatever has been translated so far, chunk by chunk — this is what
  * lets "Save Session" work as a true checkpoint of live progress, not
  * just a one-shot initial export.
- *
- * `snapshot.parsoidHtml` and `provenance.rawWikitext` are populated from
- * two different sources on purpose — see types.ts for why they are not
- * redundant with each other.
  */
 
 import type { Chunk } from "@core/chunker/Chunker";
@@ -46,27 +43,22 @@ function numericSuffix(nodeId: string): number {
 /**
  * Builds a self-contained TranslationSession from an ExtractionResult
  * plus its derived Chunk list (Pipeline.runToExtraction +
- * Pipeline.deriveChunks have already happened by this point).
+ * Pipeline.deriveChunks have already happened by this point). `source`
+ * always comes from `extraction.source`, since every article Perseus
+ * loads is a live Wikipedia article (there is no local-file input path)
+ * and therefore always has a revision to reference.
  *
- * `snapshot.parsoidHtml` is taken verbatim from
- * `extraction.parsoidSnapshotHtml` — frozen at extraction time, NEVER
- * re-read from `ir`'s live DOM, which may since have been mutated by
- * Merge. See Pipeline.ts's ExtractionResult doc comment for why reading
- * it from the live DOM here would be a correctness bug (it would bake
- * already-translated text into the reconstruction anchor, breaking the
- * diff a later reopen depends on).
- *
- * The per-unit CURRENT text for `chunks[].translation`, in contrast, IS
- * read from the live `ir.textNodes` (not from the frozen snapshot) —
- * that's supposed to reflect whatever has been translated so far, which
- * is the entire point of being able to save mid-session.
+ * The per-unit CURRENT text for `chunks[].translation` is read from the
+ * live `ir.textNodes` (not from any frozen copy) — that's supposed to
+ * reflect whatever has been translated so far, which is the entire point
+ * of being able to save mid-session.
  */
 export function exportTranslationSession(
   extraction: ExtractionResult,
   chunks: Chunk[],
   chunkCharBudget: number,
 ): TranslationSession {
-  const { ir, rawWikitext, targetWiki, parsoidSnapshotHtml } = extraction;
+  const { ir, source, targetWiki } = extraction;
 
   const currentTextByNodeId = new Map(ir.textNodes.map((node) => [node.id, node.text]));
 
@@ -84,18 +76,12 @@ export function exportTranslationSession(
     format: PACKAGE_FORMAT_MARKER,
     formatVersion: CURRENT_FORMAT_VERSION,
     meta: {
-      articleTitle: ir.sourceTitle,
       sourceLanguage: "en",
       targetWiki,
       exportedAt: new Date().toISOString(),
       chunkCharBudget,
     },
-    snapshot: {
-      parsoidHtml: parsoidSnapshotHtml,
-    },
-    provenance: {
-      rawWikitext,
-    },
+    source,
     chunks: sessionChunks,
   };
 }

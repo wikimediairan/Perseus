@@ -13,17 +13,24 @@
  *
  * Split in two, deliberately:
  *
- *   fetchParsoidHtml()      — the network half: wikitext -> HTML.
+ *   fetchParsoidHtml()      — the network half: wikitext -> HTML, for a
+ *                             LIVE article being loaded for the first
+ *                             time (Pipeline.runToExtraction).
+ *   fetchRevisionHtml()     — the other network half: revisionId -> HTML,
+ *                             via the MediaWiki REST API's immutable
+ *                             revision endpoint. Used to RESTORE a saved
+ *                             Translation Session from its `source`
+ *                             metadata (Pipeline.reconstructFromRevision)
+ *                             — see translationPackage/types.ts. Never
+ *                             requests the latest revision by title.
  *   buildIRFromParsoidHtml() — the pure half: HTML -> IR. No network,
  *                              no knowledge of where the HTML came from.
  *
- * This split exists for the Translation Package Redesign: a package's
- * `snapshot.parsoidHtml` is fed directly into `buildIRFromParsoidHtml`
- * during import, reconstructing the exact same IR shape a live parse
- * would produce — without ever calling Wikipedia or Parsoid again. Live
- * parsing (`WikipediaParsoidParser.parse`) and snapshot reconstruction
- * (`Pipeline.reconstructFromSnapshot`) are two entry points into the
- * SAME builder, not two parsers — "shared reconstruction path."
+ * `fetchParsoidHtml` and `fetchRevisionHtml` both hand their result to
+ * the SAME `buildIRFromParsoidHtml` — live parsing
+ * (`WikipediaParsoidParser.parse`) and revision reconstruction
+ * (`Pipeline.reconstructFromRevision`) are two entry points into the same
+ * builder, not two parsers — "shared reconstruction path."
  */
 
 import { WIKIPEDIA_DOMAIN } from "@core/config/constants";
@@ -115,14 +122,67 @@ export async function fetchParsoidHtml(rawWikitext: string, sourceTitle: string)
 }
 
 /**
- * The pure half: walks already-fetched (or already-stored, from a
- * Translation Package snapshot) Parsoid HTML and builds an IR from it.
- * No network access, no side effects beyond optional logging. Given the
- * exact same `html`, this always produces the exact same ids, links, and
- * text nodes — that determinism is what lets a Translation Package's
- * `translation[]` entries still line up correctly with a reconstructed
- * IR, regardless of how much time has passed or whether the live
- * Wikipedia article has since changed.
+ * Fetches the rendered (Parsoid) HTML for one immutable Wikipedia
+ * revision, via the MediaWiki REST API:
+ *
+ *   GET https://{domain}/w/rest.php/v1/revision/{revisionId}/html
+ *
+ * This is how a saved Translation Session is restored: `source.revisionId`
+ * (see translationPackage/types.ts) is the sole input, never the article's
+ * current/latest revision by title — so the reconstructed article always
+ * matches exactly what was there when the session was created, regardless
+ * of any edits made to the live article since. The response is a full
+ * HTML document (not a body-only fragment like `fetchParsoidHtml`'s), so
+ * this extracts `<body>`'s innerHTML before returning.
+ */
+export async function fetchRevisionHtml(revisionId: number): Promise<string> {
+  const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/revision/${revisionId}/html`;
+
+  let response: Response;
+
+  try {
+    response = await fetch(endpoint);
+  } catch (error) {
+    throw new PerseusError(
+      "ParsingError",
+      "Could not reach Wikipedia to load the saved revision.",
+      {
+        stage: "parse-with-parsoid",
+        cause: error,
+      },
+    );
+  }
+
+  if (response.status === 404) {
+    throw new PerseusError(
+      "ParsingError",
+      `Wikipedia revision ${revisionId} could not be found. It may have been deleted or oversighted.`,
+      { stage: "parse-with-parsoid" },
+    );
+  }
+
+  if (!response.ok) {
+    throw new PerseusError(
+      "ParsingError",
+      `Failed to load revision ${revisionId} (HTTP ${response.status}).`,
+      { stage: "parse-with-parsoid", context: { status: response.status } },
+    );
+  }
+
+  const fullHtml = await response.text();
+  const document = new DOMParser().parseFromString(fullHtml, "text/html");
+  return document.body ? document.body.innerHTML : fullHtml;
+}
+
+/**
+ * The pure half: walks already-fetched Parsoid HTML — whether from a live
+ * parse (`fetchParsoidHtml`) or a restored revision (`fetchRevisionHtml`)
+ * — and builds an IR from it. No network access, no side effects beyond
+ * optional logging. Given the exact same `html`, this always produces the
+ * exact same ids, links, and text nodes — that determinism is what lets a
+ * Translation Session's `chunks[].translation` entries still line up
+ * correctly with a reconstructed IR, regardless of how much time has
+ * passed since the session was saved.
  */
 export function buildIRFromParsoidHtml(
   html: string,

@@ -15,6 +15,7 @@
  * rewrite of this file.
  */
 
+import { SOURCE_WIKI_CODE } from "@core/config/constants";
 import { isTargetWikiCode } from "@core/config/targetWikis";
 import { PerseusError } from "@core/errors/PerseusError";
 import type {
@@ -133,7 +134,6 @@ export function validateTranslationSession(data: unknown): TranslationSession {
     );
   }
 
-  const articleTitle = requireString(data.meta.articleTitle, "meta.articleTitle");
   const sourceLanguage = requireString(data.meta.sourceLanguage, "meta.sourceLanguage");
   const exportedAt = requireString(data.meta.exportedAt, "meta.exportedAt");
   const chunkCharBudget = requireFiniteNumber(data.meta.chunkCharBudget, "meta.chunkCharBudget");
@@ -147,23 +147,25 @@ export function validateTranslationSession(data: unknown): TranslationSession {
 
   const targetWiki = data.meta.targetWiki;
 
-  if (!isRecord(data.snapshot)) {
+  if (!isRecord(data.source)) {
     throw new PerseusError(
       "InputError",
-      'Translation Session is invalid: "snapshot" must be an object.',
+      'Translation Session is invalid: "source" must be an object.',
     );
   }
 
-  const parsoidHtml = requireString(data.snapshot.parsoidHtml, "snapshot.parsoidHtml");
+  const wiki = requireString(data.source.wiki, "source.wiki");
 
-  if (!isRecord(data.provenance)) {
+  if (wiki !== SOURCE_WIKI_CODE) {
     throw new PerseusError(
       "InputError",
-      'Translation Session is invalid: "provenance" must be an object.',
+      `Translation Session is invalid: unsupported source.wiki "${wiki}" (expected "${SOURCE_WIKI_CODE}"). Perseus only translates from English Wikipedia.`,
     );
   }
 
-  const rawWikitext = requireString(data.provenance.rawWikitext, "provenance.rawWikitext");
+  const pageId = requireFiniteNumber(data.source.pageId, "source.pageId");
+  const title = requireString(data.source.title, "source.title");
+  const revisionId = requireFiniteNumber(data.source.revisionId, "source.revisionId");
 
   if (!Array.isArray(data.chunks)) {
     throw new PerseusError(
@@ -203,14 +205,12 @@ export function validateTranslationSession(data: unknown): TranslationSession {
     format: PACKAGE_FORMAT_MARKER,
     formatVersion: CURRENT_FORMAT_VERSION,
     meta: {
-      articleTitle,
       sourceLanguage,
       targetWiki,
       exportedAt,
       chunkCharBudget,
     },
-    snapshot: { parsoidHtml },
-    provenance: { rawWikitext },
+    source: { wiki, pageId, title, revisionId },
     chunks,
   };
 }

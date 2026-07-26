@@ -31,12 +31,17 @@
  *                                             (live article; used to
  *                                             START a new session)
  *
- *   reconstructFromSnapshot(pkg) ............ same result shape, built
- *                                             from a saved session's
- *                                             snapshot instead of a live
- *                                             fetch (used to RESUME a
- *                                             session — no network at
- *                                             all until Generate)
+ *   reconstructFromRevision(src) ........... same result shape and same
+ *                                             Parse→Resolve→Extract
+ *                                             sequence, but Parse fetches
+ *                                             the article by its saved
+ *                                             `revisionId` instead of by
+ *                                             title (used to RESUME a
+ *                                             session — still requires
+ *                                             network, since the project
+ *                                             no longer embeds a copy of
+ *                                             the article; see
+ *                                             translationPackage/types.ts)
  *
  *   deriveChunks(worklist) .................. Chunking. Called once,
  *                                             right after either of the
@@ -51,16 +56,15 @@
 import type { Chunk, Chunker } from "@core/chunker/Chunker";
 import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
 import type { TargetWikiCode } from "@core/config/targetWikis";
-import { PerseusError } from "@core/errors/PerseusError";
 import type { Extractor, TranslationWorklist } from "@core/extractor/Extractor";
 import type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-import type { ArticleSource, InputLoader } from "@core/input/InputLoader";
+import type { ArticleRevisionSource, ArticleSource, InputLoader } from "@core/input/InputLoader";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 import type { LinkResolver } from "@core/linkResolver/WikidataLinkResolver";
 import type { Logger } from "@core/logging/Logger";
 import type { Merger } from "@core/merge/Merger";
 import type { Parser } from "@core/parser/ParsoidParser";
-import { buildIRFromParsoidHtml } from "@core/parser/ParsoidParser";
+import { buildIRFromParsoidHtml, fetchRevisionHtml } from "@core/parser/ParsoidParser";
 import type { ReferenceAttentionClassifier } from "@core/referenceAttention/ReferenceAttention";
 import { applySessionChunk } from "@core/translationPackage/import";
 import { calculateSessionProgress } from "@core/translationPackage/progress";
@@ -70,17 +74,6 @@ import type {
   TranslationSession,
 } from "@core/translationPackage/types";
 import type { Translator } from "@core/translator/Translator";
-
-/** Reads the current root HTML from the IR's live DOM. Called exactly once, right after extraction — see ExtractionResult.parsoidSnapshotHtml for why this must never be called again later, once the IR may have been mutated by Merge. */
-function captureSnapshotHtml(ir: IntermediateRepresentation): string {
-  const root = ir.structure.document.getElementById("perseus-root");
-
-  if (!root) {
-    throw new PerseusError("GenerationError", "The parsed document is missing its root element.");
-  }
-
-  return root.innerHTML;
-}
 
 export type { PipelineStageName } from "@core/pipeline/PipelineStage";
 export { PIPELINE_STAGE_ORDER } from "@core/pipeline/PipelineStage";
@@ -112,27 +105,15 @@ export interface PipelineResult {
 
 /**
  * Result of the shared first half of the pipeline: everything up to and
- * including Extraction. `rawWikitext` is carried along so a session can
- * be saved from this point without needing to go back to InputLoader —
- * see translationPackage/export.ts.
- *
- * `parsoidSnapshotHtml` is captured ONCE here, immediately after Link
- * Resolution/Extraction, and never re-derived from the (mutable) `ir`
- * again afterwards. This matters: `ir`'s underlying DOM gets mutated in
- * place as chunks are translated and merged (Spec 8.2), so reading the
- * snapshot from the live DOM at SAVE time — instead of from this frozen
- * field — would silently bake already-translated text into what's
- * supposed to be the pure-English reconstruction anchor. That would
- * break the exact diff `applySessionChunk` relies on to tell "translated"
- * apart from "still original" on every subsequent reopen, not just the
- * first one. See translationPackage/export.ts.
+ * including Extraction. `source` is carried along so a session can be
+ * saved from this point without needing to go back to InputLoader — see
+ * translationPackage/export.ts.
  */
 export interface ExtractionResult {
   ir: IntermediateRepresentation;
   worklist: TranslationWorklist;
-  rawWikitext: string;
+  source: ArticleRevisionSource;
   targetWiki: TargetWikiCode;
-  parsoidSnapshotHtml: string;
 }
 
 export class Pipeline {
@@ -157,52 +138,55 @@ export class Pipeline {
     return {
       ir,
       worklist,
-      rawWikitext: article.rawWikitext,
+      source: article.revision,
       targetWiki: this.deps.targetWiki,
-      parsoidSnapshotHtml: captureSnapshotHtml(ir),
     };
   }
 
   /**
-   * Reconstructs an ExtractionResult from a saved session's own snapshot
-   * — zero network access. `buildIRFromParsoidHtml` is the exact same
-   * function `runToExtraction` uses internally (via ParsoidParser.parse);
-   * only where the HTML comes from differs. Link Resolution is
-   * deliberately NOT re-run here: the snapshot was captured after
-   * resolution already happened at export time, so resolved hrefs are
-   * already present in `snapshot.parsoidHtml`.
+   * Reconstructs an ExtractionResult from a saved session's `source`
+   * metadata (see translationPackage/types.ts): fetches the exact
+   * historical revision by `source.revisionId` — never the article's
+   * current/latest revision by title — then runs the SAME
+   * Parse→Resolve→Extract sequence `runToExtraction` uses for a live
+   * article. `buildIRFromParsoidHtml` is the exact same function
+   * `runToExtraction` uses internally (via ParsoidParser.parse); only
+   * where the HTML comes from differs.
    *
-   * `rawWikitext`/`targetWiki` come from the session's own metadata, not
-   * re-read from this Pipeline's current config — a resumed session
-   * always continues as whatever it was created for, even if the app's
-   * "current" defaults have since changed.
+   * Unlike the removed snapshot-based reconstruction, Link Resolution IS
+   * re-run here: the project no longer caches post-resolution HTML, so
+   * the freshly fetched revision HTML has not had target-wiki link
+   * targets resolved into it yet.
+   *
+   * `targetWiki` comes from the session's own metadata, not re-read from
+   * this Pipeline's current config — a resumed session always continues
+   * as whatever it was created for, even if the app's "current" defaults
+   * have since changed.
    */
-  async reconstructFromSnapshot(
-    parsoidHtml: string,
-    rawWikitext: string,
-    sourceTitle: string,
+  async reconstructFromRevision(
+    source: ArticleRevisionSource,
     targetWiki: TargetWikiCode,
   ): Promise<ExtractionResult> {
     const { logger } = this.deps;
 
     logger
       .forStage("parse-with-parsoid")
-      .info("Reconstructing article from saved session snapshot (no network)");
-    const ir = buildIRFromParsoidHtml(
-      parsoidHtml,
-      sourceTitle,
-      logger.forStage("parse-with-parsoid"),
-    );
+      .info(`Fetching Wikipedia revision ${source.revisionId} of "${source.title}"`);
+    const html = await fetchRevisionHtml(source.revisionId);
+    const ir = buildIRFromParsoidHtml(html, source.title, logger.forStage("parse-with-parsoid"));
+
+    logger.forStage("resolve-wikidata-links").info("Resolving Wikidata links");
+    await this.deps.linkResolver.resolve(ir);
 
     logger.forStage("extract-translatable-nodes").info("Extracting translatable nodes");
     const worklist = await this.deps.extractor.extract(ir);
 
-    return { ir, worklist, rawWikitext, targetWiki, parsoidSnapshotHtml: parsoidHtml };
+    return { ir, worklist, source, targetWiki };
   }
 
   /**
    * Chunking. Called ONCE, right after `runToExtraction` or
-   * `reconstructFromSnapshot`, for a NEW session. A resumed session
+   * `reconstructFromRevision`, for a NEW session. A resumed session
    * instead reuses its persisted chunk list verbatim (see
    * translationPackage/types.ts) rather than calling this again — see
    * the Design Proposal for why persisted grouping beats re-derivation.
@@ -287,15 +271,16 @@ export class Pipeline {
   }
 
   /**
-   * Convenience: reconstructs a saved session from its own snapshot,
-   * applies every persisted chunk's translation, and generates Wikitext
-   * from whatever is translated so far (partial is fine — a session
-   * saved mid-way still generates *something*, exactly like the
-   * original Translation Package's "partial import" behavior). Zero
-   * network access except the final Generate call.
+   * Convenience: reconstructs a saved session from its own `source`
+   * revision, applies every persisted chunk's translation, and generates
+   * Wikitext from whatever is translated so far (partial is fine — a
+   * session saved mid-way still generates *something*, exactly like the
+   * original Translation Package's "partial import" behavior). Requires
+   * network access throughout (revision fetch, Link Resolution, and the
+   * final Generate call) — this format has no offline restoration path.
    *
    * For an interactive resume (the chunk workspace), the caller should
-   * instead call `reconstructFromSnapshot` + `applySessionChunk` per
+   * instead call `reconstructFromRevision` + `applySessionChunk` per
    * chunk directly, so the UI can show accurate per-chunk progress
    * before the user does anything further. This method is for the
    * simpler "just show me the current Wikitext" case.
@@ -305,12 +290,7 @@ export class Pipeline {
     progress: SessionProgress;
     ignoredUnknownIds: string[];
   }> {
-    const extraction = await this.reconstructFromSnapshot(
-      session.snapshot.parsoidHtml,
-      session.provenance.rawWikitext,
-      session.meta.articleTitle,
-      session.meta.targetWiki,
-    );
+    const extraction = await this.reconstructFromRevision(session.source, session.meta.targetWiki);
 
     let ir = extraction.ir;
     let translatedCount = 0;

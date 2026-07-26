@@ -34,7 +34,12 @@ export type { PerseusErrorCategory, PerseusErrorOptions } from "@core/errors/Per
 export { notImplemented, PerseusError } from "@core/errors/PerseusError";
 export type { Extractor, TranslationUnit, TranslationWorklist } from "@core/extractor/Extractor";
 export type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-export type { ArticleSource, InputLoader, LoadedArticle } from "@core/input/InputLoader";
+export type {
+  ArticleRevisionSource,
+  ArticleSource,
+  InputLoader,
+  LoadedArticle,
+} from "@core/input/InputLoader";
 export { WikipediaInputLoader } from "@core/input/InputLoader";
 export type { IntermediateRepresentation, TextNode } from "@core/ir/IntermediateRepresentation";
 export type { LinkNode } from "@core/ir/LinkNode";
@@ -71,8 +76,7 @@ export type {
   TranslationEntryTuple,
   TranslationSession,
   TranslationSessionMeta,
-  TranslationSessionProvenance,
-  TranslationSessionSnapshot,
+  TranslationSessionSource,
 } from "@core/translationPackage";
 
 export {

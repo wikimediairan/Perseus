@@ -186,10 +186,8 @@ export function useChunkWorkspace(config: PerseusConfig) {
       }
 
       const pipeline = createPipeline(configRef.current, makeLogger());
-      const extraction = await pipeline.reconstructFromSnapshot(
-        session.snapshot.parsoidHtml,
-        session.provenance.rawWikitext,
-        session.meta.articleTitle,
+      const extraction = await pipeline.reconstructFromRevision(
+        session.source,
         session.meta.targetWiki,
       );
 

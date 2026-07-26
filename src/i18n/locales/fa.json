@@ -22,13 +22,8 @@
     "tagline2": "زمان بیشتر برای حقیقت‌جویی"
   },
   "sourceCard": {
-    "tabUrl": "نشانی ویکی‌پدیا",
-    "tabFile": "فایل wiki. محلی",
     "articleUrlLabel": "آدرس ویکی مبدا",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
-    "localFileLabel": "فایل ویکی مبدا",
-    "noFileSelected": "هیچ فایلی انتخاب نشده است",
-    "browse": "مرور…"
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
     "targetWikiLabel": "ویکی مقصد",
@@ -104,7 +99,7 @@
     "configuration": "ارائه‌دهنده به‌طور کامل پیکربندی نشده است. {{message}}",
     "provider": "ارائه‌دهنده ترجمه خطایی گزارش داد. {{message}}",
     "unexpected": "خطایی غیرمنتظره رخ داد. لطفاً دوباره تلاش کنید.",
-    "ignoredEntries": "{{count}} شناسه ورودی که در عکس فوری این نشست یافت نشد نادیده گرفته شد."
+    "ignoredEntries": "{{count}} شناسه ورودی که در مقالهٔ بازسازی‌شدهٔ این نشست یافت نشد نادیده گرفته شد."
   },
   "languageSwitcher": {
     "label": "زبان",

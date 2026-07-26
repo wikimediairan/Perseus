@@ -20,7 +20,7 @@ import type { PipelineStageName } from "@core/pipeline/PipelineStage";
  * section, rather than to specific implementation exceptions.
  */
 export type PerseusErrorCategory =
-  | "InputError" // invalid/unreachable URL, unreadable or malformed .wiki file
+  | "InputError" // invalid/unreachable article URL, or an invalid/unsupported saved session file
   | "MergeError" // translated chunks could not be reconciled back into the IR
   | "ParsingError" // Parsoid unavailable or failed to parse the article
   | "ProviderError" // the configured LLM provider rejected or failed a request

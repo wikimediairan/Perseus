@@ -19,8 +19,7 @@ export type {
   TranslationEntryTuple,
   TranslationSession,
   TranslationSessionMeta,
-  TranslationSessionProvenance,
-  TranslationSessionSnapshot,
+  TranslationSessionSource,
 } from "@core/translationPackage/types";
 export { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "@core/translationPackage/types";
 export { validateTranslationSession } from "@core/translationPackage/validate";

@@ -17,5 +17,13 @@
 /** Source wiki. Fixed per the project's scope (English -> any supported target wiki only). */
 export const WIKIPEDIA_DOMAIN = "en.wikipedia.org";
 
+/**
+ * Wikidata-style wiki database code for the fixed source wiki, stored in a
+ * saved project's `source.wiki` field (see translationPackage/types.ts) so
+ * the project unambiguously records which wiki `pageId`/`revisionId` refer
+ * to, even though only one value is possible today.
+ */
+export const SOURCE_WIKI_CODE = "enwiki" as const;
+
 /** Wikidata's own API, used for Link Resolution (Software Specification, Link Resolution). */
 export const WIKIDATA_API = "https://www.wikidata.org/w/api.php";

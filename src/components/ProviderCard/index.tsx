@@ -1,26 +1,9 @@
 import type { LLMProviderConfig, PerseusConfig } from "@core/config/Config";
 import type { TFunction } from "i18next";
 
-/**
- * ProviderCard
- *
- * Exposes exactly the configuration the Software Specification calls
- * for (Section 14): provider selection, model, the optional user
- * prompt appended after the built-in default (Section 4.9), and the
- * Target Wiki (Persian Wikipedia, Tajik Wikipedia, ...) — nothing else.
- * No settings system, just this one card.
- *
- * Target Wiki lives here (not nested under a "Built-in LLM only" mode)
- * because Link Resolution — shared by every executor, built-in or
- * manual — depends on it at extraction time, before the user has even
- * chosen how a chunk will get translated. It's disabled once an article
- * has been loaded (`disabled` covers this — see App.tsx) so a session's
- * Wikidata-resolved links and its declared target wiki can never drift
- * apart mid-session.
- */
 import { useTranslation } from "react-i18next";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -80,48 +63,45 @@ export function ProviderCard({
 
   return (
     <Card>
-      <CardHeader>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex flex-col gap-1.5">
-            <Label>{t("providerCard.providerLabel")}</Label>
-            <Select
-              disabled={disabled}
-              onValueChange={(kind) => {
-                updateProvider({ kind: kind as LLMProviderConfig["kind"] });
-              }}
-              value={provider.kind}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(providerLabels) as LLMProviderConfig["kind"][]).map((kind) => (
-                  <SelectItem key={kind} value={kind}>
-                    {providerLabels[kind]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="model">{t("providerCard.modelLabel")}</Label>
-            <Input
-              dir="ltr"
-              disabled={disabled}
-              id="model"
-              onChange={(e) => {
-                updateProvider({ model: e.target.value });
-              }}
-              placeholder={MODEL_PLACEHOLDER[provider.kind]}
-              value={provider.model}
-            />
-          </div>
+      <CardContent className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Label>{t("providerCard.providerLabel")}</Label>
+          <Select
+            disabled={disabled}
+            onValueChange={(kind) => {
+              updateProvider({ kind: kind as LLMProviderConfig["kind"] });
+            }}
+            value={provider.kind}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(providerLabels) as LLMProviderConfig["kind"][]).map((kind) => (
+                <SelectItem key={kind} value={kind}>
+                  {providerLabels[kind]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-3">
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="model">{t("providerCard.modelLabel")}</Label>
+          <Input
+            dir="ltr"
+            disabled={disabled}
+            id="model"
+            onChange={(e) => {
+              updateProvider({ model: e.target.value });
+            }}
+            placeholder={MODEL_PLACEHOLDER[provider.kind]}
+            value={provider.model}
+          />
+        </div>
+
         {PROVIDERS_WITH_BASE_URL.has(provider.kind) && (
-          <div className="flex flex-col gap-1.5">
+          <div className="col-span-2 flex flex-col gap-1.5">
             <Label htmlFor="base-url">{t("providerCard.baseUrlLabel")}</Label>
             <Input
               dir="ltr"
@@ -137,7 +117,7 @@ export function ProviderCard({
         )}
 
         {!PROVIDERS_WITHOUT_API_KEY.has(provider.kind) && (
-          <div className="flex flex-col gap-1.5">
+          <div className="col-span-2 flex flex-col gap-1.5">
             <Label htmlFor="api-key">{t("providerCard.apiKeyLabel")}</Label>
             <Input
               dir="ltr"
@@ -153,7 +133,7 @@ export function ProviderCard({
           </div>
         )}
 
-        <div className="flex flex-col gap-1.5">
+        <div className="col-span-2 flex flex-col gap-1.5">
           <Label htmlFor="user-prompt">{t("providerCard.additionalPromptsLabel")}</Label>
           <Textarea
             disabled={disabled}

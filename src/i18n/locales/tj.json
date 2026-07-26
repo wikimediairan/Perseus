@@ -22,13 +22,8 @@
     "tagline2": "Вақти бештар барои ҷустуҷӯи ҳақиқат"
   },
   "sourceCard": {
-    "tabUrl": "Суроғаи Википедия",
-    "tabFile": "Файли маҳаллии .wiki",
     "articleUrlLabel": "Википедияи манбаъ",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
-    "localFileLabel": "Файли маҳаллӣ",
-    "noFileSelected": "Ҳеҷ файл интихоб нашудааст",
-    "browse": "Тамошо…"
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
     "targetWikiLabel": "Викии мақсаднок",
@@ -104,7 +99,7 @@
     "configuration": "Провайдер пурра танзим нашудааст. {{message}}",
     "provider": "Провайдери тарҷума хатогӣ гузориш дод. {{message}}",
     "unexpected": "Хатогии ногаҳонӣ рух дод. Лутфан бори дигар кӯшиш кунед.",
-    "ignoredEntries": "{{count}} рамзи вурудӣ, ки дар нусхаи фаврии ин ҷаласа ёфт нашуд, нодида гирифта шуд."
+    "ignoredEntries": "{{count}} рамзи вурудӣ, ки дар мақолаи барқароршудаи ин ҷаласа ёфт нашуд, нодида гирифта шуд."
   },
   "languageSwitcher": {
     "label": "Забон",

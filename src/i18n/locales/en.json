@@ -22,13 +22,8 @@
     "tagline2": "More time seeking truth"
   },
   "sourceCard": {
-    "tabUrl": "Wikipedia URL",
-    "tabFile": "Local .wiki file",
     "articleUrlLabel": "Source Wikipedia",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/...",
-    "localFileLabel": "Local file",
-    "noFileSelected": "No file selected",
-    "browse": "Browse…"
+    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
     "targetWikiLabel": "Target wiki",
@@ -103,7 +98,7 @@
     "configuration": "Provider is not fully configured. {{message}}",
     "provider": "The translation provider reported an error. {{message}}",
     "unexpected": "Something unexpected went wrong. Please try again.",
-    "ignoredEntries": "Ignored {{count}} entry id(s) not found in this session's own snapshot."
+    "ignoredEntries": "Ignored {{count}} entry id(s) not found in this session's reconstructed article."
   },
   "languageSwitcher": {
     "label": "Language",

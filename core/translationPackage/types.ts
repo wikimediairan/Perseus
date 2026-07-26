@@ -1,5 +1,5 @@
 /**
- * Translation Session (`.perseus` file) — types
+ * Translation Session (`.json` file) — types
  *
  * A self-contained artifact representing an in-progress or finished
  * translation. Renamed conceptually from "Translation Package" to
@@ -14,32 +14,30 @@
  * bump formatVersion; changing the meaning/shape of an existing key IS
  * breaking and bumps it, and gets a branch in validate.ts's
  * version-dispatch (currently a single supported version — Perseus
- * hasn't shipped externally yet, so there is no v1 to migrate from, only
- * a clearly-marked place for a future migrator to go).
+ * hasn't shipped externally yet, so there is no prior version to migrate
+ * from, only a clearly-marked place for a future migrator to go).
  *
- * Four top-level responsibilities, each with exactly one job:
+ * Three top-level responsibilities, each with exactly one job:
  *
  *   meta        — what is this, what format, which target wiki, when.
  *
- *   snapshot    — the CANONICAL reconstruction source of truth. This is
- *                 the only thing `buildIRFromParsoidHtml` ever consumes
- *                 (see parser/ParsoidParser.ts, Pipeline.reconstructFromSnapshot).
- *                 Nothing else may be used to rebuild the IR. Kept
- *                 deliberately even though it's invisible to the chunk
- *                 workspace UI and to whatever a human pastes into an
- *                 external AI — see the Design Proposal, Section 2.2,
- *                 for why dropping it would let a resumed session
- *                 silently misattribute a translation to the wrong
- *                 paragraph if the live article has since changed.
- *
- *   provenance  — an AUXILIARY, non-authoritative record of the original
- *                 wikitext. Never fed into any parsing/reconstruction
- *                 function — kept solely for human-readable inspection,
- *                 future diffing, or debugging. Not a redundant copy of
- *                 `snapshot`: converting `snapshot.parsoidHtml` back into
- *                 wikitext would require another Parsoid round trip and
- *                 isn't guaranteed to reproduce the original
- *                 byte-for-byte, so this is genuinely independent data.
+ *   source      — the CANONICAL reconstruction source of truth: just
+ *                 enough metadata (wiki, pageId, title, revisionId) to
+ *                 re-fetch the exact article revision from Wikipedia
+ *                 later. Perseus references an immutable Wikipedia
+ *                 revision rather than embedding a copy of the article —
+ *                 `revisionId` uniquely identifies the exact historical
+ *                 revision, `pageId` is the stable page identifier, and
+ *                 `title` is kept only for display. Whenever article
+ *                 content is needed, Perseus fetches that exact revision
+ *                 from the Wikimedia APIs (see
+ *                 Pipeline.reconstructFromRevision,
+ *                 parser/ParsoidParser.ts's `fetchRevisionHtml`) —
+ *                 `revisionId` is always the source of truth, and a
+ *                 saved session is never restored via the article's
+ *                 current/latest revision by title. This intentionally
+ *                 requires an internet connection to restore; offline
+ *                 restoration is not a goal.
  *
  *   chunks      — the actual translation work, and the ONLY section a
  *                 human or an external AI ever needs to see. Grouped by
@@ -54,18 +52,18 @@
  *                 raw tag names, one mutable text field that starts as
  *                 English and gets replaced in place. No separate
  *                 "source"/"result" field anywhere — the original is
- *                 always re-derivable from `snapshot`, so storing it
- *                 twice would be pure waste.
+ *                 always re-derivable by re-fetching `source`, so storing
+ *                 it twice would be pure waste.
  */
 
 import type { TargetWikiCode } from "@core/config/targetWikis";
+import type { ArticleRevisionSource } from "@core/input/InputLoader";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
 
 export const PACKAGE_FORMAT_MARKER = "perseus-package" as const;
-export const CURRENT_FORMAT_VERSION = 2 as const;
+export const CURRENT_FORMAT_VERSION = 1 as const;
 
 export interface TranslationSessionMeta {
-  articleTitle: string;
   sourceLanguage: string;
   targetWiki: TargetWikiCode;
   /** ISO 8601 timestamp of the last save. Informational only — nothing depends on it. */
@@ -81,17 +79,10 @@ export interface TranslationSessionMeta {
 
 /**
  * The canonical reconstruction source of truth, and the ONLY thing that
- * is. `parsoidHtml` is captured AFTER Link Resolution has already run,
- * so resolved target-wiki link targets are already baked into it.
+ * is: metadata identifying one immutable Wikipedia revision, not a copy
+ * of its content. See the file-level doc comment.
  */
-export interface TranslationSessionSnapshot {
-  parsoidHtml: string;
-}
-
-/** Auxiliary, non-authoritative. See the file-level doc comment. */
-export interface TranslationSessionProvenance {
-  rawWikitext: string;
-}
+export type TranslationSessionSource = ArticleRevisionSource;
 
 /**
  * [numeric id, tag name, current text]. `id` is the TextNode's numeric
@@ -118,8 +109,7 @@ export interface TranslationSession {
   format: typeof PACKAGE_FORMAT_MARKER;
   formatVersion: typeof CURRENT_FORMAT_VERSION;
   meta: TranslationSessionMeta;
-  snapshot: TranslationSessionSnapshot;
-  provenance: TranslationSessionProvenance;
+  source: TranslationSessionSource;
   chunks: SessionChunk[];
 }
 
