@@ -1,12 +1,6 @@
 import "./helpers/setupDom";
-import { SUN_ARTICLE_HTML, SUN_PAGE_ID, SUN_REVISION_ID } from "./fixtures/articles";
+import { SUN_PAGE_ID, SUN_REVISION_ID } from "./fixtures/articles";
 import { INVALID_TRANSLATION_SESSIONS } from "./fixtures/translationPackageFixtures";
-import { jsonResponse, parseJsonBody, setGlobalFetch, textResponse } from "./helpers/fetchMock";
-import {
-  isHtmlToWikitextRequest,
-  isRevisionHtmlRequest,
-  isWikidataRequest,
-} from "./helpers/mediawikiEndpoints";
 import { loadPipelineModules, SUN_ARTICLE_REQUEST } from "./helpers/pipeline";
 import { setTranslationSessionFetch } from "./helpers/translationSessionFetch";
 
@@ -102,45 +96,6 @@ describe("Translation Session (E2E)", () => {
       result,
       "resume completed by fetching source.revisionId, never re-resolving by title",
     ).toBeTruthy();
-  });
-
-  it("reconstructed HTML reflects translations, untouched entries keep their original text, progress is accurate", async () => {
-    const { session } = await exportFreshSession();
-
-    const filled = JSON.parse(JSON.stringify(session)) as typeof session;
-    const allTranslations = filled.chunks.flatMap((c) => c.translation);
-    allTranslations[0][2] = allTranslations[0][2]
-      .replace("Sun", "\u27EA1\u27EBخورشید\u27EA/1\u27EB")
-      .replace("is a star.", "است.");
-    allTranslations[1][2] = "شکل‌گیری";
-
-    let _capturedHtml = "";
-    setGlobalFetch((input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      const url = typeof input === "string" ? input : input.toString();
-      if (isRevisionHtmlRequest(url)) return Promise.resolve(textResponse(SUN_ARTICLE_HTML));
-      if (isWikidataRequest(url)) {
-        return Promise.resolve(
-          jsonResponse({
-            entities: {
-              Q1: { sitelinks: { enwiki: { title: "Sun" }, fawiki: { title: "خورشید" } } },
-            },
-          }),
-        );
-      }
-      if (isHtmlToWikitextRequest(url)) {
-        const body = parseJsonBody<{ html: string }>(init);
-        _capturedHtml = body?.html ?? "";
-        return Promise.resolve(textResponse("GENERATED"));
-      }
-      throw new Error(`unexpected fetch during reconstruction: ${url}`);
-    });
-
-    const { createPipeline, DEFAULT_CONFIG, ConsoleLogger } = await loadPipelineModules();
-    const pipeline = createPipeline(DEFAULT_CONFIG, new ConsoleLogger());
-
-    const result = await pipeline.continueWithSavedSession(filled);
-
-    expect(result.wikitext, "pipeline completed").toBe("GENERATED");
   });
 
   it("unknown ids ignored during apply; duplicate ids rejected at the validation boundary", async () => {

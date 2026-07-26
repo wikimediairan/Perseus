@@ -78,6 +78,17 @@ export class DomMerger implements Merger {
     for (const chunk of translatedChunks) {
       for (const unit of chunk.units) {
         const element = ir.structure.nodeElements.get(unit.nodeId);
+        if (!element) {
+          throw new PerseusError(
+            "MergeError",
+            `IR node "${unit.nodeId}" has no owning DOM element — refusing to merge.`,
+            {
+              stage: "merge",
+              context: { chunkId: chunk.id, nodeId: unit.nodeId },
+            },
+          );
+        }
+
         const placeholders = ir.structure.placeholders.get(unit.nodeId) ?? [];
         element.innerHTML = reconstructHtmlFromPlaceholders(
           unit.translatedText,
@@ -85,7 +96,17 @@ export class DomMerger implements Merger {
           ir.citations,
         );
 
-        const textNode = nodeById.get(unit.nodeId)!;
+        const textNode = nodeById.get(unit.nodeId);
+        if (!textNode) {
+          throw new PerseusError(
+            "MergeError",
+            `Translated unit references unknown IR node "${unit.nodeId}" — refusing to merge.`,
+            {
+              stage: "merge",
+              context: { chunkId: chunk.id, nodeId: unit.nodeId },
+            },
+          );
+        }
         textNode.text = unit.translatedText;
       }
     }
