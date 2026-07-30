@@ -80,20 +80,21 @@ export default function App() {
       header={<Header version={APP_VERSION} />}
       sidebar={
         <Sidebar>
-          <ProviderCard config={config} disabled={hasArticle || busy} onChange={updateConfig} />
+          <ProviderCard config={config} onChange={updateConfig} />
 
           <SourceCard
             actionLabel={t("app.sourceAction.loadArticle")}
+            busy={busy}
             busyLabel={t("app.sourceBusy.loading")}
             config={config}
-            disabled={busy}
+            disabled={hasArticle || busy}
             onChange={updateConfig}
             onSubmit={loadArticle}
           />
 
           <button
             className="w-fit cursor-pointer text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline disabled:pointer-events-none disabled:opacity-50"
-            disabled={busy}
+            disabled={hasArticle || busy}
             onClick={openSession}
             type="button"
           >

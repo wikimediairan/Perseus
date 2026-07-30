@@ -16,7 +16,6 @@ export type { TranslatedChunk, TranslatedUnit } from "@core/chunker/segmentProto
 export {
   parseChunkTranslation,
   renderChunkForTranslation,
-  SEGMENT_FORMAT_INSTRUCTIONS,
 } from "@core/chunker/segmentProtocol";
 export type { LLMProviderConfig, PerseusConfig, PromptConfig } from "@core/config/Config";
 export { DEFAULT_CONFIG } from "@core/config/Config";

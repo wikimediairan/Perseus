@@ -39,11 +39,9 @@ const MODEL_PLACEHOLDER: Record<LLMProviderConfig["kind"], string> = {
 
 export function ProviderCard({
   config,
-  disabled,
   onChange,
 }: {
   config: PerseusConfig;
-  disabled: boolean;
   onChange(config: PerseusConfig): void;
 }) {
   const { t } = useTranslation();
@@ -67,7 +65,6 @@ export function ProviderCard({
         <div className="flex flex-col gap-1.5">
           <Label>{t("providerCard.providerLabel")}</Label>
           <Select
-            disabled={disabled}
             onValueChange={(kind) => {
               updateProvider({ kind: kind as LLMProviderConfig["kind"] });
             }}
@@ -90,7 +87,6 @@ export function ProviderCard({
           <Label htmlFor="model">{t("providerCard.modelLabel")}</Label>
           <Input
             dir="ltr"
-            disabled={disabled}
             id="model"
             onChange={(e) => {
               updateProvider({ model: e.target.value });
@@ -105,7 +101,6 @@ export function ProviderCard({
             <Label htmlFor="base-url">{t("providerCard.baseUrlLabel")}</Label>
             <Input
               dir="ltr"
-              disabled={disabled}
               id="base-url"
               onChange={(e) => {
                 updateProvider({ baseUrl: e.target.value });
@@ -121,7 +116,6 @@ export function ProviderCard({
             <Label htmlFor="api-key">{t("providerCard.apiKeyLabel")}</Label>
             <Input
               dir="ltr"
-              disabled={disabled}
               id="api-key"
               onChange={(e) => {
                 updateProvider({ apiKey: e.target.value });
@@ -136,7 +130,6 @@ export function ProviderCard({
         <div className="col-span-2 flex flex-col gap-1.5">
           <Label htmlFor="user-prompt">{t("providerCard.additionalPromptsLabel")}</Label>
           <Textarea
-            disabled={disabled}
             id="user-prompt"
             onChange={(e) => {
               updateUserPrompt(e.target.value);

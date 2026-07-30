@@ -22,11 +22,7 @@
 
 import type { Chunk } from "@core/chunker/Chunker";
 import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
-import {
-  parseChunkTranslation,
-  renderChunkForTranslation,
-  SEGMENT_FORMAT_INSTRUCTIONS,
-} from "@core/chunker/segmentProtocol";
+import { parseChunkTranslation, renderChunkForTranslation } from "@core/chunker/segmentProtocol";
 import type { TargetWikiDefinition } from "@core/config/targetWikis";
 import { PerseusError } from "@core/errors/PerseusError";
 import type { LLMProvider } from "@core/llm/LLMProvider";
@@ -54,7 +50,7 @@ export class LLMTranslator implements Translator {
   ) {}
 
   async translateChunk(chunk: Chunk): Promise<TranslatedChunk> {
-    const systemPrompt = `${this.promptManager.buildPrompt(this.targetWiki, this.userPrompt)}\n\n${SEGMENT_FORMAT_INSTRUCTIONS}`;
+    const systemPrompt = `${this.promptManager.buildPrompt(this.targetWiki, this.userPrompt)}`;
 
     this.logger.info(`Translating chunk ${chunk.id}`, { units: chunk.units.length });
 
@@ -72,7 +68,10 @@ export class LLMTranslator implements Translator {
       );
 
       for (const nodeId of missingUnitIds) {
-        const unit = chunk.units.find((u) => u.nodeId === nodeId)!;
+        const unit = chunk.units.find((u) => u.nodeId === nodeId);
+
+        if (!unit) throw Error("unit is null");
+
         const single = await this.provider.translate({
           systemPrompt: this.promptManager.buildPrompt(this.targetWiki, this.userPrompt),
           sourceText: unit.sourceText,

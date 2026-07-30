@@ -21,17 +21,16 @@
 
 import type { TargetWikiDefinition } from "@core/config/targetWikis";
 
-function buildDefaultPrompt(targetWiki: TargetWikiDefinition): string {
+function buildDefaultPrompt({ domain, languageName }: TargetWikiDefinition): string {
   return [
-    "You are translating Wikipedia article text from English into formal,",
-    `encyclopaedic ${targetWiki.languageName} for ${targetWiki.domain}. Translate only the`,
-    "natural-language meaning. Do not add, remove, or reinterpret facts.",
-    `Use standard ${targetWiki.languageName} numerals and register appropriate for an`,
-    "encyclopaedia article. Preserve any tokens or markers in the input",
-    "exactly as they appear, in the same relative order, even if they look",
-    "unusual — they are structural markers, not part of the text to",
-    "translate.",
-  ].join(" ");
+    `Translate English article text into formal, encyclopedic ${languageName} for ${domain}.`,
+    "RULES:",
+    "1. Translate natural-language meaning only. Do not add, remove, summarize, or reinterpret facts.",
+    `2. Use standard ${languageName} numerals only in translated text. Never alter digits inside structural markers, tokens, or tags.`,
+    "3. Preserve all structural tags (e.g., ⟪1⟫...⟪/1⟫) exactly unchanged, but translate the text enclosed within them.",
+    "4. Preserve [[SEGMENT n]] markers exactly unchanged, including their digits and place each one immediately before its translated segment.",
+    "5. Output only the translated segments. No introduction, commentary, explanations, or extra text.",
+  ].join("\n");
 }
 
 export interface PromptManager {

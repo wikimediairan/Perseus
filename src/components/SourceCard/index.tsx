@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export function SourceCard({
   disabled,
+  busy,
   actionLabel,
   busyLabel,
   onSubmit,
@@ -20,6 +21,7 @@ export function SourceCard({
   onChange,
 }: {
   disabled: boolean;
+  busy: boolean;
   actionLabel: string;
   busyLabel: string;
   onSubmit(source: ArticleSource): void;
@@ -82,7 +84,7 @@ export function SourceCard({
 
         <div className="col-span-2">
           <Button className="mt-1 w-fit" disabled={disabled || !canSubmit} onClick={handleSubmit}>
-            {disabled ? busyLabel : actionLabel}
+            {busy ? busyLabel : actionLabel}
           </Button>
         </div>
       </CardContent>

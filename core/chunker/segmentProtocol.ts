@@ -31,16 +31,6 @@ export interface TranslatedChunk {
   units: TranslatedUnit[];
 }
 
-export const SEGMENT_FORMAT_INSTRUCTIONS = [
-  "The user message contains one or more numbered segments, each introduced",
-  'by a marker on its own line in the exact form "[[SEGMENT n]]" (n is an',
-  "integer). Translate the text of every segment. Reproduce",
-  'every "[[SEGMENT n]]" marker in your response, unchanged and in the same',
-  "order, immediately before the translation of that segment's text.",
-  "Do not add commentary, explanations, or any segments that were not present",
-  "in the input.",
-].join(" ");
-
 /** Renders a Chunk as one piece of plain text — the built-in LLM provider's request body, and the exact text a "Copy" button in the UI copies. Single-unit chunks still get one marker, for consistency: the parser doesn't need a special case, and it costs nothing since there is no demultiplexing ambiguity anyway. */
 export function renderChunkForTranslation(chunk: Chunk): string {
   return chunk.units.map((unit, i) => `[[SEGMENT ${i + 1}]]\n${unit.sourceText}`).join("\n\n");

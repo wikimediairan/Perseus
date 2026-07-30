@@ -238,10 +238,9 @@ export function useChunkWorkspace(config: PerseusConfig) {
 
     const { getTargetWiki } = await import("@core/config/targetWikis");
     const { DefaultPromptManager } = await import("@core/prompt/PromptManager");
-    const { SEGMENT_FORMAT_INSTRUCTIONS } = await import("@core/chunker/segmentProtocol");
 
     const promptManager = new DefaultPromptManager();
-    const prompt = `${promptManager.buildPrompt(getTargetWiki(targetWiki), configRef.current.prompt.userPrompt)}\n\n${SEGMENT_FORMAT_INSTRUCTIONS}`;
+    const prompt = `${promptManager.buildPrompt(getTargetWiki(targetWiki), configRef.current.prompt.userPrompt)}`;
     await outputDelivery.copyToClipboard(prompt);
     toast.success(t("app.promptCopied"));
   }, [outputDelivery, t]);
