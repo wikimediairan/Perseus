@@ -41,7 +41,7 @@
  *                                             network, since the project
  *                                             no longer embeds a copy of
  *                                             the article; see
- *                                             translationPackage/types.ts)
+ *                                             translation-sessions/types.ts)
  *
  *   deriveChunks(worklist) .................. Chunking. Called once,
  *                                             right after either of the
@@ -49,31 +49,35 @@
  *                                             Chunk[] is persisted
  *                                             verbatim in a saved
  *                                             session (see
- *                                             translationPackage/), not
+ *                                             translation-sessions/), not
  *                                             re-derived on resume.
  */
 
-import type { Chunk, Chunker } from "@core/chunker/Chunker";
-import type { TranslatedChunk } from "@core/chunker/segmentProtocol";
 import type { TargetWikiCode } from "@core/config/targetWikis";
-import type { Extractor, TranslationWorklist } from "@core/extractor/Extractor";
-import type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-import type { ArticleRevisionSource, ArticleSource, InputLoader } from "@core/input/InputLoader";
 import type { IntermediateRepresentation } from "@core/ir/IntermediateRepresentation";
-import type { LinkResolver } from "@core/linkResolver/WikidataLinkResolver";
-import type { Logger } from "@core/logging/Logger";
-import type { Merger } from "@core/merge/Merger";
-import type { Parser } from "@core/parser/ParsoidParser";
-import { buildIRFromParsoidHtml, fetchRevisionHtml } from "@core/parser/ParsoidParser";
-import type { ReferenceAttentionClassifier } from "@core/referenceAttention/ReferenceAttention";
-import { applySessionChunk } from "@core/translationPackage/import";
-import { calculateSessionProgress } from "@core/translationPackage/progress";
+import type { Logger } from "@core/platform/logging/Logger";
+import type {
+  ArticleRevisionSource,
+  ArticleSource,
+  InputLoader,
+} from "@core/stages/01-input/InputLoader";
+import type { Parser } from "@core/stages/02-parsing/ParsoidParser";
+import { buildIRFromParsoidHtml, fetchRevisionHtml } from "@core/stages/02-parsing/ParsoidParser";
+import type { LinkResolver } from "@core/stages/03-link-resolution/WikidataLinkResolver";
+import type { Extractor, TranslationWorklist } from "@core/stages/04-extraction/Extractor";
+import type { Chunk, Chunker } from "@core/stages/05-chunking/Chunker";
+import type { TranslatedChunk } from "@core/stages/05-chunking/segmentProtocol";
+import type { Translator } from "@core/stages/06-translation/Translator";
+import type { Merger } from "@core/stages/07-merge/Merger";
+import type { ReferenceAttentionClassifier } from "@core/stages/08-reference-attention/ReferenceAttention";
+import type { WikitextGenerator } from "@core/stages/09-generation/WikitextGenerator";
+import { applySessionChunk } from "@core/translation-sessions/import";
+import { calculateSessionProgress } from "@core/translation-sessions/progress";
 import type {
   ApplySessionChunkResult,
   SessionProgress,
   TranslationSession,
-} from "@core/translationPackage/types";
-import type { Translator } from "@core/translator/Translator";
+} from "@core/translation-sessions/types";
 
 export type { PipelineStageName } from "@core/pipeline/PipelineStage";
 export { PIPELINE_STAGE_ORDER } from "@core/pipeline/PipelineStage";
@@ -107,7 +111,7 @@ export interface PipelineResult {
  * Result of the shared first half of the pipeline: everything up to and
  * including Extraction. `source` is carried along so a session can be
  * saved from this point without needing to go back to InputLoader — see
- * translationPackage/export.ts.
+ * translation-sessions/export.ts.
  */
 export interface ExtractionResult {
   ir: IntermediateRepresentation;
@@ -145,7 +149,7 @@ export class Pipeline {
 
   /**
    * Reconstructs an ExtractionResult from a saved session's `source`
-   * metadata (see translationPackage/types.ts): fetches the exact
+   * metadata (see translation-sessions/types.ts): fetches the exact
    * historical revision by `source.revisionId` — never the article's
    * current/latest revision by title — then runs the SAME
    * Parse→Resolve→Extract sequence `runToExtraction` uses for a live
@@ -188,7 +192,7 @@ export class Pipeline {
    * Chunking. Called ONCE, right after `runToExtraction` or
    * `reconstructFromRevision`, for a NEW session. A resumed session
    * instead reuses its persisted chunk list verbatim (see
-   * translationPackage/types.ts) rather than calling this again — see
+   * translation-sessions/types.ts) rather than calling this again — see
    * the Design Proposal for why persisted grouping beats re-derivation.
    */
   async deriveChunks(worklist: TranslationWorklist): Promise<Chunk[]> {
@@ -196,7 +200,7 @@ export class Pipeline {
     return this.deps.chunker.chunk(worklist);
   }
 
-  /** Translates ONE chunk via the built-in LLM executor — the same render/parse wire format a human pasting into an external AI goes through (see chunker/segmentProtocol.ts). */
+  /** Translates ONE chunk via the built-in LLM executor — the same render/parse wire format a human pasting into an external AI goes through (see stages/05-chunking/segmentProtocol.ts). */
   async translateChunk(chunk: Chunk): Promise<TranslatedChunk> {
     return this.deps.translator.translateChunk(chunk);
   }
@@ -217,7 +221,7 @@ export class Pipeline {
    * Applies a saved session's chunk (tuples that may be partially or
    * fully translated already) onto a freshly reconstructed IR, merging
    * whatever has actually changed. Used when resuming a saved session —
-   * see translationPackage/import.ts for the diff rule.
+   * see translation-sessions/import.ts for the diff rule.
    */
   async applySessionChunk(
     ir: IntermediateRepresentation,

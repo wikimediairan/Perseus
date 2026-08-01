@@ -49,5 +49,7 @@ change assumed a different one.
 
 The Target Wiki a session was actually created under is recorded at the moment link resolution runs,
 not re-read from whatever the current configuration says later. This is what keeps a
-[Translation Package](./translation-package.md)'s recorded target wiki accurate even if the user
-changes the configured default before saving or reopening that session.
+[Translation Session](./translation-session.md)'s recorded target wiki accurate even if the user
+changes the configured default before saving or reopening that session — and, on reopen, link
+resolution is re-run against that recorded target wiki rather than the app's current default (see
+[Pipeline](./pipeline.md#two-ways-to-enter-the-pipeline)).

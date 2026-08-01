@@ -1,4 +1,4 @@
-import type { Logger } from "@core/logging/Logger";
+import type { Logger } from "@core/platform/logging/Logger";
 
 /**
  * A real Logger implementation (not a ConsoleLogger monkey-patch) whose

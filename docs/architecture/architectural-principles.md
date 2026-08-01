@@ -69,18 +69,21 @@ built-in LLM a code path the manual route doesn't also have.
 [Chunking and Translation](./chunking-and-translation.md) describes the single shared protocol that
 makes this substitutability real rather than aspirational.
 
-## 6. A translation session is a self-contained artifact, not a transient process
+## 6. A translation session is a durable artifact, not a transient process
 
 Once an article has been loaded and chunked, the resulting session — the chunks, whatever
-translations exist for them so far, and enough of the original article to reconstruct it — can be
-saved to disk and reopened later without contacting Wikipedia again, even if the live article has
-since changed or been deleted.
+translations exist for them so far, and enough metadata to re-fetch the exact article revision they
+belong to — can be saved to disk and reopened later, even if the live article has since changed.
 
 This exists because translation is not assumed to happen in one sitting. A contributor may translate
 a few chunks, close Perseus, and resume days later using a different translator for the remaining
-chunks. Treating the session as a durable, self-contained artifact — the
-[Translation Package](./translation-package.md) — rather than in-memory state tied to one running
-instance is what makes that pattern reliable instead of best-effort.
+chunks. Treating the session as a durable artifact — the
+[Translation Session](./translation-session.md) — rather than in-memory state tied to one running
+instance is what makes that pattern reliable instead of best-effort. Durability here means the
+session survives being closed and reopened, not that it survives without a network connection:
+reopening a session re-fetches its source revision from Wikipedia rather than replaying a locally
+cached copy of it. See [Translation Session](./translation-session.md#why-reconstruction-now-means-re-fetching-not-re-embedding)
+for why an exact revision reference is the more durable choice of the two.
 
 ## 7. Content that must round-trip exactly is kept opaque, not reconstructed
 
@@ -124,7 +127,7 @@ around wherever a bug happened to surface.
 flowchart LR
     A["Principle 1–2\nEngine independence,\nhuman-reviewed output"] --> B["Principle 3\nOne shared\nIntermediate Representation"]
     B --> C["Principle 4–5\nChunk-based,\ntranslator-agnostic translation"]
-    C --> D["Principle 6\nSession as a durable,\nself-contained artifact"]
+    C --> D["Principle 6\nSession as a durable,\nrevision-anchored artifact"]
     B --> E["Principle 7\nOpaque preservation\nfor non-reconstructible content"]
     B --> F["Principle 8\nTarget Wiki fixed\nbefore translation begins"]
     A --> G["Principle 9\nBoundaries follow\nresponsibility"]

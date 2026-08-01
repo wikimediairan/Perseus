@@ -1,4 +1,4 @@
-import type { Logger } from "@core/logging/Logger";
+import type { Logger } from "@core/platform/logging/Logger";
 
 export interface OllamaProviderConfig {
   kind: "ollama";
@@ -18,9 +18,9 @@ export const SUN_ARTICLE_REQUEST = {
 
 export async function loadPipelineModules() {
   const [{ createPipeline }, { DEFAULT_CONFIG }, { ConsoleLogger }] = await Promise.all([
-    import("@core/createPipeline"),
+    import("@core/pipeline/createPipeline"),
     import("@core/config/Config"),
-    import("@core/logging/Logger"),
+    import("@core/platform/logging/Logger"),
   ]);
   return { createPipeline, DEFAULT_CONFIG, ConsoleLogger };
 }

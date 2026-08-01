@@ -42,7 +42,8 @@
       "openai": "OpenAI",
       "openrouter": "OpenRouter",
       "anthropic": "Anthropic",
-      "gemini": "Google Gemini"
+      "gemini": "Google Gemini",
+      "wikimedia": "Wikimedia Iran"
     }
   },
   "outputCard": {

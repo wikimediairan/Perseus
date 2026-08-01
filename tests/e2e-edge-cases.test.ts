@@ -21,11 +21,11 @@ describe("Edge Cases (E2E)", () => {
       throw new Error(`unexpected fetch: ${url}`);
     });
 
-    const { SizeBoundedChunker } = await import("@core/chunker/Chunker");
-    const { LLMTranslator } = await import("@core/translator/Translator");
-    const { OllamaProvider } = await import("@core/llm/providers/OllamaProvider");
-    const { DefaultPromptManager } = await import("@core/prompt/PromptManager");
-    const { ConsoleLogger } = await import("@core/logging/Logger");
+    const { SizeBoundedChunker } = await import("@core/stages/05-chunking/Chunker");
+    const { LLMTranslator } = await import("@core/stages/06-translation/Translator");
+    const { OllamaProvider } = await import("@core/stages/06-translation/providers/OllamaProvider");
+    const { DefaultPromptManager } = await import("@core/stages/06-translation/PromptManager");
+    const { ConsoleLogger } = await import("@core/platform/logging/Logger");
     const { TARGET_WIKIS } = await import("@core/config/targetWikis");
 
     const chunker = new SizeBoundedChunker();
@@ -54,7 +54,7 @@ describe("Edge Cases (E2E)", () => {
 
   it("Reference Attention heuristics", async () => {
     const { HeuristicReferenceAttentionClassifier } = await import(
-      "@core/referenceAttention/ReferenceAttention"
+      "@core/stages/08-reference-attention/ReferenceAttention"
     );
     const { createEmptyIR } = await import("@core/ir/IntermediateRepresentation");
     const { DOMParser: DP } = await import("linkedom");
@@ -87,9 +87,11 @@ describe("Edge Cases (E2E)", () => {
       throw new Error(`unexpected fetch: ${url}`);
     });
 
-    const { WikidataLinkResolver } = await import("@core/linkResolver/WikidataLinkResolver");
+    const { WikidataLinkResolver } = await import(
+      "@core/stages/03-link-resolution/WikidataLinkResolver"
+    );
     const { createEmptyIR } = await import("@core/ir/IntermediateRepresentation");
-    const { PerseusError } = await import("@core/errors/PerseusError");
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
     const { TARGET_WIKIS } = await import("@core/config/targetWikis");
     const { DOMParser: DP } = await import("linkedom");
     const doc = new DP().parseFromString("<div></div>", "text/html");

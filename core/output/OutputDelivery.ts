@@ -12,10 +12,10 @@
  * treatment as Wikitext already gets. They deliberately contain no
  * session-specific logic beyond JSON (de)serialization and the file
  * dialog — shape validation is delegated to
- * `translationPackage/validate.ts`, so this module still only knows
+ * `translation-sessions/validate.ts`, so this module still only knows
  * about "files and the clipboard," not about what a Translation Session
  * means. Files use the standard `.json` extension (see
- * translationPackage/types.ts for the schema).
+ * translation-sessions/types.ts for the schema).
  *
  * All four actions depend on Tauri plugins rather than web APIs: the
  * Clipboard API and native `<a download>` file saving are unreliable or
@@ -23,9 +23,9 @@
  * proper native save/open dialog and clipboard access.
  */
 
-import { PerseusError } from "@core/errors/PerseusError";
-import type { TranslationSession } from "@core/translationPackage/types";
-import { validateTranslationSession } from "@core/translationPackage/validate";
+import { PerseusError } from "@core/platform/errors/PerseusError";
+import type { TranslationSession } from "@core/translation-sessions/types";
+import { validateTranslationSession } from "@core/translation-sessions/validate";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";

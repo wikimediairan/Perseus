@@ -15,7 +15,7 @@
  * chunk collapses to a one-line summary; clicking it re-expands so a
  * translation can still be corrected.
  */
-import type { Chunk } from "@core/chunker/Chunker";
+import type { Chunk } from "@core/stages/05-chunking/Chunker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 

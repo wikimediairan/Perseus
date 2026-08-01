@@ -9,7 +9,7 @@ const CHUNK_CHAR_BUDGET = 2500;
 async function exportFreshSession() {
   setTranslationSessionFetch();
   const { createPipeline, DEFAULT_CONFIG, ConsoleLogger } = await loadPipelineModules();
-  const { exportTranslationSession } = await import("@core/translationPackage/export");
+  const { exportTranslationSession } = await import("@core/translation-sessions/export");
 
   const pipeline = createPipeline(DEFAULT_CONFIG, new ConsoleLogger());
   const extraction = await pipeline.runToExtraction(SUN_ARTICLE_REQUEST);
@@ -68,7 +68,7 @@ describe("Translation Session (E2E)", () => {
 
   it("a chunk exported for external translation is exactly what the built-in executor would translate", async () => {
     const { chunks } = await exportFreshSession();
-    const { renderChunkForTranslation } = await import("@core/chunker/segmentProtocol");
+    const { renderChunkForTranslation } = await import("@core/stages/05-chunking/segmentProtocol");
 
     const rendered = renderChunkForTranslation(chunks[0]);
     expect(
@@ -100,9 +100,9 @@ describe("Translation Session (E2E)", () => {
 
   it("unknown ids ignored during apply; duplicate ids rejected at the validation boundary", async () => {
     const { session } = await exportFreshSession();
-    const { PerseusError } = await import("@core/errors/PerseusError");
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
     const { createPipeline, DEFAULT_CONFIG, ConsoleLogger } = await loadPipelineModules();
-    const { validateTranslationSession } = await import("@core/translationPackage/validate");
+    const { validateTranslationSession } = await import("@core/translation-sessions/validate");
 
     setTranslationSessionFetch();
 
@@ -148,8 +148,8 @@ describe("Translation Session (E2E)", () => {
   });
 
   it("validation rejects malformed/incomplete sessions with a clear error", async () => {
-    const { validateTranslationSession } = await import("@core/translationPackage/validate");
-    const { PerseusError } = await import("@core/errors/PerseusError");
+    const { validateTranslationSession } = await import("@core/translation-sessions/validate");
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
 
     for (const [label, data] of INVALID_TRANSLATION_SESSIONS) {
       let ok = false;

@@ -11,7 +11,7 @@
  * Only ever calls into useChunkWorkspace (core engine underneath) — no
  * chunk rendering/parsing/merge logic lives here, only presentation.
  */
-import type { Chunk } from "@core/chunker/Chunker";
+import type { Chunk } from "@core/stages/05-chunking/Chunker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 

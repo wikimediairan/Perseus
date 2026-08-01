@@ -70,9 +70,9 @@ Wikitext-serialization service, so the pipeline never performs it as a side effe
 ## Two ways to enter the pipeline
 
 An article does not always enter the pipeline through Load. A saved
-[Translation Package](./translation-package.md) can instead reconstruct its Intermediate
-Representation directly from its own stored snapshot, skipping Load, Parse's network dependency, and
-Link Resolution's, while still producing the same IR shape every later stage expects.
+[Translation Session](./translation-session.md) can instead re-enter starting from Parse, by
+re-fetching its exact source revision from Wikipedia directly (via `source.revisionId`) instead of
+resolving a URL by title.
 
 ```mermaid
 flowchart TB
@@ -80,15 +80,20 @@ flowchart TB
         A3[Load] --> B3[Parse] --> C3[Analyze Links] --> D3[Extract]
     end
     subgraph Resumed["Resumed session"]
-        S3[Reconstruct from snapshot] --> D3
+        S3["Fetch source.revisionId's HTML"] --> B4[Parse] --> C4[Analyze Links] --> D3
     end
     D3 --> E3[Chunk] --> Chunks[Persisted chunk list]
 ```
 
 Both paths converge on the same chunk list, which is why nothing downstream of Chunk needs to know
-which entry point was used. This convergence is what makes a session in the
-[Translation Package](./translation-package.md) genuinely resumable rather than a re-run of the
-original load.
+which entry point was used. Note what resuming a session skips and what it doesn't: it skips Load's
+title-based article lookup (a session already knows its exact revision), but it still runs Parse
+against freshly fetched HTML and still re-runs Analyze Wikidata Links from scratch. An earlier design
+cached a post-resolution snapshot and skipped both of those steps on resume; that snapshot is no
+longer part of a Translation Session (see [Translation Session](./translation-session.md#why-reconstruction-now-means-re-fetching-not-re-embedding)),
+so resuming now costs the same network calls a fresh load does, just anchored to a specific revision
+instead of "whatever the article currently is." Chunking is still not repeated — a resumed session
+reuses its persisted chunk list verbatim rather than calling Chunk again.
 
 ## Non-fatal stages
 

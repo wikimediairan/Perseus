@@ -16,7 +16,7 @@
  * consumes the registry during Merge/Generation.
  */
 
-import type { Logger } from "@core/logging/Logger";
+import type { Logger } from "@core/platform/logging/Logger";
 
 /** Stable id for a citation definition or reference, same scheme as LinkNode/TextNode ids (e.g. "cite-1"). */
 export type CitationId = string;

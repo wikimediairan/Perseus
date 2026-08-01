@@ -52,7 +52,7 @@ classDiagram
 
 Ids across all three node kinds share one scheme, assigned deterministically by traversal order
 during parsing. The same input produces the same ids every time — a property the
-[Translation Package](./translation-package.md) depends on directly.
+[Translation Session](./translation-session.md) depends on directly.
 
 ## Lifecycle
 
@@ -77,6 +77,7 @@ result back.
 
 The IR itself is never persisted — it exists only for the duration of a single pipeline run and is
 discarded once Generation has produced Wikitext, or once a session is closed. This is why a
-[Translation Package](./translation-package.md) cannot simply serialize the IR to resume a session
-later: it instead stores a reconstruction anchor and relies on deterministic id assignment to
-rebuild an equivalent IR when the session is reopened.
+[Translation Session](./translation-session.md) cannot simply serialize the IR to resume a session
+later: it instead stores a reference to the exact Wikipedia revision the IR was built from
+(`wiki`, `pageId`, `title`, `revisionId`) and relies on deterministic id assignment to rebuild an
+equivalent IR — by re-fetching and re-parsing that revision — when the session is reopened.

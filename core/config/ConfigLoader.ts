@@ -1,18 +1,6 @@
-/**
- * ConfigLoader
- *
- * Real implementation. Persists PerseusConfig as JSON in the OS-standard
- * app config directory, via the Tauri filesystem plugin. This resolves
- * the persistence question the Software Specification left open
- * (Section 14, Assumption) in favor of local file storage rather than OS
- * keychain integration — simplest option that satisfies "local-first
- * operation" (NFR-5); see README for the security note this implies for
- * provider API keys.
- */
-
 import type { PerseusConfig } from "@core/config/Config";
 import { DEFAULT_CONFIG } from "@core/config/Config";
-import { PerseusError } from "@core/errors/PerseusError";
+import { PerseusError } from "@core/platform/errors/PerseusError";
 import { appConfigDir, join } from "@tauri-apps/api/path";
 import { exists, mkdir, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 
@@ -43,9 +31,6 @@ export class FileConfigLoader implements ConfigLoader {
         ...(JSON.parse(raw) as Partial<PerseusConfig>),
       };
     } catch {
-      // A corrupt or unreadable config file should not block the app from
-      // starting — fall back to defaults rather than throwing (Spec NFR-4
-      // concerns data loss on the article, not on config recovery).
       return DEFAULT_CONFIG;
     }
   }

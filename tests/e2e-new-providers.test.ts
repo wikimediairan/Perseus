@@ -11,7 +11,9 @@ describe("New LLM Providers (E2E)", () => {
       return Promise.resolve(jsonResponse({ content: [{ type: "text", text: "ترجمه شده" }] }));
     }) as typeof fetch);
 
-    const { AnthropicProvider } = await import("@core/llm/providers/AnthropicProvider");
+    const { AnthropicProvider } = await import(
+      "@core/stages/06-translation/providers/AnthropicProvider"
+    );
     const provider = new AnthropicProvider({ apiKey: "sk-ant-test", model: "claude-sonnet-4-5" });
     const result = await provider.translate({
       systemPrompt: "Translate to Persian.",
@@ -54,7 +56,7 @@ describe("New LLM Providers (E2E)", () => {
       );
     }) as typeof fetch);
 
-    const { GeminiProvider } = await import("@core/llm/providers/GeminiProvider");
+    const { GeminiProvider } = await import("@core/stages/06-translation/providers/GeminiProvider");
     const provider = new GeminiProvider({ apiKey: "goog-test-key", model: "gemini-2.5-flash" });
     const result = await provider.translate({
       systemPrompt: "Translate to Persian.",
@@ -89,9 +91,11 @@ describe("New LLM Providers (E2E)", () => {
   });
 
   it("both providers refuse to call out with no API key or no model configured", async () => {
-    const { AnthropicProvider } = await import("@core/llm/providers/AnthropicProvider");
-    const { GeminiProvider } = await import("@core/llm/providers/GeminiProvider");
-    const { PerseusError } = await import("@core/errors/PerseusError");
+    const { AnthropicProvider } = await import(
+      "@core/stages/06-translation/providers/AnthropicProvider"
+    );
+    const { GeminiProvider } = await import("@core/stages/06-translation/providers/GeminiProvider");
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
 
     setGlobalFetch(() => {
       throw new Error("must not be called when credentials are missing");
@@ -133,9 +137,11 @@ describe("New LLM Providers (E2E)", () => {
   });
 
   it("ProviderFactory routes 'anthropic' and 'gemini' to the right classes", async () => {
-    const { createProvider } = await import("@core/llm/ProviderFactory");
-    const { AnthropicProvider } = await import("@core/llm/providers/AnthropicProvider");
-    const { GeminiProvider } = await import("@core/llm/providers/GeminiProvider");
+    const { createProvider } = await import("@core/stages/06-translation/ProviderFactory");
+    const { AnthropicProvider } = await import(
+      "@core/stages/06-translation/providers/AnthropicProvider"
+    );
+    const { GeminiProvider } = await import("@core/stages/06-translation/providers/GeminiProvider");
 
     const anthropic = createProvider({
       kind: "anthropic",
@@ -155,9 +161,11 @@ describe("New LLM Providers (E2E)", () => {
   });
 
   it("a non-2xx response from either API surfaces as a ProviderError with the vendor's message", async () => {
-    const { AnthropicProvider } = await import("@core/llm/providers/AnthropicProvider");
-    const { GeminiProvider } = await import("@core/llm/providers/GeminiProvider");
-    const { PerseusError } = await import("@core/errors/PerseusError");
+    const { AnthropicProvider } = await import(
+      "@core/stages/06-translation/providers/AnthropicProvider"
+    );
+    const { GeminiProvider } = await import("@core/stages/06-translation/providers/GeminiProvider");
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
     const req = { systemPrompt: "x", sourceText: "y", targetLanguage: "fa" as const };
 
     setGlobalFetch(() =>

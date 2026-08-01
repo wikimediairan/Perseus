@@ -61,15 +61,15 @@ translation domain:
 | Pipeline                    | Orchestrates the stages an article passes through, from loading to Wikitext generation                                                           | [pipeline.md](./pipeline.md)                                       |
 | Intermediate Representation | The structural, framework-independent model of an article that every stage reads or writes                                                       | [intermediate-representation.md](./intermediate-representation.md) |
 | Chunking & Translation      | Splits an article into independently translatable units and defines a single translation protocol shared by every translator, human or automated | [chunking-and-translation.md](./chunking-and-translation.md)       |
-| Translation Package         | The self-contained, on-disk representation of a translation session                                                                              | [translation-package.md](./translation-package.md)                 |
+| Translation Session          | The on-disk, JSON representation of a translation in progress, and its save/resume checkpoint                                                    | [translation-session.md](./translation-session.md)                 |
 | Citation Handling           | Preserves citation structure by keeping it opaque to every stage that would otherwise mutate it                                                  | [citation-handling.md](./citation-handling.md)                     |
 | Target Wiki                 | The configuration boundary that determines which wiki an article is translated for, and everything downstream that depends on it                 | [target-wiki.md](./target-wiki.md)                                 |
-| LLM Providers               | The abstraction that lets translation be carried out by any of several interchangeable model providers                                           | [llm-providers.md](./llm-providers.md)                             |
+| LLM Providers               | The text-provider abstraction the built-in executor uses, and the separate, first-class Wikimedia provider contract                              | [llm-providers.md](./llm-providers.md)                             |
 
 ## How to read this documentation
 
 Start with [Architectural Principles](./architectural-principles.md), it establishes the mental
-model (why `chunks`, why an `Intermediate Representation`, why a `Translation Package`, why
+model (why `chunks`, why an `Intermediate Representation`, why a `Translation Session`, why
 citations are handled the way they are) that the rest of the documents assume. From there, the
 documents are ordered to follow an article's own path through the system: pipeline, then the
 representation it operates on, then chunking and translation, then how a session is persisted, then

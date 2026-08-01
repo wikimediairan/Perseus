@@ -21,7 +21,7 @@ from that point on — they are not recomputed later, even if the chunking algor
 subsequently changes. A session's chunk boundaries are part of that session's identity, not a value
 re-derived on demand. This is what lets a session be saved and reopened, possibly by a different
 build of Perseus, with identical chunk ids and grouping every time — see
-[Translation Package](./translation-package.md).
+[Translation Session](./translation-session.md).
 
 ## The shared render/parse protocol
 
@@ -55,6 +55,19 @@ Neither function has any awareness of which executor is calling it. That is the 
 behind chunk translations being interchangeable regardless of source: a chunk translated by the
 built-in LLM and a chunk translated by a human pasting from an external tool are indistinguishable
 by the time they reach Merge.
+
+## This protocol is scoped to one chunk at a time, live in the app
+
+`renderChunkForTranslation`/`parseChunkTranslation` are what the chunk workspace itself uses — one
+chunk copied out, one chunk's response pasted back in, or one chunk sent to the built-in LLM and its
+response parsed automatically. They are not the format a whole exported
+[Translation Session](./translation-session.md#two-different-translation-protocols-not-one) file
+uses: a saved session hands a human or an external AI the session's entire `chunks` array as JSON,
+with an accompanying instruction to edit each entry's `text` field in place. That's a deliberately
+simpler, session-scoped protocol — plain JSON tuples, no `[[SEGMENT n]]` markers — because the unit
+being exchanged there is a whole file, not one chunk's worth of text pasted into a chat window. Both
+protocols still terminate at the same place: whatever changed gets merged into the IR through the
+same `Merger`.
 
 ## Executors
 

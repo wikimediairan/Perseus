@@ -1,22 +1,3 @@
-/**
- * core/index.ts
- *
- * Public entry point for the Perseus core engine. The React/Tauri
- * frontend should import from here rather than reaching into individual
- * module files directly, so the boundary between "core engine" and "UI
- * shell" stays explicit and enforceable.
- *
- * `createPipeline()` is the composition root: given a PerseusConfig, it
- * assembles a fully wired, real (non-stub) Pipeline.
- */
-
-export type { Chunk, Chunker } from "@core/chunker/Chunker";
-export { DEFAULT_MAX_CHUNK_CHARS, SizeBoundedChunker } from "@core/chunker/Chunker";
-export type { TranslatedChunk, TranslatedUnit } from "@core/chunker/segmentProtocol";
-export {
-  parseChunkTranslation,
-  renderChunkForTranslation,
-} from "@core/chunker/segmentProtocol";
 export type { LLMProviderConfig, PerseusConfig, PromptConfig } from "@core/config/Config";
 export { DEFAULT_CONFIG } from "@core/config/Config";
 export type { ConfigLoader } from "@core/config/ConfigLoader";
@@ -28,32 +9,11 @@ export {
   isTargetWikiCode,
   TARGET_WIKIS,
 } from "@core/config/targetWikis";
-export { createPipeline } from "@core/createPipeline";
-export type { PerseusErrorCategory, PerseusErrorOptions } from "@core/errors/PerseusError";
-export { notImplemented, PerseusError } from "@core/errors/PerseusError";
-export type { Extractor, TranslationUnit, TranslationWorklist } from "@core/extractor/Extractor";
-export type { WikitextGenerator } from "@core/generator/WikitextGenerator";
-export type {
-  ArticleRevisionSource,
-  ArticleSource,
-  InputLoader,
-  LoadedArticle,
-} from "@core/input/InputLoader";
-export { WikipediaInputLoader } from "@core/input/InputLoader";
 export type { IntermediateRepresentation, TextNode } from "@core/ir/IntermediateRepresentation";
 export type { LinkNode } from "@core/ir/LinkNode";
-export type {
-  LLMProvider,
-  LLMProviderKind,
-  TranslationRequest,
-  TranslationResult,
-} from "@core/llm/LLMProvider";
-export { createProvider } from "@core/llm/ProviderFactory";
-export type { LogEntry, Logger, LogLevel } from "@core/logging/Logger";
-export { ConsoleLogger } from "@core/logging/Logger";
-export type { Merger } from "@core/merge/Merger";
 export type { OutputDelivery } from "@core/output/OutputDelivery";
 export { TauriOutputDelivery } from "@core/output/OutputDelivery";
+export { createPipeline } from "@core/pipeline/createPipeline";
 export type {
   ExtractionResult,
   PipelineDependencies,
@@ -61,13 +21,45 @@ export type {
   PipelineStageName,
 } from "@core/pipeline/Pipeline";
 export { PIPELINE_STAGE_ORDER, Pipeline } from "@core/pipeline/Pipeline";
-export type { PromptManager } from "@core/prompt/PromptManager";
-export { DefaultPromptManager } from "@core/prompt/PromptManager";
+export type { PerseusErrorCategory, PerseusErrorOptions } from "@core/platform/errors/PerseusError";
+export { notImplemented, PerseusError } from "@core/platform/errors/PerseusError";
+export type { LogEntry, Logger, LogLevel } from "@core/platform/logging/Logger";
+export { ConsoleLogger } from "@core/platform/logging/Logger";
+export type {
+  ArticleRevisionSource,
+  ArticleSource,
+  InputLoader,
+  LoadedArticle,
+} from "@core/stages/01-input/InputLoader";
+export { WikipediaInputLoader } from "@core/stages/01-input/InputLoader";
+export type {
+  Extractor,
+  TranslationUnit,
+  TranslationWorklist,
+} from "@core/stages/04-extraction/Extractor";
+export type { Chunk, Chunker } from "@core/stages/05-chunking/Chunker";
+export { DEFAULT_MAX_CHUNK_CHARS, SizeBoundedChunker } from "@core/stages/05-chunking/Chunker";
+export type { TranslatedChunk, TranslatedUnit } from "@core/stages/05-chunking/segmentProtocol";
+export {
+  parseChunkTranslation,
+  renderChunkForTranslation,
+} from "@core/stages/05-chunking/segmentProtocol";
+export type {
+  LLMProvider,
+  TranslationRequest,
+  TranslationResponse as TranslationResult,
+} from "@core/stages/06-translation/LLMProvider";
+export type { PromptManager } from "@core/stages/06-translation/PromptManager";
+export { DefaultPromptManager } from "@core/stages/06-translation/PromptManager";
+export { createProvider } from "@core/stages/06-translation/ProviderFactory";
+export type { Translator } from "@core/stages/06-translation/Translator";
+export type { Merger } from "@core/stages/07-merge/Merger";
 export type {
   ReferenceAttentionAnnotation,
   ReferenceAttentionClassification,
   ReferenceAttentionClassifier,
-} from "@core/referenceAttention/ReferenceAttention";
+} from "@core/stages/08-reference-attention/ReferenceAttention";
+export type { WikitextGenerator } from "@core/stages/09-generation/WikitextGenerator";
 export type {
   ApplySessionChunkResult,
   SessionChunk,
@@ -76,13 +68,11 @@ export type {
   TranslationSession,
   TranslationSessionMeta,
   TranslationSessionSource,
-} from "@core/translationPackage";
-
+} from "@core/translation-sessions";
 export {
   applySessionChunk,
   calculateSessionProgress,
   EXTERNAL_TRANSLATION_INSTRUCTIONS,
   exportTranslationSession,
   validateTranslationSession,
-} from "@core/translationPackage";
-export type { Translator } from "@core/translator/Translator";
+} from "@core/translation-sessions";

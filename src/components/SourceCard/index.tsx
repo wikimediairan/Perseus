@@ -1,7 +1,7 @@
 import type { PerseusConfig } from "@core/config/Config";
 import type { TargetWikiCode } from "@core/config/targetWikis";
 import { TARGET_WIKIS } from "@core/config/targetWikis";
-import type { ArticleSource } from "@core/input/InputLoader";
+import type { ArticleSource } from "@core/stages/01-input/InputLoader";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
