@@ -1,16 +1,3 @@
-/**
- * ChunkWorkspace
- *
- * The single workspace where a loaded article's chunks live — the
- * centerpiece of the Unified Chunk Architecture. Replaces the old
- * Translation Package's "export JSON / import JSON" card: chunking is
- * now visible, and translation happens IN Perseus, chunk by chunk, via
- * either the built-in LLM or copy/paste with any external AI — never
- * both a hidden internal representation and a separate export format.
- *
- * Only ever calls into useChunkWorkspace (core engine underneath) — no
- * chunk rendering/parsing/merge logic lives here, only presentation.
- */
 import type { Chunk } from "@core/stages/05-chunking/Chunker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -4,17 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import type { RunStatus } from "@/hooks/useChunkWorkspace";
 
-/**
- * StageRail
- *
- * The run's signature visual: the eight real pipeline stages
- * (PIPELINE_STAGE_ORDER, from the core engine — not a hand-maintained
- * duplicate list) laid out as a horizontal rail. Nothing here decides
- * what the stages are or what order they run in; it only reflects
- * `currentStage` back visually, so watching a translation run means
- * watching the actual architecture execute, not a generic spinner.
- */
-
 import { cn } from "@/lib/utils";
 
 const getStageLabels = (t: TFunction): Record<PipelineStageName, string> => ({

@@ -22,7 +22,7 @@
     "tagline2": "Вақти бештар барои ҷустуҷӯи ҳақиқат"
   },
   "sourceCard": {
-    "articleUrlLabel": "Википедияи манбаъ",
+    "articleUrlLabel": "Википедияи манбаъ(англисӣ)",
     "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
@@ -35,7 +35,7 @@
     "modelLabel": "Модел",
     "baseUrlLabel": "Суроғаи асосӣ",
     "apiKeyLabel": "Калиди API",
-    "additionalPromptsLabel": "Дастур (ихтиёрӣ)",
+    "additionalPromptsLabel": "Дастур(ихтиёрӣ)",
     "additionalPromptsPlaceholder": "Дастуре, ки ворид мекунед, ба дастури пешфарзи барнома илова карда мешавад.",
     "providers": {
       "ollama": "Ollama(Local)",
@@ -49,8 +49,8 @@
       "title": "Квотаи ҳафтагӣ",
       "refresh": "Навсозӣ",
       "refreshing": "Дар ҳоли навсозӣ…",
-      "used": "{{used}} истифода шуд",
-      "remaining": "{{remaining}} боқӣ монд",
+      "used": "{{used}}",
+      "remaining": "{{remaining}}",
       "resetsAt": "Барқарорсозӣ дар {{date}}",
       "loading": "Боргирии квота…",
       "error": "Боргирии квота имконнопазир буд."

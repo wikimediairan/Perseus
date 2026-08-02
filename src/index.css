@@ -32,10 +32,6 @@
     --input: 40 12% 85%;
     --ring: 165 42% 28%;
     --radius: 0.5rem;
-    --font-display: "Source Serif 4", georgia, "Times New Roman", serif;
-    --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", roboto, sans-serif;
-    --font-mono: "IBM Plex Mono", ui-monospace, sfmono-regular, menlo, consolas, monospace;
-    --font-persian: "vazirmatn", sans-serif;
   }
 
   * {
@@ -46,8 +42,6 @@
     @apply bg-background text-foreground antialiased;
 
     font-family: "Vazirmatn", sans-serif;
-
-    /* font-family: var(--font-sans); */
   }
 }
 

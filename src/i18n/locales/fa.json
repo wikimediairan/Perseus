@@ -22,7 +22,7 @@
     "tagline2": "زمان بیشتر برای حقیقت‌جویی"
   },
   "sourceCard": {
-    "articleUrlLabel": "آدرس ویکی مبدا",
+    "articleUrlLabel": "ویکی مبدا(انگلیسی)",
     "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
@@ -35,7 +35,7 @@
     "modelLabel": "مدل",
     "baseUrlLabel": "نشانی پایه",
     "apiKeyLabel": "کلید API",
-    "additionalPromptsLabel": "دستور (اختیاری)",
+    "additionalPromptsLabel": "دستور(اختیاری)",
     "additionalPromptsPlaceholder": "دستوری که وارد می‌کنید به دستور پیش‌فرض برنامه افزوده می‌شود.",
     "providers": {
       "ollama": "Ollama(Local)",
@@ -49,8 +49,8 @@
       "title": "سهمیه‌ی هفتگی",
       "refresh": "به‌روزرسانی",
       "refreshing": "در حال به‌روزرسانی…",
-      "used": "{{used}} استفاده شده",
-      "remaining": "{{remaining}} باقی‌مانده",
+      "used": "{{used}}",
+      "remaining": "{{remaining}}",
       "resetsAt": "بازنشانی در {{date}}",
       "loading": "در حال بارگیری سهمیه…",
       "error": "بارگیری سهمیه ممکن نشد."

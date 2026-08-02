@@ -22,7 +22,7 @@
     "tagline2": "More time seeking truth"
   },
   "sourceCard": {
-    "articleUrlLabel": "Source Wikipedia",
+    "articleUrlLabel": "Source Wikipedia(English)",
     "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
   },
   "providerCard": {
@@ -35,7 +35,7 @@
     "modelLabel": "Model",
     "baseUrlLabel": "Base URL",
     "apiKeyLabel": "API key",
-    "additionalPromptsLabel": "Prompt (optional)",
+    "additionalPromptsLabel": "Prompt(optional)",
     "additionalPromptsPlaceholder": "The prompt you enter will be appended to the application's default prompt.",
     "providers": {
       "ollama": "Ollama(Local)",
@@ -49,8 +49,8 @@
       "title": "Weekly quota",
       "refresh": "Refresh",
       "refreshing": "Refreshing…",
-      "used": "{{used}} used",
-      "remaining": "{{remaining}} left",
+      "used": "{{used}}",
+      "remaining": "{{remaining}}",
       "resetsAt": "Resets {{date}}",
       "loading": "Loading quota…",
       "error": "Could not load quota."

@@ -15,7 +15,7 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <Toaster dir="ltr" position="top-center" />
+    <Toaster dir="ltr" position="top-center" style={{ fontFamily: "Vazirmatn, sans-serif" }} />
     <App />
   </React.StrictMode>,
 );

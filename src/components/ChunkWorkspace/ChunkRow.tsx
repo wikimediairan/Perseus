@@ -1,20 +1,3 @@
-/**
- * ChunkRow
- *
- * One row of the chunk workspace — the UI-facing half of the Unified
- * Chunk Architecture. Whether a chunk gets translated by the built-in
- * LLM (the "Translate" button here) or by a human pasting into an
- * external AI (Copy this row, paste the reply back into the textarea),
- * both paths converge on the exact same `pasteChunkTranslation`/
- * `translateChunkBuiltIn` calls in useChunkWorkspace, which in turn both
- * go through the same render/parse pair in core/chunker/segmentProtocol.
- *
- * "Translated" is a purely computed, display-only status (every unit's
- * nodeId present in `translatedByNodeId`) — never a persisted field, per
- * the Design Proposal's scope note on chunk status tracking. A done
- * chunk collapses to a one-line summary; clicking it re-expands so a
- * translation can still be corrected.
- */
 import type { Chunk } from "@core/stages/05-chunking/Chunker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,11 +30,20 @@ export function ChunkRow({
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(!isDone);
   const [draft, setDraft] = useState("");
+  const [chunkCopied, setChunkCopied] = useState(false);
 
   function applyDraft() {
     if (draft.trim().length > 0) {
       onPasteTranslation(draft);
     }
+  }
+
+  async function handleCopyChunk() {
+    onCopy();
+    setChunkCopied(true);
+    setTimeout(() => {
+      setChunkCopied(false);
+    }, 1500);
   }
 
   if (isDone && !expanded) {
@@ -112,8 +104,14 @@ export function ChunkRow({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <Button disabled={disabled} onClick={onCopy} size="sm" type="button" variant="outline">
-          {t("chunkWorkspace.copyChunk")}
+        <Button
+          disabled={disabled}
+          onClick={handleCopyChunk}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          {chunkCopied ? t("common.copied") : t("chunkWorkspace.copyChunk")}
         </Button>
         <Button
           disabled={disabled || busy}
