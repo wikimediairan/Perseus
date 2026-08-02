@@ -1,13 +1,3 @@
-/**
- * WikimediaQuotaIndicator
- *
- * Small, self-contained usage indicator for the Wikimedia provider's
- * weekly cost budget (`GET /v1/quota`). Deliberately not part of
- * ProviderCard's generic field set (ModelField/ApiKeyField/etc.): those
- * mirror a provider's config shape, whereas this reflects the account's
- * current usage — a different concern that only Wikimedia has, and that
- * has nothing to do with the pipeline (see core/wikimedia-provider/quota.ts).
- */
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -49,7 +39,10 @@ export function WikimediaQuotaIndicator({ apiKey }: { apiKey: string | undefined
         <>
           <Progress value={(quota.usedCost / quota.weeklyLimitCost) * 100} />
 
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <div
+            className="flex items-center justify-between text-xs text-muted-foreground"
+            dir="ltr"
+          >
             <span>
               {t("providerCard.quota.used", {
                 used: formatCost(quota.usedCost),

@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { TextContextMenu } from "../ContextMenu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export function SourceCard({
@@ -43,19 +42,17 @@ export function SourceCard({
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="article-url">{t("sourceCard.articleUrlLabel")}</Label>
 
-          <TextContextMenu>
-            <Input
-              autoComplete="off"
-              dir="ltr"
-              disabled={disabled}
-              id="article-url"
-              onChange={(e) => {
-                setUrl(e.target.value);
-              }}
-              placeholder={t("sourceCard.articleUrlPlaceholder")}
-              value={url}
-            />
-          </TextContextMenu>
+          <Input
+            autoComplete="off"
+            dir="ltr"
+            disabled={disabled}
+            id="article-url"
+            onChange={(e) => {
+              setUrl(e.target.value);
+            }}
+            placeholder={t("sourceCard.articleUrlPlaceholder")}
+            value={url}
+          />
         </div>
 
         <div className="flex flex-col gap-1.5">

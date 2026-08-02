@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { useEffect } from "react";
 
 interface AppLayoutProps {
   header: ReactNode;
@@ -8,18 +7,6 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ header, sidebar, children }: AppLayoutProps) {
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      e.preventDefault();
-    };
-
-    document.addEventListener("contextmenu", handler);
-
-    return () => {
-      document.removeEventListener("contextmenu", handler);
-    };
-  }, []);
-
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background select-none">
       <div className="shrink-0 border-b border-border bg-background">
