@@ -44,6 +44,16 @@
       "anthropic": "Anthropic",
       "gemini": "Google Gemini",
       "wikimedia": "Wikimedia Iran"
+    },
+    "quota": {
+      "title": "Квотаи ҳафтагӣ",
+      "refresh": "Навсозӣ",
+      "refreshing": "Дар ҳоли навсозӣ…",
+      "used": "{{used}} истифода шуд",
+      "remaining": "{{remaining}} боқӣ монд",
+      "resetsAt": "Барқарорсозӣ дар {{date}}",
+      "loading": "Боргирии квота…",
+      "error": "Боргирии квота имконнопазир буд."
     }
   },
   "outputCard": {

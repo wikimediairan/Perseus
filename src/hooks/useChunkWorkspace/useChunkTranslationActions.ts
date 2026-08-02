@@ -22,6 +22,7 @@ interface Params {
   targetWiki: TargetWikiCode | null;
   getIr(): IR | null;
   setIr(ir: IR): void;
+  getExtraction(): ExtractionResult | null;
 }
 
 /** Copy/paste with an external AI and built-in-LLM translation, per chunk or for the whole article, plus the progress they add up to. */
@@ -34,6 +35,7 @@ export function useChunkTranslationActions({
   targetWiki,
   getIr,
   setIr,
+  getExtraction,
 }: Params) {
   const { t } = useTranslation();
   const [chunkState, setChunkState] = useState(EMPTY_CHUNK_STATE);
@@ -92,7 +94,7 @@ export function useChunkTranslationActions({
         return;
       }
 
-      const pipeline = createPipeline(configRef.current, makeLogger());
+      const pipeline = createPipeline(configRef.current, makeLogger(), getExtraction()?.source);
       setIr(await pipeline.mergeChunk(ir, { id: chunk.id, units }));
 
       setChunkState((prev) => {
@@ -112,7 +114,7 @@ export function useChunkTranslationActions({
         return { ...prev, translatedByNodeId, missingByChunkId };
       });
     },
-    [configRef, getIr, makeLogger, setIr, t],
+    [configRef, getExtraction, getIr, makeLogger, setIr, t],
   );
 
   const translateChunkBuiltIn = useCallback(
@@ -128,7 +130,7 @@ export function useChunkTranslationActions({
       }));
 
       try {
-        const pipeline = createPipeline(configRef.current, makeLogger());
+        const pipeline = createPipeline(configRef.current, makeLogger(), getExtraction()?.source);
         const translated = await pipeline.translateChunk(chunk);
         setIr(await pipeline.mergeChunk(ir, translated));
 
@@ -150,7 +152,7 @@ export function useChunkTranslationActions({
         });
       }
     },
-    [configRef, getIr, makeLogger, setIr, toUserMessage],
+    [configRef, getExtraction, getIr, makeLogger, setIr, toUserMessage],
   );
 
   const translateAllBuiltIn = useCallback(async () => {

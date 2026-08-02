@@ -56,6 +56,7 @@ export function useChunkWorkspace(config: PerseusConfig) {
     targetWiki: session.targetWiki,
     getIr: session.getIr,
     setIr: session.setIr,
+    getExtraction: session.getExtraction,
   });
 
   const output = useWikitextOutput({

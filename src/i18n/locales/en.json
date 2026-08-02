@@ -44,6 +44,16 @@
       "anthropic": "Anthropic",
       "gemini": "Google Gemini",
       "wikimedia": "Wikimedia Iran"
+    },
+    "quota": {
+      "title": "Weekly quota",
+      "refresh": "Refresh",
+      "refreshing": "Refreshing…",
+      "used": "{{used}} used",
+      "remaining": "{{remaining}} left",
+      "resetsAt": "Resets {{date}}",
+      "loading": "Loading quota…",
+      "error": "Could not load quota."
     }
   },
   "outputCard": {

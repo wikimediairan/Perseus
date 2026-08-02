@@ -53,7 +53,7 @@ export function createProvider(
     }
 
     case "wikimedia": {
-      return new WikimediaProvider();
+      return new WikimediaProvider(config.apiKey);
     }
 
     default: {

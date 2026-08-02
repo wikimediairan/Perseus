@@ -13,6 +13,7 @@ import {
   PROVIDERS_WITH_USER_PROMPT,
 } from "./providerCapabilities";
 import { UserPromptField } from "./UserPromptField";
+import { WikimediaQuotaIndicator } from "./WikimediaQuotaIndicator";
 
 export function ProviderCard({
   config,
@@ -46,6 +47,8 @@ export function ProviderCard({
         {PROVIDERS_WITH_API_KEY.has(provider.kind) && (
           <ApiKeyField onChange={updateProvider} provider={provider} />
         )}
+
+        {provider.kind === "wikimedia" && <WikimediaQuotaIndicator apiKey={provider.apiKey} />}
 
         {PROVIDERS_WITH_USER_PROMPT.has(provider.kind) && (
           <UserPromptField

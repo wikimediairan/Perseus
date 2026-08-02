@@ -11,12 +11,6 @@ export const getProviderLabels = (t: TFunction): Record<LLMProviderConfig["kind"
   wikimedia: t("providerCard.providers.wikimedia"),
 });
 
-/**
- * Capability sets driving which fields ProviderCard shows for the active
- * provider. Wikimedia gets its own model picker (see ModelField) rather
- * than joining PROVIDERS_WITH_USER_PROMPT — its translation contract has
- * no free-text system prompt to append to.
- */
 export const PROVIDERS_WITH_BASE_URL = new Set<LLMProviderConfig["kind"]>(["ollama"]);
 
 export const PROVIDERS_WITH_API_KEY = new Set<LLMProviderConfig["kind"]>([
@@ -36,7 +30,10 @@ export const PROVIDERS_WITH_USER_PROMPT = new Set<LLMProviderConfig["kind"]>([
 ]);
 
 export const WIKIMEDIA_MODEL_LABELS: Record<WikimediaModel, string> = {
-  "google/gemini-3.5-flash": "Gemini 3.5 Flash",
+  "deepseek/deepseek-v4-pro": "DeepSeek V4 Pro",
+  "openai/gpt-5-mini": "GPT 5 Mini",
+  "openai/gpt-5.4-mini": "GPT 5.4 Mini",
+  "z-ai/glm-5.2": "GLM 5.2",
   "google/gemini-2.5-flash": "Gemini 2.5 Flash",
   "google/gemini-3.5-flash-light": "Gemini 3.5 Flash Light",
 };
@@ -50,7 +47,6 @@ export const MODEL_PLACEHOLDER: Record<LLMProviderConfig["kind"], string> = {
   wikimedia: WIKIMEDIA_MODELS[1],
 };
 
-/** Builds a fresh, valid config for `kind` — every field required by that provider's config type is present, so switching providers can never leave an invalid/partial config behind. */
 export function createProviderConfig(kind: LLMProviderConfig["kind"]): LLMProviderConfig {
   switch (kind) {
     case "ollama": {

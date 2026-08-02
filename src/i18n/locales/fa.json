@@ -44,6 +44,16 @@
       "anthropic": "Anthropic",
       "gemini": "Google Gemini",
       "wikimedia": "Wikimedia Iran"
+    },
+    "quota": {
+      "title": "سهمیه‌ی هفتگی",
+      "refresh": "به‌روزرسانی",
+      "refreshing": "در حال به‌روزرسانی…",
+      "used": "{{used}} استفاده شده",
+      "remaining": "{{remaining}} باقی‌مانده",
+      "resetsAt": "بازنشانی در {{date}}",
+      "loading": "در حال بارگیری سهمیه…",
+      "error": "بارگیری سهمیه ممکن نشد."
     }
   },
   "outputCard": {
