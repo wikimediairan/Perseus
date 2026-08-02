@@ -36,6 +36,45 @@ export function renderChunkForTranslation(chunk: Chunk): string {
   return chunk.units.map((unit, i) => `[[SEGMENT ${i + 1}]]\n${unit.sourceText}`).join("\n\n");
 }
 
+/**
+ * The translated counterpart to `renderChunkForTranslation` — same
+ * marker layout, but each segment holds whatever translation currently
+ * exists for that unit (falling back to the source text for units that
+ * aren't translated yet) instead of always being the source text.
+ *
+ * This is what populates a chunk's editable textarea as soon as
+ * translation succeeds, regardless of which `Translator` produced the
+ * result: it reads only `chunk.units` and the `translatedByNodeId` map
+ * every executor writes into identically (see
+ * useChunkWorkspace/useChunkTranslationActions.ts), so it has no
+ * provider-specific knowledge to go stale. Returns `""` for a chunk with
+ * no translation at all yet, so an untouched chunk's textarea stays
+ * exactly as empty as it always has.
+ *
+ * Reusing the `[[SEGMENT n]]` format here (rather than a plain joined
+ * string) is deliberate: it keeps the textarea's content parseable by
+ * the same `parseChunkTranslation` a manual edit-and-blur already runs
+ * through, so editing a freshly translated chunk behaves identically to
+ * editing a pasted one.
+ */
+export function renderTranslatedChunkForEditing(
+  chunk: Chunk,
+  translatedByNodeId: ReadonlyMap<string, string>,
+): string {
+  const hasAnyTranslation = chunk.units.some((unit) => translatedByNodeId.has(unit.nodeId));
+
+  if (!hasAnyTranslation) {
+    return "";
+  }
+
+  return chunk.units
+    .map(
+      (unit, i) =>
+        `[[SEGMENT ${i + 1}]]\n${translatedByNodeId.get(unit.nodeId) ?? unit.sourceText}`,
+    )
+    .join("\n\n");
+}
+
 const SEGMENT_PATTERN = /\[\[SEGMENT (\d+)\]\]\s*([\s\S]*?)(?=\[\[SEGMENT \d+\]\]|$)/g;
 
 /** Parses a segmented response text (from an LLM provider OR pasted by a human) back into a number -> translated-text map. Exported mainly for testing; callers should use `parseChunkTranslation`. */

@@ -1,4 +1,5 @@
 import type { Chunk } from "@core/stages/05-chunking/Chunker";
+import { renderTranslatedChunkForEditing } from "@core/stages/05-chunking/segmentProtocol";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -120,6 +121,7 @@ export function ChunkWorkspace({
               onTranslateBuiltIn={() => {
                 onTranslateChunkBuiltIn(chunk);
               }}
+              translatedText={renderTranslatedChunkForEditing(chunk, chunkState.translatedByNodeId)}
             />
           ))}
         </div>

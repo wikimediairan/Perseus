@@ -1,5 +1,5 @@
 import type { Chunk } from "@core/stages/05-chunking/Chunker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ export function ChunkRow({
   onCopy,
   onTranslateBuiltIn,
   onPasteTranslation,
+  translatedText,
 }: {
   chunk: Chunk;
   index: number;
@@ -26,11 +27,16 @@ export function ChunkRow({
   onCopy(): void;
   onTranslateBuiltIn(): void;
   onPasteTranslation(text: string): void;
+  translatedText: string;
 }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(!isDone);
-  const [draft, setDraft] = useState("");
   const [chunkCopied, setChunkCopied] = useState(false);
+  const [draft, setDraft] = useState(translatedText);
+
+  useEffect(() => {
+    setDraft(translatedText);
+  }, [translatedText]);
 
   function applyDraft() {
     if (draft.trim().length > 0) {
