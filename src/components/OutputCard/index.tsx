@@ -1,17 +1,3 @@
-/**
- * OutputCard
- *
- * Displays the generated Wikitext (Software Specification, Output) and
- * exposes exactly the two supported actions — copy and save — via the
- * existing OutputDelivery service. Rendered in the TARGET WIKI's own
- * script direction (Persian: RTL; Tajik: LTR — Tajik is written in
- * Cyrillic) so editors can actually read what they're about to publish,
- * rather than seeing correct-but-visually-broken text. This is
- * independent of the UI's own display language (see src/i18n) — a
- * Persian-speaking editor using the English UI to produce a Tajik
- * article should still see the output rendered LTR.
- */
-
 import type { TargetWikiCode } from "@core/config/targetWikis";
 import { TARGET_WIKIS } from "@core/config/targetWikis";
 import { open } from "@tauri-apps/plugin-shell";
@@ -20,15 +6,12 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 
 export function OutputCard({
-  wikitext,
   targetWiki,
   onCopy,
   onSave,
 }: {
-  wikitext: string;
   targetWiki: TargetWikiCode;
   onCopy(): Promise<void>;
   onSave(suggestedName: string): Promise<null | string>;
@@ -36,8 +19,6 @@ export function OutputCard({
   const { t } = useTranslation();
   const [copyState, setCopyState] = useState<"idle" | "copied">("idle");
   const [saveState, setSaveState] = useState<"idle" | "saved" | "cancelled">("idle");
-
-  const direction = TARGET_WIKIS[targetWiki].direction;
 
   async function handleCopy() {
     await onCopy();
@@ -93,29 +74,17 @@ export function OutputCard({
           </div>
         </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">
-        <div className="flex gap-2">
-          <Button onClick={handleCopy} size="sm" variant="outline">
-            {copyState === "copied" ? t("common.copied") : t("outputCard.copyButton")}
-          </Button>
-          <Button onClick={handleSave} size="sm" variant="outline">
-            {saveState === "saved"
-              ? t("common.saved")
-              : saveState === "cancelled"
-                ? t("common.notSaved")
-                : t("outputCard.saveButton")}
-          </Button>
-        </div>
-        <Textarea
-          className={
-            direction === "rtl"
-              ? "font-persian min-h-72 text-[15px] leading-relaxed"
-              : "min-h-72 text-[15px] leading-relaxed"
-          }
-          dir={direction}
-          readOnly
-          value={wikitext}
-        />
+      <CardContent className="flex gap-2">
+        <Button onClick={handleCopy} size="sm" variant="outline">
+          {copyState === "copied" ? t("common.copied") : t("outputCard.copyButton")}
+        </Button>
+        <Button onClick={handleSave} size="sm" variant="outline">
+          {saveState === "saved"
+            ? t("common.saved")
+            : saveState === "cancelled"
+              ? t("common.notSaved")
+              : t("outputCard.saveButton")}
+        </Button>
       </CardContent>
     </Card>
   );

@@ -4,7 +4,6 @@ import { useCallback, useState } from "react";
 
 import type { LogLine } from "./types";
 
-/** Builds a `Logger` that mirrors every log line into React state, so `<LogPanel>` and `<StageRail>` can render a run as it happens. */
 export function useUiLogger() {
   const [currentStage, setCurrentStage] = useState<null | PipelineStageName>(null);
   const [log, setLog] = useState<LogLine[]>([]);

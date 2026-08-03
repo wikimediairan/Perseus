@@ -21,7 +21,7 @@ import { useChunkWorkspace } from "@/hooks/useChunkWorkspace";
 import { useConfig } from "@/hooks/useConfig";
 import { useUpdateChecker } from "@/hooks/useUpdateChecker";
 
-const LOAD_PHASE_STAGE_COUNT = 5;
+const LOAD_PHASE_STAGE_COUNT = 4;
 
 export default function App() {
   const { t } = useTranslation();
@@ -106,6 +106,7 @@ export default function App() {
               <Separator />
               <div className="flex flex-col gap-3">
                 <StageRail
+                  allStages={stages}
                   currentStage={currentStage}
                   stages={stages.slice(0, LOAD_PHASE_STAGE_COUNT)}
                   status={status}
@@ -145,12 +146,7 @@ export default function App() {
         )}
 
         {wikitext !== null && targetWiki && (
-          <OutputCard
-            onCopy={copyToClipboard}
-            onSave={saveToFile}
-            targetWiki={targetWiki}
-            wikitext={wikitext}
-          />
+          <OutputCard onCopy={copyToClipboard} onSave={saveToFile} targetWiki={targetWiki} />
         )}
       </MainPanel>
 

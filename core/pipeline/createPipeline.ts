@@ -52,7 +52,7 @@ export function createPipeline(
 ): Pipeline {
   const provider = createProvider(config.activeProvider);
   const targetWiki = getTargetWiki(config.targetWiki);
-  const translationLogger = logger.forStage("llm-translation");
+  const translationLogger = logger.forStage("translation");
 
   const translator: Translator = isWikimediaProvider(provider)
     ? new WikimediaTranslator(
