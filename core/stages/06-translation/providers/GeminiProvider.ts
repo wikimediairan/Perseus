@@ -25,13 +25,13 @@ export class GeminiProvider implements TextProviderType {
   async translate(request: TranslationRequest): Promise<TranslationResponse> {
     if (!this.config.apiKey) {
       throw new PerseusError("ConfigurationError", "No API key configured for Gemini.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
     if (!this.config.model) {
       throw new PerseusError("ConfigurationError", "No model configured for Gemini.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
@@ -53,7 +53,7 @@ export class GeminiProvider implements TextProviderType {
       });
     } catch (error) {
       throw new PerseusError("ProviderError", "Could not reach the Gemini API.", {
-        stage: "llm-translation",
+        stage: "translation",
         cause: error,
       });
     }
@@ -64,7 +64,7 @@ export class GeminiProvider implements TextProviderType {
       throw new PerseusError(
         "ProviderError",
         `Gemini request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
-        { stage: "llm-translation", context: { status: response.status } },
+        { stage: "translation", context: { status: response.status } },
       );
     }
 
@@ -72,7 +72,7 @@ export class GeminiProvider implements TextProviderType {
 
     if (!translatedText?.trim()) {
       throw new PerseusError("ProviderError", "Gemini returned an empty translation.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 

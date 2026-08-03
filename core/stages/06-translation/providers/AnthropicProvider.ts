@@ -27,13 +27,13 @@ export class AnthropicProvider implements TextProviderType {
   async translate(request: TranslationRequest): Promise<TranslationResponse> {
     if (!this.config.apiKey) {
       throw new PerseusError("ConfigurationError", "No API key configured for Anthropic.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
     if (!this.config.model) {
       throw new PerseusError("ConfigurationError", "No model configured for Anthropic.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
@@ -56,7 +56,7 @@ export class AnthropicProvider implements TextProviderType {
       });
     } catch (error) {
       throw new PerseusError("ProviderError", "Could not reach the Anthropic API.", {
-        stage: "llm-translation",
+        stage: "translation",
         cause: error,
       });
     }
@@ -67,7 +67,7 @@ export class AnthropicProvider implements TextProviderType {
       throw new PerseusError(
         "ProviderError",
         `Anthropic request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
-        { stage: "llm-translation", context: { status: response.status } },
+        { stage: "translation", context: { status: response.status } },
       );
     }
 
@@ -75,7 +75,7 @@ export class AnthropicProvider implements TextProviderType {
 
     if (!translatedText?.trim()) {
       throw new PerseusError("ProviderError", "Anthropic returned an empty translation.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 

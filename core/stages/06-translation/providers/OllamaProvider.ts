@@ -23,7 +23,7 @@ export class OllamaProvider implements TextProviderType {
   async translate(request: TranslationRequest): Promise<TranslationResponse> {
     if (!this.config.model) {
       throw new PerseusError("ConfigurationError", "No model configured for Ollama.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
@@ -47,7 +47,7 @@ export class OllamaProvider implements TextProviderType {
       throw new PerseusError(
         "ProviderError",
         `Could not reach Ollama at ${this.config.baseUrl}. Is Ollama running locally?`,
-        { stage: "llm-translation", cause: error },
+        { stage: "translation", cause: error },
       );
     }
 
@@ -57,7 +57,7 @@ export class OllamaProvider implements TextProviderType {
       throw new PerseusError(
         "ProviderError",
         `Ollama request failed (HTTP ${response.status}): ${body.error ?? "unknown error"}`,
-        { stage: "llm-translation", context: { status: response.status } },
+        { stage: "translation", context: { status: response.status } },
       );
     }
 
@@ -65,7 +65,7 @@ export class OllamaProvider implements TextProviderType {
 
     if (!content?.trim()) {
       throw new PerseusError("ProviderError", "Ollama returned an empty translation.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 

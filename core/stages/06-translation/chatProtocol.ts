@@ -54,7 +54,7 @@ export async function chatCompletion(params: ChatCompletionParams): Promise<stri
       "ProviderError",
       `Could not reach ${params.providerLabel} at ${params.url}.`,
       {
-        stage: "llm-translation",
+        stage: "translation",
         cause: error,
       },
     );
@@ -66,7 +66,7 @@ export async function chatCompletion(params: ChatCompletionParams): Promise<stri
     throw new PerseusError(
       "ProviderError",
       `${params.providerLabel} request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
-      { stage: "llm-translation", context: { status: response.status } },
+      { stage: "translation", context: { status: response.status } },
     );
   }
 
@@ -77,7 +77,7 @@ export async function chatCompletion(params: ChatCompletionParams): Promise<stri
       "ProviderError",
       `${params.providerLabel} returned an empty translation.`,
       {
-        stage: "llm-translation",
+        stage: "translation",
       },
     );
   }

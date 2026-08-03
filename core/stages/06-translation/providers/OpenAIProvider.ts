@@ -21,13 +21,13 @@ export class OpenAIProvider implements TextProviderType {
   async translate(request: TranslationRequest): Promise<TranslationResponse> {
     if (!this.config.apiKey) {
       throw new PerseusError("ConfigurationError", "No API key configured for OpenAI.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
     if (!this.config.model) {
       throw new PerseusError("ConfigurationError", "No model configured for OpenAI.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 

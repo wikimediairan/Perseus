@@ -97,7 +97,7 @@ export class LLMTranslator implements Translator {
       throw new PerseusError(
         "TranslationError",
         `Chunk ${chunk.id} could not be fully translated.`,
-        { stage: "llm-translation", context: { chunkId: chunk.id } },
+        { stage: "translation", context: { chunkId: chunk.id } },
       );
     }
 

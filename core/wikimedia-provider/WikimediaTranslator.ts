@@ -47,7 +47,7 @@ export class WikimediaTranslator implements Translator {
       throw new PerseusError(
         "ConfigurationError",
         "Load an article before translating with the Wikimedia provider.",
-        { stage: "llm-translation" },
+        { stage: "translation" },
       );
     }
 
@@ -75,7 +75,7 @@ export class WikimediaTranslator implements Translator {
       throw new PerseusError(
         "TranslationError",
         `Chunk ${chunk.id} failed at the Wikimedia backend (${failed.reason}).`,
-        { stage: "llm-translation", context: { chunkId: chunk.id, reason: failed.reason } },
+        { stage: "translation", context: { chunkId: chunk.id, reason: failed.reason } },
       );
     }
 
@@ -84,7 +84,7 @@ export class WikimediaTranslator implements Translator {
       throw new PerseusError(
         "TranslationError",
         `Chunk ${chunk.id} was skipped by the Wikimedia backend (${skipped.reason}).`,
-        { stage: "llm-translation", context: { chunkId: chunk.id, reason: skipped.reason } },
+        { stage: "translation", context: { chunkId: chunk.id, reason: skipped.reason } },
       );
     }
 
@@ -93,7 +93,7 @@ export class WikimediaTranslator implements Translator {
       throw new PerseusError(
         "TranslationError",
         `Chunk ${chunk.id} was not present in the Wikimedia backend's response.`,
-        { stage: "llm-translation", context: { chunkId: chunk.id } },
+        { stage: "translation", context: { chunkId: chunk.id } },
       );
     }
 

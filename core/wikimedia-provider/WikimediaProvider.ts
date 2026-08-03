@@ -15,7 +15,7 @@ export class WikimediaProvider implements WikimediaProviderType {
   async translate(request: WikimediaRequest): Promise<WikimediaResponse> {
     if (!this.apiKey) {
       throw new PerseusError("ConfigurationError", "No API key configured for Wikimedia.", {
-        stage: "llm-translation",
+        stage: "translation",
       });
     }
 
@@ -32,7 +32,7 @@ export class WikimediaProvider implements WikimediaProviderType {
       });
     } catch (error) {
       throw new PerseusError("ProviderError", "Could not reach Perseus Wikimedia backend.", {
-        stage: "llm-translation",
+        stage: "translation",
         cause: error,
       });
     }
@@ -51,7 +51,7 @@ export class WikimediaProvider implements WikimediaProviderType {
         "ProviderError",
         `Perseus Wikimedia backend failed (HTTP ${response.status}).`,
         {
-          stage: "llm-translation",
+          stage: "translation",
           context: {
             status: response.status,
             body,
