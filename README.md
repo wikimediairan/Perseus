@@ -7,8 +7,6 @@
 
 </div>
 
-# Perseus
-
 <div align="center">
 
 <p align="center">
@@ -25,6 +23,8 @@
 [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
 
 </div>
+
+# Perseus
 
 Perseus is a desktop application that helps Wikipedia editors translate English Wikipedia articles
 into Wikitext compatible with a supported target wiki (currently Persian Wikipedia and Tajik
@@ -83,7 +83,6 @@ should make on its own.
   - Anthropic
   - Gemini
 - Manual translation using any external AI or by hand
-- Save and resume translation sessions (`.perseus`)
 - Copy or save generated Wikitext
 
 ## Running
