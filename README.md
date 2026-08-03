@@ -36,24 +36,6 @@ with translation.
 
 Additional documentation is available under the [architecture](docs/architecture) directory.
 
-## Project Status
-
-Perseus is currently under active development.
-
-The core translation workflow is fully functional and has been stable enough for my own daily use
-for approximately a week. This repository is being published primarily to demonstrate the project's
-architecture, workflow, and current capabilities.
-
-Several areas are still being actively improved, including:
-
-- Backend service implementation
-- Desktop-specific user experience improvements
-- Codebase cleanup and modularization
-- General refactoring
-
-Although this is not yet considered a production-ready release, the repository reflects the current
-direction of the project and provides a realistic view of how Perseus is designed to work.
-
 ## Manifesto
 
 Perseus exists to strengthen non-English Wikipedia communities by reducing repetitive work while
