@@ -4,6 +4,7 @@ import type { TFunction } from "i18next";
 
 export const getProviderLabels = (t: TFunction): Record<LLMProviderConfig["kind"], string> => ({
   ollama: t("providerCard.providers.ollama"),
+  lmstudio: t("providerCard.providers.lmstudio"),
   openai: t("providerCard.providers.openai"),
   openrouter: t("providerCard.providers.openrouter"),
   anthropic: t("providerCard.providers.anthropic"),
@@ -11,7 +12,7 @@ export const getProviderLabels = (t: TFunction): Record<LLMProviderConfig["kind"
   wikimedia: t("providerCard.providers.wikimedia"),
 });
 
-export const PROVIDERS_WITH_BASE_URL = new Set<LLMProviderConfig["kind"]>(["ollama"]);
+export const PROVIDERS_WITH_BASE_URL = new Set<LLMProviderConfig["kind"]>(["ollama", "lmstudio"]);
 
 export const PROVIDERS_WITH_API_KEY = new Set<LLMProviderConfig["kind"]>([
   "openai",
@@ -23,6 +24,7 @@ export const PROVIDERS_WITH_API_KEY = new Set<LLMProviderConfig["kind"]>([
 
 export const PROVIDERS_WITH_USER_PROMPT = new Set<LLMProviderConfig["kind"]>([
   "ollama",
+  "lmstudio",
   "openai",
   "openrouter",
   "anthropic",
@@ -40,6 +42,7 @@ export const WIKIMEDIA_MODEL_LABELS: Record<WikimediaModel, string> = {
 
 export const MODEL_PLACEHOLDER: Record<LLMProviderConfig["kind"], string> = {
   ollama: "llama3",
+  lmstudio: "qwen/qwen3.6-27b",
   openai: "gpt-4o-mini",
   openrouter: "anthropic/claude-3.5-sonnet",
   anthropic: "claude-sonnet-4-5",
@@ -51,6 +54,10 @@ export function createProviderConfig(kind: LLMProviderConfig["kind"]): LLMProvid
   switch (kind) {
     case "ollama": {
       return { kind, model: "", baseUrl: "http://localhost:11434" };
+    }
+
+    case "lmstudio": {
+      return { kind, model: "", baseUrl: "http://localhost:1234" };
     }
 
     case "openai":

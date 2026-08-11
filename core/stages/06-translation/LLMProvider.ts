@@ -11,7 +11,14 @@ export interface TranslationResponse {
 }
 
 export interface LLMProvider {
-  readonly kind: "gemini" | "ollama" | "anthropic" | "openrouter" | "openai" | "wikimedia";
+  readonly kind:
+    | "gemini"
+    | "ollama"
+    | "lmstudio"
+    | "anthropic"
+    | "openrouter"
+    | "openai"
+    | "wikimedia";
 }
 
 export interface TextProviderType extends LLMProvider {

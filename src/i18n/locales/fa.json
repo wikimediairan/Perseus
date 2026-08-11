@@ -39,6 +39,7 @@
     "additionalPromptsPlaceholder": "دستوری که وارد می‌کنید به دستور پیش‌فرض برنامه افزوده می‌شود.",
     "providers": {
       "ollama": "Ollama(Local)",
+      "lmstudio": "LM Studio(Local)",
       "openai": "OpenAI",
       "openrouter": "OpenRouter",
       "anthropic": "Anthropic",

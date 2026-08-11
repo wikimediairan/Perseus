@@ -3,6 +3,7 @@ import { PerseusError } from "@core/platform/errors/PerseusError";
 import type { TextProviderType } from "@core/stages/06-translation/LLMProvider";
 import { AnthropicProvider } from "@core/stages/06-translation/providers/AnthropicProvider";
 import { GeminiProvider } from "@core/stages/06-translation/providers/GeminiProvider";
+import { LMStudioProvider } from "@core/stages/06-translation/providers/LMStudioProvider";
 import { OllamaProvider } from "@core/stages/06-translation/providers/OllamaProvider";
 import { OpenAIProvider } from "@core/stages/06-translation/providers/OpenAIProvider";
 import { OpenRouterProvider } from "@core/stages/06-translation/providers/OpenRouterProvider";
@@ -23,6 +24,13 @@ export function createProvider(
     case "ollama": {
       return new OllamaProvider({
         baseUrl: config.baseUrl ?? "http://localhost:11434",
+        model: config.model,
+      });
+    }
+
+    case "lmstudio": {
+      return new LMStudioProvider({
+        baseUrl: config.baseUrl ?? "http://localhost:1234",
         model: config.model,
       });
     }

@@ -39,6 +39,7 @@
     "additionalPromptsPlaceholder": "Дастуре, ки ворид мекунед, ба дастури пешфарзи барнома илова карда мешавад.",
     "providers": {
       "ollama": "Ollama(Local)",
+      "lmstudio": "LM Studio(Local)",
       "openai": "OpenAI",
       "openrouter": "OpenRouter",
       "anthropic": "Anthropic",
