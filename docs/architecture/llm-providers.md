@@ -16,11 +16,12 @@ flowchart TB
     TIFace --> P3[OpenRouter]
     TIFace --> P4[Gemini]
     TIFace --> P5[Ollama]
+    TIFace --> P6[LM Studio]
 
     WIFace[Wikimedia provider contract] --> WP[Wikimedia backend]
 ```
 
-- **Text providers** — Anthropic, OpenAI, OpenRouter, Gemini, and Ollama — all implement the same
+- **Text providers** — Anthropic, OpenAI, OpenRouter, Gemini, Ollama, and LM Studio — all implement the same
   narrow request/response contract described below, and are the only providers the built-in
   translation executor ([Chunking and Translation](./chunking-and-translation.md#executors)) actually
   drives.

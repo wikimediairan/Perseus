@@ -1,6 +1,59 @@
 import { jsonResponse, setGlobalFetch } from "./helpers/fetchMock";
 
 describe("New LLM Providers (E2E)", () => {
+  it("LMStudioProvider sends native REST /api/v1/chat request to local endpoint", async () => {
+    let capturedUrl = "";
+    let capturedInit: RequestInit | undefined;
+
+    setGlobalFetch(((url: string, init?: RequestInit): Promise<Response> => {
+      capturedUrl = url;
+      capturedInit = init;
+      return Promise.resolve(jsonResponse({ output: [{ type: "message", content: "ترجمه شده" }] }));
+    }) as typeof fetch);
+
+    const { LMStudioProvider } = await import(
+      "@core/stages/06-translation/providers/LMStudioProvider"
+    );
+    const provider = new LMStudioProvider({
+      baseUrl: "http://localhost:1234",
+      model: "qwen/qwen3.6-27b",
+    });
+    const result = await provider.translate({
+      systemPrompt: "Translate to Persian.",
+      sourceText: "Hello.",
+      targetLanguage: "fa",
+    });
+
+    const headers = capturedInit?.headers as Record<string, string>;
+    const body = JSON.parse(capturedInit?.body as string) as {
+      model: string;
+      input: string;
+      system_prompt: string;
+      reasoning: "off" | "low" | "medium" | "high" | "on";
+      stream: boolean;
+      temperature: number;
+    };
+
+    expect(provider.kind, "provider.kind is 'lmstudio'").toBe("lmstudio");
+    expect(capturedUrl, "requests native LM Studio REST endpoint").toBe(
+      "http://localhost:1234/api/v1/chat",
+    );
+    expect(
+      headers["Content-Type"] === "application/json" && !("Authorization" in headers),
+      "no API key required for local LM Studio by default",
+    ).toBe(true);
+    expect(body.model, "model passed through").toBe("qwen/qwen3.6-27b");
+    expect(body.system_prompt, "system prompt is sent as system_prompt").toBe(
+      "Translate to Persian.",
+    );
+    expect(body.input, "source text is sent as input").toBe("Hello.");
+    expect(body.reasoning, "reasoning is disabled for lower latency translation").toBe("off");
+    expect(body.stream, "stream is disabled for sync provider call").toBe(false);
+    expect(result.translatedText, "response text extracted from output[] message content").toBe(
+      "ترجمه شده",
+    );
+  });
+
   it("AnthropicProvider sends the correct request shape and parses the response", async () => {
     let capturedUrl = "";
     let capturedInit: RequestInit | undefined;
@@ -136,6 +189,28 @@ describe("New LLM Providers (E2E)", () => {
     ).toBe(true);
   });
 
+  it("LMStudioProvider refuses to call out when no model is configured", async () => {
+    const { LMStudioProvider } = await import(
+      "@core/stages/06-translation/providers/LMStudioProvider"
+    );
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
+
+    setGlobalFetch(() => {
+      throw new Error("must not be called when model is missing");
+    });
+
+    const req = { systemPrompt: "x", sourceText: "y", targetLanguage: "fa" as const };
+
+    let ok = false;
+    try {
+      await new LMStudioProvider({ baseUrl: "http://localhost:1234", model: "" }).translate(req);
+    } catch (err) {
+      ok = err instanceof PerseusError && err.category === "ConfigurationError";
+    }
+
+    expect(ok, "LM Studio: missing model raises ConfigurationError before fetch").toBe(true);
+  });
+
   it("ProviderFactory routes 'anthropic' and 'gemini' to the right classes", async () => {
     const { createProvider } = await import("@core/stages/06-translation/ProviderFactory");
     const { AnthropicProvider } = await import(
@@ -158,6 +233,24 @@ describe("New LLM Providers (E2E)", () => {
       typeof anthropic.translate === "function" && typeof gemini.translate === "function",
       "both still satisfy the common LLMProvider surface (readonly kind + translate)",
     ).toBe(true);
+  });
+
+  it("ProviderFactory routes 'lmstudio' to LMStudioProvider", async () => {
+    const { createProvider } = await import("@core/stages/06-translation/ProviderFactory");
+    const { LMStudioProvider } = await import(
+      "@core/stages/06-translation/providers/LMStudioProvider"
+    );
+
+    const lmstudio = createProvider({
+      kind: "lmstudio",
+      model: "qwen/qwen3.6-27b",
+      baseUrl: "http://localhost:1234",
+    });
+
+    expect(lmstudio, "kind='lmstudio' produces an LMStudioProvider").toBeInstanceOf(
+      LMStudioProvider,
+    );
+    expect(typeof lmstudio.translate === "function", "provider supports translate()").toBe(true);
   });
 
   it("a non-2xx response from either API surfaces as a ProviderError with the vendor's message", async () => {
@@ -196,5 +289,35 @@ describe("New LLM Providers (E2E)", () => {
 
     expect(anthropicOk, "Anthropic 401 surfaces as ProviderError with vendor message").toBe(true);
     expect(geminiOk, "Gemini 400 surfaces as ProviderError with vendor message").toBe(true);
+  });
+
+  it("LMStudioProvider fails clearly on malformed success payloads", async () => {
+    const { LMStudioProvider } = await import(
+      "@core/stages/06-translation/providers/LMStudioProvider"
+    );
+    const { PerseusError } = await import("@core/platform/errors/PerseusError");
+
+    setGlobalFetch(() =>
+      Promise.resolve(jsonResponse({ output: [{ type: "reasoning", content: "..." }] }, 200)),
+    );
+
+    let ok = false;
+    try {
+      await new LMStudioProvider({
+        baseUrl: "http://localhost:1234",
+        model: "qwen/qwen3.6-27b",
+      }).translate({
+        systemPrompt: "x",
+        sourceText: "y",
+        targetLanguage: "fa",
+      });
+    } catch (err) {
+      ok =
+        err instanceof PerseusError &&
+        err.category === "ProviderError" &&
+        err.message.includes("LM Studio returned an empty translation");
+    }
+
+    expect(ok, "malformed /api/v1/chat payload reports clear ProviderError").toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import { DEFAULT_TARGET_WIKI } from "@core/config/targetWikis";
 
 export type LLMProviderConfig =
   | OllamaProviderConfig
+  | LMStudioProviderConfig
   | OpenAIProviderConfig
   | OpenRouterProviderConfig
   | AnthropicProviderConfig
@@ -11,6 +12,12 @@ export type LLMProviderConfig =
 
 export interface OllamaProviderConfig {
   kind: "ollama";
+  model: string;
+  baseUrl?: string;
+}
+
+export interface LMStudioProviderConfig {
+  kind: "lmstudio";
   model: string;
   baseUrl?: string;
 }

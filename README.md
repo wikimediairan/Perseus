@@ -60,6 +60,7 @@ should make on its own.
 - Chunk-based translation pipeline
 - Built-in LLM translation
   - Ollama
+  - LM Studio
   - OpenAI
   - OpenRouter
   - Anthropic

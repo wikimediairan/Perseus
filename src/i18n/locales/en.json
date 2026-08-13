@@ -39,6 +39,7 @@
     "additionalPromptsPlaceholder": "The prompt you enter will be appended to the application's default prompt.",
     "providers": {
       "ollama": "Ollama(Local)",
+      "lmstudio": "LM Studio(Local)",
       "openai": "OpenAI",
       "openrouter": "OpenRouter",
       "anthropic": "Anthropic",
