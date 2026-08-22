@@ -18,6 +18,13 @@ const DESKTOP_CARGO_FILE = path.join(
   "src-tauri",
   "Cargo.toml",
 );
+const DESKTOP_TAURI_CONFIG_FILE = path.join(
+  rootDir,
+  "apps",
+  "desktop",
+  "src-tauri",
+  "tauri.conf.json",
+);
 
 function readJson(filePath) {
   try {
@@ -37,6 +44,140 @@ function isValidSemver(version) {
   return /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(
     version,
   );
+}
+
+function createJsonVersionTarget(label, filePath) {
+  return {
+    label,
+    read() {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(
+          `${label} not found: ${path.relative(rootDir, filePath)}`,
+        );
+      }
+
+      const config = readJson(filePath);
+
+      if (!config.version) {
+        throw new Error(
+          `${label} does not contain a version: ${path.relative(rootDir, filePath)}`,
+        );
+      }
+
+      return config.version;
+    },
+    write(version) {
+      const config = readJson(filePath);
+      config.version = version;
+      writeJson(filePath, config);
+    },
+  };
+}
+
+function createCargoVersionTarget(label, filePath) {
+  function getPackageSection(content) {
+    const start = content.search(/^\[package\]\s*$/m);
+
+    if (start === -1) {
+      throw new Error(
+        `${label} does not contain a [package] section: ${path.relative(rootDir, filePath)}`,
+      );
+    }
+
+    const nextSectionOffset = content
+      .slice(start + 1)
+      .search(/^\[[^\]]+\]\s*$/m);
+    const end =
+      nextSectionOffset !== -1 ? start + 1 + nextSectionOffset : content.length;
+
+    return { start, end, section: content.slice(start, end) };
+  }
+
+  return {
+    label,
+    read() {
+      if (!fs.existsSync(filePath)) {
+        throw new Error(
+          `${label} not found: ${path.relative(rootDir, filePath)}`,
+        );
+      }
+
+      const content = fs.readFileSync(filePath, "utf8");
+      const { section } = getPackageSection(content);
+      const match = section.match(/^\s*version\s*=\s*"([^"]+)"\s*$/m);
+
+      if (!match) {
+        throw new Error(
+          `${label} [package] section does not contain a version: ${path.relative(rootDir, filePath)}`,
+        );
+      }
+
+      return match[1];
+    },
+    write(version) {
+      const content = fs.readFileSync(filePath, "utf8");
+      const { start, end, section } = getPackageSection(content);
+      const versionRegex = /^(\s*version\s*=\s*")[^"]+("\s*)$/m;
+
+      if (!versionRegex.test(section)) {
+        throw new Error(
+          `${label} [package] section does not contain a version: ${path.relative(rootDir, filePath)}`,
+        );
+      }
+
+      const updatedSection = section.replace(versionRegex, `$1${version}$2`);
+      fs.writeFileSync(
+        filePath,
+        content.slice(0, start) + updatedSection + content.slice(end),
+        "utf8",
+      );
+    },
+  };
+}
+
+const EXTRA_APP_TARGETS = [
+  {
+    appName: DESKTOP_APP_NAME,
+    target: createCargoVersionTarget(
+      `${DESKTOP_APP_NAME} Cargo.toml`,
+      DESKTOP_CARGO_FILE,
+    ),
+  },
+  {
+    appName: DESKTOP_APP_NAME,
+    target: createJsonVersionTarget(
+      `${DESKTOP_APP_NAME} tauri.conf.json`,
+      DESKTOP_TAURI_CONFIG_FILE,
+    ),
+  },
+];
+
+function checkTarget(target, expectedVersion) {
+  const actual = target.read();
+
+  if (actual === expectedVersion) {
+    console.log(`✓ ${target.label} ${actual}`);
+    return true;
+  }
+
+  console.error(`✗ ${target.label}`);
+  console.error(`  expected: ${expectedVersion}`);
+  console.error(`  actual:   ${actual}`);
+  console.error();
+
+  return false;
+}
+
+function syncTarget(target, expectedVersion) {
+  const current = target.read();
+
+  if (current === expectedVersion) {
+    console.log(`✓ ${target.label} ${expectedVersion}`);
+    return;
+  }
+
+  target.write(expectedVersion);
+  console.log(`→ ${target.label}: ${current} → ${expectedVersion}`);
 }
 
 function loadVersionConfig() {
@@ -74,26 +215,14 @@ function loadVersionConfig() {
 function collectExpectedVersions(config) {
   const expected = new Map();
 
-  for (const [name, version] of Object.entries(config.packages)) {
-    if (expected.has(name)) {
-      throw new Error(`Duplicate package name in version.json: ${name}`);
+  for (const group of ["packages", "apps"]) {
+    for (const [name, version] of Object.entries(config[group])) {
+      if (expected.has(name)) {
+        throw new Error(`Duplicate package name in version.json: ${name}`);
+      }
+
+      expected.set(name, { version, group });
     }
-
-    expected.set(name, {
-      version,
-      group: "packages",
-    });
-  }
-
-  for (const [name, version] of Object.entries(config.apps)) {
-    if (expected.has(name)) {
-      throw new Error(`Duplicate package name in version.json: ${name}`);
-    }
-
-    expected.set(name, {
-      version,
-      group: "apps",
-    });
   }
 
   return expected;
@@ -102,17 +231,11 @@ function collectExpectedVersions(config) {
 function parseWorkspacePatterns() {
   if (!fs.existsSync(WORKSPACE_FILE)) {
     throw new Error(
-      `pnpm-workspace.yaml not found: ${path.relative(
-        rootDir,
-        WORKSPACE_FILE,
-      )}`,
+      `pnpm-workspace.yaml not found: ${path.relative(rootDir, WORKSPACE_FILE)}`,
     );
   }
 
-  const content = fs.readFileSync(WORKSPACE_FILE, "utf8");
-
-  const lines = content.split(/\r?\n/);
-
+  const lines = fs.readFileSync(WORKSPACE_FILE, "utf8").split(/\r?\n/);
   const patterns = [];
   let insidePackages = false;
 
@@ -149,7 +272,6 @@ function parseWorkspacePatterns() {
 
 function globToRegex(pattern) {
   const normalized = pattern.replace(/\\/g, "/");
-
   let regex = "^";
 
   for (let i = 0; i < normalized.length; i++) {
@@ -162,75 +284,59 @@ function globToRegex(pattern) {
       } else {
         regex += "[^/]*";
       }
-
       continue;
     }
 
-    if ("\\^$+?.()|{}[]".includes(char)) {
-      regex += `\\${char}`;
-    } else {
-      regex += char;
-    }
+    regex += "\\^$+?.()|{}[]".includes(char) ? `\\${char}` : char;
   }
 
-  regex += "$";
-
-  return new RegExp(regex);
+  return new RegExp(`${regex}$`);
 }
 
-function getWorkspacePackageFiles() {
-  const patterns = parseWorkspacePatterns();
-  const files = new Set();
+function resolvePatternPackageFiles(pattern) {
+  const normalizedPattern = pattern.replace(/\\/g, "/");
+  const regex = globToRegex(normalizedPattern);
+  const firstSegment = normalizedPattern.split("/")[0];
+  const searchDirs = [
+    { dir: rootDir, prefix: "" },
+    { dir: path.join(rootDir, firstSegment), prefix: `${firstSegment}/` },
+  ];
 
-  for (const pattern of patterns) {
-    const normalizedPattern = pattern.replace(/\\/g, "/");
-    const regex = globToRegex(normalizedPattern);
+  const files = [];
 
-    const rootEntries = fs.readdirSync(rootDir, {
-      withFileTypes: true,
-    });
+  for (const { dir, prefix } of searchDirs) {
+    if (!fs.existsSync(dir)) {
+      continue;
+    }
 
-    for (const entry of rootEntries) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       if (!entry.isDirectory()) {
         continue;
       }
 
-      const relativePath = entry.name;
+      const relativePath = `${prefix}${entry.name}`;
 
       if (!regex.test(relativePath)) {
         continue;
       }
 
-      const packageFile = path.join(rootDir, relativePath, "package.json");
+      const packageFile = path.join(dir, entry.name, "package.json");
 
       if (fs.existsSync(packageFile)) {
-        files.add(packageFile);
+        files.push(packageFile);
       }
     }
+  }
 
-    const firstSegment = normalizedPattern.split("/")[0];
-    const baseDir = path.join(rootDir, firstSegment);
+  return files;
+}
 
-    if (fs.existsSync(baseDir)) {
-      for (const entry of fs.readdirSync(baseDir, {
-        withFileTypes: true,
-      })) {
-        if (!entry.isDirectory()) {
-          continue;
-        }
+function getWorkspacePackageFiles() {
+  const files = new Set();
 
-        const relativePath = `${firstSegment}/${entry.name}`;
-
-        if (!regex.test(relativePath)) {
-          continue;
-        }
-
-        const packageFile = path.join(rootDir, relativePath, "package.json");
-
-        if (fs.existsSync(packageFile)) {
-          files.add(packageFile);
-        }
-      }
+  for (const pattern of parseWorkspacePatterns()) {
+    for (const file of resolvePatternPackageFiles(pattern)) {
+      files.add(file);
     }
   }
 
@@ -259,159 +365,48 @@ function loadWorkspacePackages() {
       throw new Error(`Duplicate workspace package name: ${packageJson.name}`);
     }
 
-    packages.set(packageJson.name, {
-      filePath,
-      packageJson,
-    });
+    packages.set(packageJson.name, { filePath, packageJson });
   }
 
   return packages;
 }
 
-function getCargoPackageSection(content) {
-  const match = content.match(/^\[package\]\s*([\s\S]*?)(?=^\[[^\]]+\]|\s*$)/m);
+function reportOrphanWorkspacePackages(expected, workspace) {
+  let hasErrors = false;
 
-  if (!match) {
-    throw new Error(
-      `Cargo.toml does not contain a [package] section: ${path.relative(
-        rootDir,
-        DESKTOP_CARGO_FILE,
-      )}`,
-    );
+  for (const [name, pkg] of workspace) {
+    if (!expected.has(name)) {
+      console.error(`✗ ${name}`);
+      console.error(
+        `  ${path.relative(rootDir, pkg.filePath)} exists in the workspace but is missing from version.json.`,
+      );
+      console.error();
+      hasErrors = true;
+    }
   }
 
-  return match;
+  return hasErrors;
 }
 
-function readCargoPackageVersion() {
-  if (!fs.existsSync(DESKTOP_CARGO_FILE)) {
-    throw new Error(
-      `Cargo.toml not found: ${path.relative(rootDir, DESKTOP_CARGO_FILE)}`,
-    );
+function runExtraTargets(config, run) {
+  let hasErrors = false;
+
+  for (const { appName, target } of EXTRA_APP_TARGETS) {
+    const expectedVersion = config.apps[appName];
+
+    if (!expectedVersion) {
+      console.error(`✗ ${appName} is missing from version.json apps.`);
+      console.error();
+      hasErrors = true;
+      continue;
+    }
+
+    if (run(target, expectedVersion) === false) {
+      hasErrors = true;
+    }
   }
 
-  const content = fs.readFileSync(DESKTOP_CARGO_FILE, "utf8");
-
-  const packageStart = content.search(/^\[package\]\s*$/m);
-
-  if (packageStart === -1) {
-    throw new Error(
-      `Cargo.toml does not contain a [package] section: ${path.relative(
-        rootDir,
-        DESKTOP_CARGO_FILE,
-      )}`,
-    );
-  }
-
-  const nextSection = content.search(/^\[[^\]]+\]\s*$/m);
-
-  const packageSectionEnd =
-    nextSection !== -1 && nextSection > packageStart
-      ? nextSection
-      : content.length;
-
-  const packageSection = content.slice(packageStart, packageSectionEnd);
-
-  const versionMatch = packageSection.match(/^\s*version\s*=\s*"([^"]+)"\s*$/m);
-
-  if (!versionMatch) {
-    throw new Error(
-      `Cargo.toml [package] section does not contain a version: ${path.relative(
-        rootDir,
-        DESKTOP_CARGO_FILE,
-      )}`,
-    );
-  }
-
-  return versionMatch[1];
-}
-
-function writeCargoPackageVersion(version) {
-  if (!fs.existsSync(DESKTOP_CARGO_FILE)) {
-    throw new Error(
-      `Cargo.toml not found: ${path.relative(rootDir, DESKTOP_CARGO_FILE)}`,
-    );
-  }
-
-  const content = fs.readFileSync(DESKTOP_CARGO_FILE, "utf8");
-
-  const packageStart = content.search(/^\[package\]\s*$/m);
-
-  if (packageStart === -1) {
-    throw new Error(
-      `Cargo.toml does not contain a [package] section: ${path.relative(
-        rootDir,
-        DESKTOP_CARGO_FILE,
-      )}`,
-    );
-  }
-
-  const nextSectionRelative = content
-    .slice(packageStart + 1)
-    .search(/^\[[^\]]+\]\s*$/m);
-
-  const packageSectionEnd =
-    nextSectionRelative !== -1
-      ? packageStart + 1 + nextSectionRelative
-      : content.length;
-
-  const packageSection = content.slice(packageStart, packageSectionEnd);
-
-  const versionRegex = /^(\s*version\s*=\s*")[^"]+("\s*)$/m;
-
-  if (!versionRegex.test(packageSection)) {
-    throw new Error(
-      `Cargo.toml [package] section does not contain a version: ${path.relative(
-        rootDir,
-        DESKTOP_CARGO_FILE,
-      )}`,
-    );
-  }
-
-  const updatedPackageSection = packageSection.replace(
-    versionRegex,
-    `$1${version}$2`,
-  );
-
-  const updatedContent =
-    content.slice(0, packageStart) +
-    updatedPackageSection +
-    content.slice(packageSectionEnd);
-
-  fs.writeFileSync(DESKTOP_CARGO_FILE, updatedContent, "utf8");
-}
-
-function checkCargoVersion(expectedVersion) {
-  const actualVersion = readCargoPackageVersion();
-
-  if (actualVersion === expectedVersion) {
-    console.log(`✓ ${DESKTOP_APP_NAME} Cargo.toml ${actualVersion}`);
-
-    return false;
-  }
-
-  console.error(`✗ ${DESKTOP_APP_NAME} Cargo.toml`);
-  console.error(`  expected: ${expectedVersion}`);
-  console.error(`  actual:   ${actualVersion}`);
-  console.error();
-
-  return true;
-}
-
-function setCargoVersion(expectedVersion) {
-  const currentVersion = readCargoPackageVersion();
-
-  if (currentVersion === expectedVersion) {
-    console.log(`✓ ${DESKTOP_APP_NAME} Cargo.toml ${expectedVersion}`);
-
-    return;
-  }
-
-  writeCargoPackageVersion(expectedVersion);
-
-  console.log(
-    `→ ${DESKTOP_APP_NAME} Cargo.toml: ${currentVersion} → ${expectedVersion}`,
-  );
+  return hasErrors;
 }
 
 function check() {
@@ -423,61 +418,36 @@ function check() {
 
   console.log("Checking workspace versions...\n");
 
-  for (const [name, { version, group }] of expected) {
+  for (const [name, { version }] of expected) {
     const pkg = workspace.get(name);
 
     if (!pkg) {
       console.error(`✗ ${name}`);
       console.error(
-        `  ${group} entry exists in version.json, but no matching workspace package was found.`,
+        "  entry exists in version.json, but no matching workspace package was found.",
       );
       console.error();
-
       hasErrors = true;
       continue;
     }
 
-    const actual = pkg.packageJson.version;
-
-    if (actual === version) {
-      console.log(`✓ ${name} ${actual}`);
-    } else {
-      console.error(`✗ ${name}`);
-      console.error(`  expected: ${version}`);
-      console.error(`  actual:   ${actual}`);
-      console.error();
-
+    if (
+      !checkTarget(
+        { label: name, read: () => pkg.packageJson.version },
+        version,
+      )
+    ) {
       hasErrors = true;
     }
   }
 
-  for (const [name, pkg] of workspace) {
-    if (!expected.has(name)) {
-      console.error(`✗ ${name}`);
-      console.error(
-        `  ${path.relative(
-          rootDir,
-          pkg.filePath,
-        )} exists in the workspace but is missing from version.json.`,
-      );
-      console.error();
+  hasErrors = reportOrphanWorkspacePackages(expected, workspace) || hasErrors;
 
-      hasErrors = true;
-    }
-  }
-
-  console.log("Checking desktop Cargo.toml version...\n");
-
-  const desktopVersion = config.apps[DESKTOP_APP_NAME];
-
-  if (!desktopVersion) {
-    console.error(`✗ ${DESKTOP_APP_NAME} is missing from version.json apps.`);
-    console.error();
-
-    hasErrors = true;
-  } else if (checkCargoVersion(desktopVersion)) {
-    hasErrors = true;
-  }
+  console.log("\nChecking additional app targets...\n");
+  hasErrors =
+    runExtraTargets(config, (target, expectedVersion) =>
+      checkTarget(target, expectedVersion),
+    ) || hasErrors;
 
   if (hasErrors) {
     console.error("Version consistency check failed.");
@@ -503,55 +473,34 @@ function set() {
       console.error(`✗ ${name}`);
       console.error("  No matching workspace package was found.");
       console.error();
-
       hasErrors = true;
       continue;
     }
 
-    const currentVersion = pkg.packageJson.version;
-
-    if (currentVersion === version) {
-      console.log(`✓ ${name} ${version}`);
-      continue;
-    }
-
-    pkg.packageJson.version = version;
-
-    writeJson(pkg.filePath, pkg.packageJson);
-
-    console.log(`→ ${name}: ${currentVersion} → ${version}`);
+    syncTarget(
+      {
+        label: name,
+        read: () => pkg.packageJson.version,
+        write: (v) => {
+          pkg.packageJson.version = v;
+          writeJson(pkg.filePath, pkg.packageJson);
+        },
+      },
+      version,
+    );
   }
 
-  for (const [name, pkg] of workspace) {
-    if (!expected.has(name)) {
-      console.error(`✗ ${name}`);
-      console.error(
-        `  ${path.relative(
-          rootDir,
-          pkg.filePath,
-        )} exists in the workspace but is missing from version.json.`,
-      );
-      console.error();
-
-      hasErrors = true;
-    }
-  }
+  hasErrors = reportOrphanWorkspacePackages(expected, workspace) || hasErrors;
 
   if (hasErrors) {
     console.error("\nVersion synchronization failed.");
     process.exit(1);
   }
 
-  console.log("\nSynchronizing desktop Cargo.toml version...\n");
-
-  const desktopVersion = config.apps[DESKTOP_APP_NAME];
-
-  if (!desktopVersion) {
-    console.error(`✗ ${DESKTOP_APP_NAME} is missing from version.json apps.`);
-    process.exit(1);
-  }
-
-  setCargoVersion(desktopVersion);
+  console.log("\nSynchronizing additional app targets...\n");
+  runExtraTargets(config, (target, expectedVersion) => {
+    syncTarget(target, expectedVersion);
+  });
 
   console.log("\nVersion synchronization completed.");
 }
