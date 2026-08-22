@@ -108,6 +108,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build Core
+        run: pnpm build:core
+
       - name: Build Desktop
         uses: tauri-apps/tauri-action@v1
         env:
