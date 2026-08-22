@@ -27,14 +27,17 @@
 # Perseus
 Perseus is a Computer-Assisted Translation tool for Wikipedia. It helps you translate English Wikipedia articles into **Persian or Tajik**, preparing them for publication on Persian or Tajik Wikipedia while taking care of the tedious, error-prone parts — links, citations, templates, and formatting — so you can focus on producing an accurate, natural translation.
 
+<p align="center">
+  <a href="https://github.com/wikimediairan/Perseus/releases">
+    <img src="https://img.shields.io/badge/⬇%20Download%20-2ea44f?style=for-the-badge" alt="Download">
+  </a>
+</p>
+
 ## Key capabilities
 * Translates English Wikipedia articles into **Persian or Tajik** while preserving their structure — citations, infoboxes, templates, and other formatting stay intact; only the readable text is translated.
 * Automatically resolves links to the corresponding article on the target Wikipedia, with a clear fallback when no matching article exists.
 * Saves your progress so you can resume a translation later.
 * Supports translation through an AI provider of your choice, or lets you work through the text yourself.
-
-## Download
-[Download Perseus](!-- DOWNLOAD LINK --)
 
 ## API Key
 To use Perseus, you can use the Wikimedia API key provided by Wikimedia Iran. If you prefer to use your own dedicated API key, you can obtain one at [perseus-backend.alireza3205.workers.dev](https://perseus-backend.alireza3205.workers.dev) by signing in with your Wikimedia account.
