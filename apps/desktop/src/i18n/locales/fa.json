@@ -35,8 +35,8 @@
     "modelLabel": "مدل",
     "baseUrlLabel": "نشانی پایه",
     "apiKeyLabel": "کلید API",
-    "additionalPromptsLabel": "دستور(اختیاری)",
-    "additionalPromptsPlaceholder": "دستوری که وارد می‌کنید به دستور پیش‌فرض برنامه افزوده می‌شود.",
+    "additionalPromptsLabel": "پرامپت(اختیاری)",
+    "additionalPromptsPlaceholder": "پرامپتی که وارد می‌کنید به پرامپت پیش‌فرض برنامه افزوده می‌شود.",
     "providers": {
       "openrouter": "OpenRouter",
       "ninerouter": "9Router",
