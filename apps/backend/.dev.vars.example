@@ -1,0 +1,5 @@
+# pnpm exec wrangler secret put <key_name>
+
+OPENROUTER_API_KEY=sk-or-v1-***
+WIKIMEDIA_CONSUMER_KEY=***
+WIKIMEDIA_CONSUMER_SECRET=***

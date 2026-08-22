@@ -3,81 +3,144 @@
 
 # Intermediate Representation
 
-The Intermediate Representation (IR) is the single structural model of an article that every
-pipeline stage reads or writes. There is no per-stage data format that content gets converted into
-and back out of — a concept added to the IR by one stage is immediately visible, in the same shape,
-to every stage that runs after it. This is Architectural Principle
-[§3](./architectural-principles.md#3-the-intermediate-representation-is-the-one-structural-model) in
-concrete form.
+The Intermediate Representation (IR) is the one data model every pipeline stage reads from or writes
+to (Architectural Principle 2). This document explains what it represents, why it is shaped the way it
+is, and which invariants a stage must preserve.
 
-## Shape
+## Design decision: the IR's backbone is a live Parsoid DOM, not a bespoke tree
 
-```mermaid
-classDiagram
-    class IntermediateRepresentation {
-        sourceTitle
-        structure
-    }
-    class TextNode {
-        id
-        text
-    }
-    class LinkNode {
-        id
-        target
-    }
-    class CitationRegistry {
-        definitions
-        references
-        warnings
-    }
-    IntermediateRepresentation --> "many" TextNode
-    IntermediateRepresentation --> "many" LinkNode
-    IntermediateRepresentation --> CitationRegistry
+Rather than inventing a separate node-type hierarchy, `ir.structure.document` IS the live `Document`
+produced by parsing Parsoid's own HTML output. Perseus never re-derives article structure itself — it
+keeps Parsoid's own structural representation alive for the whole pipeline run and mutates it in
+place. This is what "Parsoid is the only parser" (Architectural Principle 3) means in the strongest
+sense: there is no second structural model to keep in sync with the first.
+
+`links` / `categories` / `textNodes` are flat, addressable PUBLIC VIEWS over that DOM — the shape every
+non-DOM-mutating stage (Extraction, Chunking, Translation) actually interacts with. Only four call
+sites in the whole codebase are allowed to mutate `ir.structure` or the DOM it wraps; see
+[pipeline.md](./pipeline.md#what-can-mutate-the-ir-and-where).
+
+```ts
+interface IntermediateRepresentation {
+  sourceTitle: string;
+  links: LinkNode[];
+  categories: CategoryNode[];
+  textNodes: TextNode[];
+  citations: CitationRegistry;
+  structure: IRStructure;
+}
 ```
 
-- **`textNodes`** — every unit of translatable text in the article. A `TextNode`'s text starts as
-  the original English and is overwritten in place with its translation; there is no separate
-  "source" and "result" field, because the node itself _is_ the article's current state for that
-  unit, not a record of a transformation applied to something else.
-- **`links`** — every wikilink in the article, resolved against the configured
-  [Target Wiki](./target-wiki.md).
-- **`citations`** — the registry of citation definitions and references, described in
-  [Citation Handling](./citation-handling.md). It exists as its own field, alongside `textNodes` and
-  `links`, rather than as a special kind of either, because citation content follows different rules
-  from both: it is read and tracked, but — unlike a `TextNode` — never translated, and — unlike a
-  `LinkNode` — never resolved.
-- **`structure`** — the document's shape independent of any individual node's content, used to
-  reassemble a complete article once every node has whatever content it will end up with.
+## Node types
 
-Ids across all three node kinds share one scheme, assigned deterministically by traversal order
-during parsing. The same input produces the same ids every time — a property the
-[Translation Session](./translation-session.md) depends on directly.
+### `TextNode`
 
-## Lifecycle
-
-```mermaid
-stateDiagram-v2
-    [*] --> Built: Parse
-    Built --> LinksMutated: Analyze Wikidata Links
-    LinksMutated --> Merged: Merge
-    Merged --> [*]: Discarded after the run
+```ts
+interface TextNode {
+  id: string; // "text-<n>"
+  text: string;
+}
 ```
 
-The IR is built once, by Parse, and only three stages ever mutate it afterward:
+A flat, addressable, translatable span of natural-language text. Before translation, `text` is the
+flattened source text with placeholder tokens embedded (see
+[Chunking & Translation](./chunking-and-translation.md#the-placeholder-protocol)); Merge overwrites it
+in place with the translated text — the same object is updated, never replaced with a new one.
 
-1. **Parse** builds the IR from scratch, including registering citation structure.
-2. **Analyze Wikidata Links** mutates `LinkNode`s with resolved destinations.
-3. **Merge** mutates `TextNode`s with translated text, one chunk at a time.
+`id`'s numeric suffix is meaningful only for [Translation Session](./translation-session.md)
+round-tripping — it has no other significance, and is only unique within its own generating pass (see
+below).
 
-Every other stage — Extract, Chunk, Translate, Generate — reads the IR without changing it. Extract
-does not mutate the IR when it builds a worklist; it selects from it. Chunking and translation
-operate on that worklist and its resulting text, not on the IR directly, until Merge writes the
-result back.
+**Created by** the block-level loop in `ParsoidParser.ts`, and `templateParameters.ts`'s
+`extractTemplateParameterUnits` for allow-listed template parameters (see
+[Template Handling](./template-handling.md)) — both share one id counter, threaded through, so ids
+stay globally unique across the two sources even though they're generated in two separate passes.
 
-The IR itself is never persisted — it exists only for the duration of a single pipeline run and is
-discarded once Generation has produced Wikitext, or once a session is closed. This is why a
-[Translation Session](./translation-session.md) cannot simply serialize the IR to resume a session
-later: it instead stores a reference to the exact Wikipedia revision the IR was built from
-(`wiki`, `pageId`, `title`, `revisionId`) and relies on deterministic id assignment to rebuild an
-equivalent IR — by re-fetching and re-parsing that revision — when the session is reopened.
+### `LinkNode`
+
+```ts
+interface LinkNode {
+  id: string;
+  originalTarget: string; // always fragment-free
+  fragment: string | null; // the stripped #Section, if any — not currently re-attached to anything
+  resolvedTarget: null | string;
+  label: string;
+}
+```
+
+Represents one internal wikilink. `originalTarget` is guaranteed fragment-free specifically so
+Link Resolution's Wikidata lookup can use it directly as a key — see
+[Link Resolution](./link-resolution.md#fragments) for why this matters and what broke before it was
+guaranteed.
+
+`resolvedTarget` is written EXACTLY ONCE, by Link Resolution. Nothing else in the pipeline can set it
+— translation only ever writes to `TextNode.text`, never to a `LinkNode`, so this invariant is
+structurally enforced by which stages have access to which data, not just documented.
+
+### `CategoryNode`
+
+Structurally identical to `LinkNode` minus `label` (a category has no visible label) and `fragment`
+(a category page reference cannot carry one). Resolved in the same Wikidata batch as ordinary links.
+
+### `CitationRegistry` / `CitationDefinition` / `CitationReference`
+
+See [Citation Handling](./citation-handling.md) for the full type shapes and the rule that governs
+them (a citation's HTML, once captured, is never re-derived from the DOM — Architectural Principle 4).
+
+## `IRStructure` — the DOM-backed half of the IR
+
+```ts
+interface IRStructure {
+  document: Document;
+  nodeElements: Map<string, Element>;
+  placeholders: Map<string, PlaceholderSpan[]>;
+  linkElements: Map<string, Element>;
+  categoryElements: Map<string, Element>;
+  templateParamWriters: Map<string, (translatedText: string) => void>;
+  templateLinkTargets: string[];
+  templateLinkResolutions: Map<string, TemplateLinkResolution>;
+}
+```
+
+Every map here is a stable id (from `textNodes`/`links`/`categories`) mapped to a live DOM handle or
+closure — this is what lets a stage holding only a `TextNode.id` string reach the actual DOM element
+when it needs to.
+
+`templateLinkTargets` and `templateLinkResolutions` exist specifically because a wikilink inside a
+translatable template parameter has NO DOM `<a>` element to mutate the way an ordinary `LinkNode` does
+— a transclusion's rendered DOM is never what gets serialized back to Wikitext. `templateLinkTargets`
+is populated at parse time (every raw `[[target|label]]` target found while tokenizing a parameter's
+wikitext value); `templateLinkResolutions` starts EMPTY and is populated later, by Link Resolution.
+The Map is read LAZILY, BY REFERENCE, at Merge/commit time — the same "live reference, read lazily"
+pattern `PlaceholderSpan.element` already uses for ordinary links (see
+[Link Resolution](./link-resolution.md) for the full mechanism).
+
+## What information is preserved, and what is deliberately transformed
+
+- **Structure Perseus doesn't touch** (References sections, template internals outside allow-listed
+  parameters, citation `data-mw`, non-block-level markup) survives entirely as untouched DOM nodes,
+  serialized back to Wikitext by Parsoid's own serializer. Perseus's structural guarantee is really
+  "we don't touch it," not "we understand and faithfully reproduce it."
+- **Placeholder tokens** are the mechanism by which inline structure (links, emphasis, citation
+  markers) survives being flattened to plain text for translation and reconstructed afterward — see
+  [Chunking & Translation](./chunking-and-translation.md#the-placeholder-protocol).
+- **What must never be lost:** a citation's rendered footnote content (guaranteed by the registry
+  snapshot, never a live re-read); a resolved link's target-wiki title (guaranteed by
+  `resolvedTarget` being write-once and the placeholder reconstruction reading the LIVE element's
+  attributes, so a resolution written after parsing still survives into the final HTML).
+
+## Ownership rules, stage by stage
+
+| Stage               | Reads                                            | Writes                                                                                          |
+| -------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Parsing               | Parsoid HTML                                       | Creates the entire IR                                                                                |
+| Link Resolution        | `links`, `categories`, `structure.templateLinkTargets` | `resolvedTarget` fields, `<a href>`/`<link href>`, `structure.templateLinkResolutions`                |
+| Extraction              | `textNodes`                                        | Nothing (produces a derived `TranslationWorklist`, does not mutate the IR)                            |
+| Chunking                 | `TranslationWorklist`                              | Nothing (produces `Chunk[]`)                                                                            |
+| Translation                | `Chunk`                                            | Nothing (produces `TranslatedChunk`, external to the IR)                                                  |
+| Merge                         | `TranslatedChunk`, `structure.nodeElements`/`templateParamWriters` | `TextNode.text`, `innerHTML` or `data-mw`                                                                   |
+| Reference Attention              | `textNodes`                                        | Nothing (pure; its own output is currently discarded by the one call site — see [pipeline-stages.md](./pipeline-stages.md#8-reference-attention-not-a-numbered-stage)) |
+| Generation                         | `structure.document`, `ir.links`                   | Removes denylisted-template elements; rewrites unresolved links into interwiki-fallback elements               |
+
+A stage never reaches into another stage's private state through any channel other than the IR fields
+listed above.

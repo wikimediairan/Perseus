@@ -3,135 +3,114 @@
 
 # Architectural Principles
 
-This document explains the principles that shape every subsystem described in the documents that
-follow. Individual documents describe _what_ a subsystem does; this document explains _why_ the
-boundaries between subsystems are drawn where they are. Understanding these principles first makes
-the rest of the documentation predictable rather than arbitrary.
+These are the principles that explain _why_ Perseus is built the way it is, not just what it does.
+Where a later document describes a mechanism, this document is where to look for the reasoning behind
+it.
 
-## 1. The engine is independent of presentation
+## 1. Perseus produces drafts, not edits
 
-The [Core Engine](./README.md#system-layers) has no dependency on any UI framework, and no awareness
-of how — or whether — its output is displayed. Every stage of translation is expressed as a plain
-function or class operating on plain data.
+Perseus never writes to Wikipedia directly. Every pipeline run ends at generated Wikitext — a string
+the human contributor still has to review, copy, and publish themselves, through Wikipedia's own
+editing interface. This is a deliberate boundary, not a missing feature: it keeps a human in the loop
+for the one action (publishing to a live encyclopedia) that actually matters, while letting Perseus
+own everything upstream of that decision.
 
-This exists because the engine's job — parsing, resolving, chunking, translating, merging,
-generating — is a well-defined transformation that has no inherent relationship to any particular
-interface. Keeping that transformation free of presentation concerns means the engine can be driven
-by a GUI, a script, or a test harness identically, and means a presentation rewrite touches none of
-the logic that actually produces a translation.
+This is why the pipeline's own stage list ends at `generate-wikitext` (see
+[pipeline.md](./pipeline.md)) rather than at "publish", and why a
+[Translation Session](./translation-session.md) is designed to be saved, closed, and resumed rather
+than assumed to run start-to-finish in one sitting.
 
-## 2. Perseus produces drafts; humans decide what is true
+## 2. The Intermediate Representation is the one thing every stage agrees on
 
-Perseus never publishes to Wikipedia. Every pipeline run ends at a piece of generated Wikitext that
-a human reviews and, separately, chooses to publish or discard.
+Every pipeline stage reads from and writes to a single shared
+[Intermediate Representation](./intermediate-representation.md) (IR). No stage invents its own
+private data model for the article; no stage talks to another stage's internals directly. A stage's
+contract is entirely described by what it reads from and writes to the IR.
 
-This is not a missing feature, it is a boundary the architecture is built around. Because Perseus's
-output is always reviewed before it has any effect, the engine is free to be opinionated, heuristic,
-and occasionally wrong (see the discussion of Reference Attention in
-[Citation Handling](./citation-handling.md)) without that risk propagating anywhere except a draft a
-human was always going to read.
+This matters because it makes each stage's job independently understandable: to know what
+Link Resolution does, it's enough to know it reads `ir.links`/`ir.categories` and writes
+`resolvedTarget` (plus the corresponding DOM `href`s) — nothing else in the system needs to be
+understood first.
 
-## 3. The Intermediate Representation is the one structural model
+## 3. Parsoid is the only Wikitext parser Perseus is allowed to have
 
-Every stage of the pipeline _parsing_, _link resolution_, _chunking_, _translation_, _merging_,
-_generation_ reads or writes the same
-[Intermediate Representation](./intermediate-representation.md) (IR). There is no second,
-stage-specific model that data gets converted into and out of along the way.
+Wikitext has no formal grammar of its own; MediaWiki's own historical parser is famously irregular.
+Perseus does not attempt to parse Wikitext itself, anywhere, for any reason. Every Wikitext-to-HTML
+and HTML-to-Wikitext conversion goes through the real Parsoid service (via the MediaWiki REST API's
+stateless transform endpoints — see [Parsing & Parsoid Integration](./parsing-and-parsoid.md)).
 
-This exists so that a concept discovered at one stage — a resolved link, a registered citation — is
-immediately visible to every later stage without a translation step of its own. It also means a
-stage's job can be described precisely as "what it reads from the IR, and what it adds or changes"
-rather than as an isolated transformation with its own private format.
+The two narrow exceptions — `templateWikitextTokens.ts` recognizing `[[...]]`/`{{...}}`/`<ref>`/HTML
+comments, and `templateParameters.ts` splitting an already-isolated `{{...}}` call string — are not
+counterexamples to this rule. Both operate only on a wikitext STRING that Parsoid has already isolated
+for Perseus (a template parameter's own `data-mw` value), never on a raw article's Wikitext as a
+whole, and neither is a general-purpose parser (see [Template Handling](./template-handling.md)).
 
-## 4. Translation always operates on chunks, never on a whole article or a single field
+## 4. A citation, once captured, is never re-derived from the DOM
 
-Perseus never sends an entire article to a translator in one call, and never treats an individual
-sentence or paragraph as its own independent unit of translation work. The unit is always a
-[chunk](./chunking-and-translation.md): a bounded group of translatable content, identified,
-inspectable, and independently completable.
+The Citation Handling Redesign established a rule that still holds: once a citation's HTML has been
+captured into the `CitationRegistry` at parse time, nothing downstream is allowed to reconstruct or
+re-derive it by reading the DOM again. The registry's snapshot is authoritative; a live DOM read is
+used only to detect and warn about drift, never trusted over the snapshot. See
+[Citation Handling](./citation-handling.md).
 
-This exists for two reasons that both follow from Principle 2. First, a chunk is small enough for a
-human to read and correct in one sitting, which matters when the human, not the engine, is the final
-authority on correctness. Second, a chunk is large enough to give a translator (model or human)
-surrounding context — the alternative, translating isolated sentences, produces worse translations
-for exactly the reason chunk boundaries themselves can: loss of context. Chunking is the deliberate
-middle point between those two failure modes.
+## 5. A template is opaque by default; specific parameters can be opted in
 
-## 5. Any translator can produce a chunk's translation, and none of them are privileged
+Perseus does not assume all templates should be translated, and does not assume all templates should
+be opaque. The default is opaque — a template transclusion's rendered HTML is not what Parsoid
+serializes back to Wikitext (template expansion is not invertible), so touching it would either do
+nothing or corrupt the output. A small, explicit allow-list of templates
+(`{{Blockquote}}`, `{{Infobox ...}}`, `{{efn}}`, and a few others) opts specific parameters into the
+ordinary Extract → Chunk → Translate → Merge path by exposing them as IR text nodes backed by a
+`data-mw`-writing closure instead of a DOM-writing one. See
+[Template Handling](./template-handling.md).
 
-A chunk's translation can come from the built-in LLM executor or from a human pasting a response
-from any external AI or writing one by hand. Nothing downstream of a completed chunk — merging,
-generation, session persistence — can tell which happened, and nothing needs to.
+## 6. Content that isn't article prose never reaches translation
 
-This is a direct consequence of Principle 2: since a human reviews the output regardless of its
-source, the architecture has no reason to trust one translation source over another, or to give the
-built-in LLM a code path the manual route doesn't also have.
-[Chunking and Translation](./chunking-and-translation.md) describes the single shared protocol that
-makes this substitutability real rather than aspirational.
+An HTML comment, a citation's own bibliographic markup, a template's structural syntax, a bare
+URL written with no separate label — none of this is content a translator (human or machine) should
+ever see. Each case is filtered out at the layer that first has enough context to recognize it, not
+patched over later in generation. See [Comment Handling](./comment-handling.md) and
+[Template Handling](./template-handling.md) for the two most significant instances of this rule.
 
-## 6. A translation session is a durable artifact, not a transient process
+## 7. Resolution decides; generation represents
 
-Once an article has been loaded and chunked, the resulting session — the chunks, whatever
-translations exist for them so far, and enough metadata to re-fetch the exact article revision they
-belong to — can be saved to disk and reopened later, even if the live article has since changed.
+Deciding _whether_ a link has a target-wiki equivalent, and deciding _how that decision gets written
+into the final Wikitext_, are two separate concerns handled by two separate stages. Link Resolution
+(stage `03-link-resolution`) only ever decides the semantic outcome — a resolved title, or `null`. It
+never constructs literal Wikitext syntax. Constructing the actual output representation — a resolved
+`<a href>`, an unresolved link left as-is, or an interwiki-fallback template call — is entirely the
+job of Wikitext Generation (and, for template-parameter links, template reconstruction at merge time).
+See [Link Resolution](./link-resolution.md) for why this separation matters in practice, including the
+concrete bug it would have prevented.
 
-This exists because translation is not assumed to happen in one sitting. A contributor may translate
-a few chunks, close Perseus, and resume days later using a different translator for the remaining
-chunks. Treating the session as a durable artifact — the
-[Translation Session](./translation-session.md) — rather than in-memory state tied to one running
-instance is what makes that pattern reliable instead of best-effort. Durability here means the
-session survives being closed and reopened, not that it survives without a network connection:
-reopening a session re-fetches its source revision from Wikipedia rather than replaying a locally
-cached copy of it. See [Translation Session](./translation-session.md#why-reconstruction-now-means-re-fetching-not-re-embedding)
-for why an exact revision reference is the more durable choice of the two.
+## 8. A representation Perseus itself introduces must still look like something Parsoid produced
 
-## 7. Content that must round-trip exactly is kept opaque, not reconstructed
+When Perseus needs to introduce new structure into the article that wasn't there in the original
+Wikitext — the clearest example being an interwiki-fallback template call for a link with no
+target-wiki equivalent — that structure must be expressed the way Parsoid itself would express it: a
+real transclusion element (`typeof="mw:Transclusion"` plus a `data-mw` attribute), never a plain DOM
+text node containing literal `{{...}}` characters. A text node is, by definition, already-rendered
+prose in the Parsoid HTML model; Parsoid's own serializer correctly treats literal template-call
+syntax sitting in a text node as something that must be escaped (with `<nowiki>`) to avoid being
+misread on re-parsing. This is documented in detail, with the concrete failure it once caused, in
+[Parsing & Parsoid Integration](./parsing-and-parsoid.md#lesson-a-new-transclusion-must-be-a-real-transclusion-node).
 
-Where the architecture cannot regenerate something with byte-for-byte fidelity — most notably
-citation markup — it does not try. Instead, that content is identified, excluded from translation,
-and left untouched from parse through to generation, so the original serialization survives
-verbatim.
+## 9. Determinism is what makes a saved session resumable
 
-This exists because reconstruction is a second opportunity to introduce errors that the source
-material never had. It is safer, and architecturally simpler, to guarantee correctness by never
-disturbing content than to guarantee it by carefully rebuilding content the same way twice. See
-[Citation Handling](./citation-handling.md) for where this principle is applied concretely.
+A [Translation Session](./translation-session.md) does not persist the article's content — only a
+revision reference and a record of which text nodes were translated to what. Resuming a session means
+re-fetching that exact revision and re-parsing it from scratch. For the saved chunk-to-node mapping to
+still line up, parsing the same HTML must always produce the same node ids, in the same order, with no
+dependency on anything outside the HTML string itself (see
+`buildIRFromParsoidHtml` in [parsing-and-parsoid.md](./parsing-and-parsoid.md)). Determinism here is
+not an optimization; it is what makes "save and resume" possible at all.
 
-## 8. Target Wiki is a precondition of translation, not a translation-time setting
+## 10. Every translator is interchangeable at the pipeline's boundary
 
-Which wiki an article is being translated for is fixed before an article is loaded, not chosen (or
-changed) partway through a session.
-
-This exists because target wiki affects more than translation output — it determines how links are
-resolved during parsing, which happens before any translation occurs. A setting that link resolution
-depends on cannot be scoped to "only when using the built-in translator," since link resolution runs
-regardless of which translator is eventually used. [Target Wiki](./target-wiki.md) describes what
-depends on this choice and why it is locked once an article is loaded.
-
-## 9. Subsystem boundaries follow responsibility, not convenience
-
-Each subsystem in this documentation set — pipeline orchestration, the IR, chunking, citation
-handling, target wiki configuration, provider integration — owns exactly one responsibility, and
-other subsystems interact with it only through its own interface. A subsystem is never extended to
-absorb a responsibility that belongs to another simply because the two happen to run at a similar
-time.
-
-The clearest example is citation handling: preserving citations could have been implemented as
-special-case logic inside merging or generation, since that is where the original defect manifested.
-Instead it is implemented as its own registration pass and its own protected-content rule, applied
-at parse time, so that merging and generation remain unaware citations require any special handling
-at all. A subsystem boundary, in this architecture, is drawn around a single responsibility — not
-around wherever a bug happened to surface.
-
-```mermaid
-flowchart LR
-    A["Principle 1–2\nEngine independence,\nhuman-reviewed output"] --> B["Principle 3\nOne shared\nIntermediate Representation"]
-    B --> C["Principle 4–5\nChunk-based,\ntranslator-agnostic translation"]
-    C --> D["Principle 6\nSession as a durable,\nrevision-anchored artifact"]
-    B --> E["Principle 7\nOpaque preservation\nfor non-reconstructible content"]
-    B --> F["Principle 8\nTarget Wiki fixed\nbefore translation begins"]
-    A --> G["Principle 9\nBoundaries follow\nresponsibility"]
-```
-
-The documents that follow each expand on one subsystem. Where a decision in that subsystem traces
-back to one of these principles, the document links here rather than re-arguing the case.
+The pipeline depends on a single `Translator` interface (`translateChunk`/`translate`), never on a
+concrete provider. A human editing chunks by hand, an LLM behind a generic chat-completion API, or
+Wikimedia's own whole-revision translation backend are all, from the pipeline's point of view, the
+same shape: something that turns a `Chunk` into a `TranslatedChunk`. This is what lets a new provider
+be added, or a session be resumed under a different provider than it was started with, without any
+change to Chunking, Merge, or the pipeline orchestrator itself. See
+[LLM Providers](./llm-providers.md).

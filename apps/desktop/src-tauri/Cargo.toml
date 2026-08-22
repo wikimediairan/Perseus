@@ -1,0 +1,38 @@
+[package]
+name = "perseus"
+version = "0.6.0"
+description = "Perseus is a desktop tool for translating English Wikipedia articles into Persian or Tajik Wikipedia-compatible Wikitext, helping bridge the gap in quality and completeness across languages."
+edition = "2021"
+
+[lib]
+# Required by Tauri's mobile support; harmless on desktop-only builds.
+name = "perseus_lib"
+crate-type = ["staticlib", "cdylib", "lib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-fs = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Wikimedia OAuth session auth (see src/session.rs, src/oauth.rs):
+# `keyring` delegates to the OS's own credential store (macOS Keychain /
+# Windows Credential Manager / Linux Secret Service) -- no cryptography
+# is implemented here, matching "do not implement your own crypto."
+# Feature set enables the native backend on each of the three desktop
+# platforms Tauri targets; `crypto-rust` supplies the (already-audited,
+# not custom) encryption the Linux secret-service backend needs.
+keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service", "crypto-rust"] }
+
+# Phase 3 (Core Engine): the Rust shell now hosts the four Tauri plugins
+# that back core/input, core/output, and core/config's real filesystem,
+# save-dialog, and clipboard needs, plus (update-notification feature)
+# opening the GitHub Releases page in the user's default browser. It
+# still contains no pipeline logic of its own — Parsoid/Wikidata/LLM
+# calls all happen from the TypeScript core engine via `fetch`, not from
+# Rust.

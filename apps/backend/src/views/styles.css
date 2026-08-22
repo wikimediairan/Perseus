@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@source "../../src/views";
+
+@theme {
+  --font-sans: "Vazirmatn", sans-serif;
+}

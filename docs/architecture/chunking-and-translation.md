@@ -1,93 +1,90 @@
 > Was a sentence unclear? Instead of ignoring it, make a simple 'edit' and leave your name in the
 > history of this page's improvement.
 
-# Chunking and Translation
+# Chunking & Translation
 
-Chunking and translation together implement Architectural Principles
-[§4 and §5](./architectural-principles.md#4-translation-always-operates-on-chunks-never-on-a-whole-article-or-a-single-field):
-translation always operates on a bounded, inspectable unit, and any executor — the built-in LLM or a
-human — can produce that unit's translation through one shared protocol.
+This document covers how an article's translatable text becomes translation-sized chunks, and the
+single wire protocol shared by every translator — human or automated — that turns a chunk's source
+text into translated text without corrupting the placeholder structure inside it.
 
-## Chunks
+## Chunking
 
-A chunk is a group of the [Intermediate Representation](./intermediate-representation.md)'s
-extracted, translatable content, bounded by a character budget rather than by document structure (so
-a chunk may span several paragraphs, but never splits one). Chunking is a pure, deterministic
-function of the extraction worklist: the same worklist and budget always produce the same chunks, in
-the same order, with the same ids.
+`Chunker.ts`'s `SizeBoundedChunker` groups the `TranslationWorklist`'s `TranslationUnit[]`
+(`{ nodeId, sourceText }`) into `Chunk[]`, bounded by `DEFAULT_MAX_CHUNK_CHARS` (2500 characters),
+greedily: accumulate units into the current chunk, flush whenever the next unit would exceed the
+budget AND the current chunk is non-empty. A single unit longer than the budget still gets its own,
+over-budget chunk rather than being split across two chunks or dropped — chunking never splits a unit.
 
-Chunks are computed exactly once per session, immediately after extraction, and are treated as fixed
-from that point on — they are not recomputed later, even if the chunking algorithm or default budget
-subsequently changes. A session's chunk boundaries are part of that session's identity, not a value
-re-derived on demand. This is what lets a session be saved and reopened, possibly by a different
-build of Perseus, with identical chunk ids and grouping every time — see
-[Translation Session](./translation-session.md).
+A `Chunk` is just an id plus its `TranslationUnit[]` — there is no separate "rendered wire text"
+artifact stored anywhere. The text actually sent for translation is generated on demand by
+`renderChunkForTranslation`.
 
-## The shared render/parse protocol
+## The segment protocol
 
-Every executor — built-in or manual — turns a chunk into translatable text, and turns a response
-back into translated text, using exactly the same two operations:
+Every chunk is rendered to one string with a fixed structure:
 
-```mermaid
-sequenceDiagram
-    participant Chunk
-    participant Render as renderChunkForTranslation
-    participant Executor as LLM or Human
-    participant Parse as parseChunkTranslation
-    participant Merge
-
-    Chunk->>Render: chunk
-    Render->>Executor: translatable text
-    Executor->>Parse: translated response
-    Parse->>Merge: translated units
+```text
+[[PERSEUS CHUNK chunk-3 a1b2c3d4]]
+[[SEGMENT 1]]
+The ⟪1⟫Sun⟪/1⟫ is a ⟪2⟫star⟪/2⟫.
+[[SEGMENT 2]]
+It has a companion. ⟪*1⟫
 ```
 
-- **`renderChunkForTranslation`** turns a chunk into the exact text a translator sees — the same
-  text whether it becomes a request body sent to a model or text copied to a clipboard for a human
-  to paste elsewhere.
-- **`parseChunkTranslation`** turns a response back into translated units, regardless of whether
-  that response came from a model's API reply or a human's pasted text. It is tolerant of partial or
-  malformed input: units that parse successfully are applied, and units that don't are reported
-  rather than causing the whole chunk to fail. A single dropped marker in a human's paste therefore
-  degrades to "one unit still needs attention," not "this chunk's translation is lost."
+- **`[[PERSEUS CHUNK <id> <fingerprint>]]`** — identifies the chunk and its expected content.
+  `computeChunkFingerprint` is an FNV-1a hash over the chunk id plus every unit's node id and source
+  text. Its entire purpose is to detect the "wrong text pasted back" failure mode: a human translator
+  copying a DIFFERENT chunk's response into this chunk's slot. A fingerprint mismatch is a hard,
+  non-retryable failure (`ChunkIdentityError`) — there is no sensible way to partially recover from
+  translated text that doesn't correspond to the chunk it claims to.
+- **`[[SEGMENT n]]`** — separates each unit's text within the chunk. `n` corresponds to the unit's
+  position in the chunk, not to any external id.
+- **`⟪n⟫` / `⟪/n⟫` / `⟪*n⟫`** — the placeholder tokens described in
+  [Parsing & Parsoid Integration](./parsing-and-parsoid.md#the-placeholder-protocol): open, close, and
+  solo forms. `n` is unique only WITHIN the text node the placeholder originated from, never globally.
 
-Neither function has any awareness of which executor is calling it. That is the entire mechanism
-behind chunk translations being interchangeable regardless of source: a chunk translated by the
-built-in LLM and a chunk translated by a human pasting from an external tool are indistinguishable
-by the time they reach Merge.
+## What a translator is allowed to do, and what must remain untouched
 
-## This protocol is scoped to one chunk at a time, live in the app
+A translator is explicitly allowed to:
 
-`renderChunkForTranslation`/`parseChunkTranslation` are what the chunk workspace itself uses — one
-chunk copied out, one chunk's response pasted back in, or one chunk sent to the built-in LLM and its
-response parsed automatically. They are not the format a whole exported
-[Translation Session](./translation-session.md#two-different-translation-protocols-not-one) file
-uses: a saved session hands a human or an external AI the session's entire `chunks` array as JSON,
-with an accompanying instruction to edit each entry's `text` field in place. That's a deliberately
-simpler, session-scoped protocol — plain JSON tuples, no `[[SEGMENT n]]` markers — because the unit
-being exchanged there is a whole file, not one chunk's worth of text pasted into a chat window. Both
-protocols still terminate at the same place: whatever changed gets merged into the IR through the
-same `Merger`.
+- Translate all plain text.
+- REORDER tokens relative to each other, to match target-language grammar (a wrapped phrase can
+  legitimately move to a different position in a translated sentence).
 
-## Executors
+A translator must NOT:
 
-```mermaid
-flowchart LR
-    C[Chunk] --> R[renderChunkForTranslation]
-    R --> LLM[Built-in LLM executor]
-    R --> Human[Manual paste-back]
-    LLM --> P[parseChunkTranslation]
-    Human --> P
-    P --> M[Merge]
-```
+- Delete, duplicate, split, or merge a token.
+- Change a token's digits, or substitute a look-alike character for them (`tokenSignatures`'s matching
+  regex uses plain ASCII `\d` specifically to reject Persian/Arabic-Indic digit look-alikes, which
+  would otherwise be silently treated as ordinary translated text rather than a corrupted token).
+- Reorder a given id's OWN open token relative to its OWN close token — `markersMatch` enforces
+  per-id open-before-close ordering, but deliberately allows any relative ordering BETWEEN different
+  ids, since natural translation legitimately reorders clauses.
+- Move a `[[PERSEUS CHUNK ...]]` / `[[SEGMENT ...]]` marker, or alter a chunk's identity.
 
-- The **built-in executor** calls a configured [LLM provider](./llm-providers.md) with a chunk's
-  rendered text and parses the response automatically. Running it across every unfinished chunk in
-  order reproduces a full-article translation as a sequence of single-chunk calls, which is what
-  makes it interruptible: it can stop after any chunk and resume later without losing progress.
-- **Manual translation** is not a distinct code path so much as the same `parseChunkTranslation`
-  call invoked on whatever text a human pastes back, from any external AI tool or typed by hand.
+## How merge reconstructs the original structure
 
-Because both executors terminate at the same parse step, a translation session can freely mix them:
-some chunks completed automatically, others by hand, in any order, resumed any number of times, with
-Merge never needing to know the difference.
+`parseChunkTranslation(chunk, responseText)`:
+
+1. Verifies the chunk id and fingerprint match what was sent (`ChunkIdentityError` if not).
+2. Splits the response on `[[SEGMENT n]]` boundaries, back into per-unit text.
+3. For each unit, runs `markersMatch(sourceText, translatedText)` — checking the SET of tokens present
+   matches exactly (same ids, same shapes, same counts, so duplication is caught, not just presence)
+   and that each id's own ordering constraint holds.
+4. A unit that fails `markersMatch` is reported as missing/invalid rather than merged as-is —
+   `Translator.ts` retries a single dropped unit once before giving up on it.
+
+Only a unit that has passed this validation becomes a `TranslatedUnit` that `Merger.merge` will act on
+— see [pipeline-stages.md](./pipeline-stages.md#7-07-merge--merge-mergerts) for what Merge itself does
+with it (`reconstructHtmlFromPlaceholders` for ordinary text nodes, or the registered writer closure
+for template-parameter nodes).
+
+### An important gap in this guarantee
+
+This validation is enforced by the `LLMTranslator` executor's own call into `segmentProtocol.ts` before
+it ever constructs a `TranslatedChunk`. It is NOT enforced uniformly across every path that can reach
+`Merger.merge` — the Wikimedia provider's own translator (`WikimediaTranslator`, see
+[LLM Providers](./llm-providers.md#the-wikimedia-provider)) and a resumed
+[Translation Session](./translation-session.md)'s `applySessionChunk` path both construct
+`TranslatedUnit[]` without running `markersMatch` first. This is a fact about current behavior, not
+something this documentation pass changed or fixed.

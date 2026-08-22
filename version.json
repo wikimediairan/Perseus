@@ -1,0 +1,10 @@
+{
+  "packages": {
+    "@perseus/core": "0.5.0"
+  },
+  "apps": {
+    "perseus-cli": "0.2.0",
+    "perseus-desktop": "0.6.0",
+    "perseus-backend": "0.2.0"
+  }
+}

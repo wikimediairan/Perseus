@@ -1,4 +1,10 @@
+packages:
+  - "apps/*"
+  - "packages/*"
 allowBuilds:
-  esbuild: false
-  simple-git-hooks: true
-  unrs-resolver: false
+  '@parcel/watcher': true
+  esbuild: true
+  nx: false
+  sharp: true
+  simple-git-hooks: false
+  workerd: false

@@ -3,53 +3,63 @@
 
 # Target Wiki
 
-Target Wiki identifies which wiki an article is being translated for, and is the configuration
-boundary described in Architectural Principle
-[§8](./architectural-principles.md#8-target-wiki-is-a-precondition-of-translation-not-a-translation-time-setting):
-it is chosen once, before an article is loaded, not adjusted during translation.
+Every pipeline run needs exactly one destination wiki, decided before translation begins. This
+document covers the configuration boundary that determines what "the target wiki" means for a given
+run, and everything downstream that depends on it.
 
-## Why it must be chosen before loading an article
+## `TargetWikiDefinition`
 
-[Analyze Wikidata Links](./pipeline.md), which runs during the pipeline's automatic phase, resolves
-the article's links against the destination wiki — a step that happens regardless of which
-[translation executor](./chunking-and-translation.md#executors) is later used. A setting that link
-resolution depends on cannot be scoped to only one executor, since link resolution itself has no
-concept of executors at all. Choosing Target Wiki up front, before Load, is what keeps it a single
-input to the whole pipeline rather than a built-in-translator-only preference.
-
-## What depends on it
-
-```mermaid
-flowchart TB
-    T[Target Wiki definition] --> L[Link resolution\nresolves against the destination wiki]
-    T --> P[Prompt construction\nnames the target language]
-    T --> O[Output rendering\ntext direction and script]
+```ts
+interface TargetWikiDefinition {
+  code: TargetWikiCode; // "fa" | "tj"
+  displayName: string;
+  languageName: string;
+  domain: string;
+  draft: string;
+  move: string;
+  direction: "ltr" | "rtl";
+  templateRemovalDenylist: string[];
+  interwikiFallbackTemplate: string | null;
+}
 ```
 
-- **Link resolution** resolves the article's wikilinks against the chosen wiki's own articles,
-  rather than a fixed destination.
-- **Prompt construction** — shared by every use of a configured [LLM provider](./llm-providers.md) —
-  names the target language and wiki rather than assuming a single fixed one.
-- **Output rendering** follows the target wiki's own writing direction and script (for example,
-  right-to-left for one supported wiki, left-to-right for another), independent of whatever language
-  Perseus's own interface happens to be displayed in.
+`config/targetWikis.ts`'s `TARGET_WIKIS` is a static registry of exactly two entries today — `fa`
+(Persian) and `tj` (Tajik). Adding a third target wiki is a data change to this registry, not a code
+change anywhere else: `WikidataLinkResolver`'s constructor takes a `TargetWikiDefinition` and never
+hardcodes `"fa"` anywhere in its own logic, and the same is true of every other stage that depends on
+target-wiki configuration.
 
-Each of these reads the same definition — a code, display name, language name, destination domain,
-and writing direction — rather than each independently assuming a fixed target, which is what keeps
-adding a further supported wiki a matter of adding one definition rather than changing three
-unrelated places.
+## What each field controls
 
-## Locked for the life of a session
+- **`code`** drives the Wikidata sitelink key (`${code}wiki`) Link Resolution queries for — see
+  [Link Resolution](./link-resolution.md).
+- **`direction`** informs presentation-layer rendering; it is not consumed by any Core pipeline stage
+  itself.
+- **`templateRemovalDenylist`** — template names Wikitext Generation strips entirely from the final
+  output (see [pipeline-stages.md](./pipeline-stages.md#9-09-generation--generate-wikitext-wikitextgeneratorts)).
+  Source-language editing-convention markers with no meaning once translated.
+- **`interwikiFallbackTemplate`** — the name of this target wiki's own "link via interwiki"-style
+  fallback template (`"پم"` for Persian — see
+  [fa.wikipedia.org's documentation](https://fa.wikipedia.org/wiki/الگو:پیوند_با_میان‌ویکی)), used
+  whenever a link has no target-wiki equivalent (see
+  [Link Resolution](./link-resolution.md#the-interwiki-fallback)). `null` means this target wiki has no
+  such template configured — an unresolved link is left pointed at the English article, the behavior
+  that predates the interwiki-fallback feature entirely. Currently `null` for Tajik: no verified
+  equivalent template was confirmed at the time this field was introduced, and guessing at an
+  unverified template name was judged worse than falling back to the pre-existing behavior.
 
-Once an article has been loaded, its Target Wiki cannot change for the rest of that session. This
-follows directly from the previous section: link resolution has already run against a specific wiki
-by the time chunking or translation begins, so changing the target afterward would leave
-already-resolved links pointing at the wrong destination while everything translated after the
-change assumed a different one.
+## Where `targetWiki` is, and is not, available
 
-The Target Wiki a session was actually created under is recorded at the moment link resolution runs,
-not re-read from whatever the current configuration says later. This is what keeps a
-[Translation Session](./translation-session.md)'s recorded target wiki accurate even if the user
-changes the configured default before saving or reopening that session — and, on reopen, link
-resolution is re-run against that recorded target wiki rather than the app's current default (see
-[Pipeline](./pipeline.md#two-ways-to-enter-the-pipeline)).
+Not every stage receives `targetWiki` — this matters because it determines WHERE a target-wiki-
+dependent decision can actually be implemented:
+
+| Stage / call                | Receives `targetWiki`? |
+| ----------------------------- | ------------------------ |
+| `WikidataLinkResolver` (constructor) | Yes                       |
+| `Merger.merge`                          | No                        |
+| `WikitextGenerator.generate`              | Yes                       |
+
+This is exactly why the interwiki fallback for ORDINARY body links is constructed at generation time
+rather than merge time, and why the fallback for TEMPLATE-PARAMETER links is instead pre-decided
+(template name chosen) by the link resolver itself and only the LABEL substitution deferred to merge
+time — see [Link Resolution](./link-resolution.md#the-interwiki-fallback) for the full reasoning.

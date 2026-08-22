@@ -1,18 +1,45 @@
-# Node
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
+build/
+out/
 
-# Tauri / Rust
-src-tauri/target/
-src-tauri/Cargo.lock
-src-tauri/gen/
+# Test / coverage
+coverage/
 
-# Editor / OS
-.DS_Store
-.vscode/*
-!.vscode/extensions.json
-*.local
-
-# runtime credentials
+# Environment
 .env
-.env.local
+.dev.vars
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Framework specific
+.next/
+
+# Tauri
+**/src-tauri/target
+**/src-tauri/gen
+
+# Temporary
+.tmp/
+.temp/
+
+# Nx
+.nx/
+
+.wrangler
+apps/backend/public/static/app.css

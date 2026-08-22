@@ -3,101 +3,77 @@
 
 # LLM Providers
 
-Perseus supports two categorically different kinds of translation provider. This document covers
-both, and — deliberately — treats them as separate concepts rather than variations on one interface.
+Translation is executed by whichever `Translator` implementation `createPipeline` wires up for the
+configured provider (Architectural Principle 10). This document covers both implementations that
+exist today, and corrects a significant gap in earlier documentation: the Wikimedia provider is fully
+wired into the pipeline, not a stub.
 
-## Two provider families, not one
+## The `Translator` interface
 
-```mermaid
-flowchart TB
-    Exec[Built-in LLM executor] --> TIFace[Text provider interface]
-    TIFace --> P1[Anthropic]
-    TIFace --> P2[OpenAI]
-    TIFace --> P3[OpenRouter]
-    TIFace --> P4[Gemini]
-    TIFace --> P5[Ollama]
-    TIFace --> P6[LM Studio]
-
-    WIFace[Wikimedia provider contract] --> WP[Wikimedia backend]
+```ts
+interface Translator {
+  translateChunk(chunk: Chunk, targetWiki: TargetWikiDefinition): Promise<TranslatedChunk>;
+}
 ```
 
-- **Text providers** — Anthropic, OpenAI, OpenRouter, Gemini, Ollama, and LM Studio — all implement the same
-  narrow request/response contract described below, and are the only providers the built-in
-  translation executor ([Chunking and Translation](./chunking-and-translation.md#executors)) actually
-  drives.
-- **The Wikimedia provider** implements a completely different contract, described in its own
-  section below. **It is not a sixth interchangeable text provider**, and should not be reasoned
-  about as one: it operates on whole Wikipedia revisions and chunk batches, not on one rendered
-  request at a time, and it is not wired into the built-in pipeline today — selecting it as the
-  active provider fails with a clear configuration error rather than silently behaving like a text
-  provider. Keeping it a distinct contract, rather than forcing it to conform to the text interface,
-  is what keeps the text-provider abstraction narrow enough to stay easy to add a sixth *text*
-  provider to.
+The pipeline depends on exactly this interface, never on a concrete provider. `createPipeline.ts`
+chooses which implementation to construct based on the configured provider kind:
 
-## The text provider interface
-
-```mermaid
-flowchart TB
-    Exec[Built-in executor] --> IFace[Text provider interface]
-    IFace --> P1[Provider A]
-    IFace --> P2[Provider B]
-    IFace --> P3[Provider C]
+```ts
+isWikimediaProvider(provider)
+  ? new WikimediaTranslator(provider.sessionToken)
+  : new LLMTranslator(createProvider(provider));
 ```
 
-A text provider's role is narrow by design: given a chunk's rendered translation request, return a
-response. It has no awareness of chunks, sessions, or the pipeline — those concepts belong to
-[Chunking and Translation](./chunking-and-translation.md), which calls a configured provider only at
-the point where a rendered request needs to become a raw response. This narrowness is what allows
-Perseus to support several text providers side by side: each one only has to satisfy the same small
-request/response contract, not reimplement any part of the translation flow itself.
+## `LLMTranslator` — the generic text-completion path
 
-### Relationship to the shared translation protocol
+For any provider that isn't Wikimedia's own backend, `LLMTranslator` wraps an `LLMProvider`
+(`translate(request): Promise<LLMResponse>`, a plain chat-completion-shaped call) and drives it
+through the [segment protocol](./chunking-and-translation.md#the-segment-protocol):
+`renderChunkForTranslation` builds the wire text, the provider's raw text response is parsed by
+`parseChunkTranslation`, and every unit is validated with `markersMatch` before being merged. A single
+unit the model dropped is retried once before being given up on.
 
-The text provider interface sits entirely inside the built-in executor described in
-[Chunking and Translation](./chunking-and-translation.md#executors). A provider is never handed a
-raw chunk and never sees `renderChunkForTranslation` or `parseChunkTranslation`'s internals — it
-receives already-rendered text and returns raw text, which the executor then parses using the same
-function a human paste-back would use. Swapping text providers therefore changes nothing about how a
-chunk is rendered, parsed, or merged; it only changes which service produced the response. This is
-the model-layer expression of Architectural Principle
-[§5](./architectural-principles.md#5-any-translator-can-produce-a-chunks-translation-and-none-of-them-are-privileged):
-a configured provider is one substitutable translator among others, including the human manually
-pasting from an entirely different, unconfigured AI tool.
+`ProviderFactory.createProvider(config)` currently supports two concrete `LLMProvider`
+implementations, both speaking the same OpenAI-compatible chat-completion shape
+(`chatProtocol.ts`'s `chatCompletion`):
 
-### Prompt construction
+- **`OpenRouterProvider`** — OpenRouter's hosted API.
+- **`NineRouterProvider`** — a self-hosted OpenRouter-compatible gateway, for deployments that need
+  their own routing/rate-limiting layer in front of the same protocol.
 
-The instructions accompanying a translation request are built once, from the article's configured
-[Target Wiki](./target-wiki.md), rather than being hard-coded per provider or reconstructed per
-chunk. The same constructed prompt is used whether it is sent automatically as part of a built-in
-provider call or copied once for a human to paste into an external tool themselves — prompt
-construction does not distinguish between the two, for the same reason nothing else in the
-translation flow does.
+`PromptManager.ts` owns the system prompt that establishes the placeholder-token rules translators
+must follow (see [Chunking & Translation](./chunking-and-translation.md#what-a-translator-is-allowed-to-do-and-what-must-remain-untouched)) —
+this is the entire mechanism by which token-preservation behavior is requested from a model; there is
+no other enforcement on the request side, only validation on the response side.
 
 ## The Wikimedia provider
 
-The Wikimedia provider talks to a Perseus-operated backend service rather than a general-purpose
-model API. Its request identifies a whole article revision — source wiki, page id, and revision id —
-plus a specific chunk of that revision (or `"all"`), and its response reports translation outcomes
-across the whole document at once: translated units grouped by chunk, chunks that failed at the
-provider, and chunks skipped because a quota was exhausted. None of that has an equivalent in the
-text provider contract above, which only ever sees one rendered request and returns one raw response.
+`wikimedia-provider/` is a second, complete `Translator` implementation, for Perseus's own
+Cloudflare-Workers-hosted backend rather than a generic chat-completion API. This is a real,
+selectable, fully wired-in path today — choosing it does not fail with a configuration error.
 
-This shape is why the Wikimedia provider is not treated as a text provider with a different backend:
-a text provider's contract has no concept of "this chunk succeeded but that one didn't" or "resume
-translating this specific chunk of this specific revision" — those are the Wikimedia backend's own
-concerns, not something the shared chunk-render/parse protocol was built to express. Selecting
-Wikimedia as the active provider is accepted by configuration, but constructing a runnable pipeline
-from it currently fails deliberately, with an explicit configuration error, rather than attempting to
-drive it through the text-provider executor and producing subtly wrong behavior.
+- **`WikimediaProvider.translate(request)`** posts a whole-chunk translation request and returns the
+  backend's raw response.
+- **`WikimediaTranslator.translateChunk(chunk, targetWiki)`** adapts the pipeline's `Chunk`/`TranslatedChunk`
+  shapes to the Wikimedia backend's own contract (`wikimedia-provider/contract.ts`) — this backend
+  speaks in terms of the WHOLE chunk's structure directly, not the `[[PERSEUS CHUNK ...]]`/`⟪n⟫` wire
+  text `LLMTranslator` builds; there is no shared request format between the two `Translator`
+  implementations.
+- **`quota.ts`** tracks the backend's own usage/quota accounting, specific to this provider.
 
-### What is and isn't documented here
+### A gap worth being explicit about
 
-The Wikimedia provider's client-side contract — the shape of the request it sends and the response it
-expects — is implemented in Perseus and is accurately described above. The backend service that
-receives that request is reached at a fixed HTTPS endpoint on a `workers.dev` domain, which places it
-on Cloudflare Workers; beyond that hosting detail, its own internal implementation (routing framework,
-request handling, whether or how it uses Hono, its own architecture) is not part of this repository
-and is not verifiable from the client code alone. This document does not claim to describe that
-service's architecture. Anyone extending Wikimedia support should treat the backend as an external
-dependency with a known request/response contract, not assume anything about how it is built beyond
-that contract.
+Unlike `LLMTranslator`, `WikimediaTranslator` does not run `markersMatch` validation on the backend's
+response before constructing a `TranslatedChunk` — see
+[Chunking & Translation](./chunking-and-translation.md#an-important-gap-in-this-guarantee). This is a
+fact about current behavior, recorded here rather than fixed, per this documentation pass's own
+constraint against changing runtime behavior.
+
+## Switching providers mid-session
+
+Because both implementations satisfy the same `Translator` interface, and a
+[Translation Session](./translation-session.md) persists chunk/text state rather than which provider
+produced it, a session started under one provider can, in principle, be resumed under a different one
+— the pipeline has no dependency on provider identity beyond the single `translateChunk` call at the
+point translation actually happens.

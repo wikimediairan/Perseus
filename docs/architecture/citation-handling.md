@@ -3,88 +3,94 @@
 
 # Citation Handling
 
-Citation handling preserves a citation's original markup exactly, rather than translating and
-reconstructing it. It is the concrete application of Architectural Principle
-[§7](./architectural-principles.md#7-content-that-must-round-trip-exactly-is-kept-opaque-not-reconstructed):
-citations carry structure that cannot be safely regenerated, so the architecture guarantees their
-fidelity by never disturbing them at all.
+Citations are the one subsystem in Perseus that is deliberately, entirely opaque to translation. This
+document explains the data model and the trust rule that governs it (Architectural Principle 4).
 
-## Why citations are treated differently from ordinary text
+## What Perseus does and does not do with a citation
 
-A citation's real content — its template call, parameters, and exact original shape — lives in
-metadata attached to it, not in the text a reader sees. The only component that knows how to turn
-that metadata back into correct Wikitext is the same external serializer
-[Generate Wikitext](./pipeline.md) already calls for the rest of the document. Perseus does not
-attempt to reconstruct citation syntax itself; it only has to ensure that metadata is never touched
-between parsing and generation.
+Perseus preserves citation STRUCTURE — which references share a name, which is the defining
+occurrence, group membership — without altering citation CONTENT. A citation's own bibliographic
+markup is never translated, and Perseus never converts between citation styles (`sfn`, `harv`,
+`cite`-template, plain text, or anything else a source article might use).
 
-## Registry
+## `<ref>` in Parsoid HTML
 
-Citations are represented in the [Intermediate Representation](./intermediate-representation.md) as
-a registry of two occurrence kinds, alongside `textNodes` and `links`:
+`<ref>...</ref>` (a defining occurrence) and `<ref name="x"/>` (a reuse of an existing name) both
+become elements whose `typeof` starts with `mw:Extension/ref`. The rendered reference list
+(`{{reflist}}` / `<references/>`) becomes `mw:Extension/references` — the SAME prefix match
+(`typeof.startsWith("mw:Extension/ref")`) deliberately covers both an individual marker and the
+rendered list with one check.
 
-- **A definition** — where a citation's real content lives. There is exactly one per uniquely named
-  citation.
-- **A reference** — every place a citation is invoked, including the defining occurrence itself and
-  every subsequent reuse.
+A citation's VISIBLE call-site content is almost always just an auto-numbered `[1]` — the actual
+bibliographic content lives in `data-mw.body.html`, which is why classification and registry-building
+read `body.html`, not the element's own child DOM.
 
-```mermaid
-flowchart LR
-    Def[Citation definition] -- referencedBy --> Ref1[Reference: defining occurrence]
-    Def -- referencedBy --> Ref2[Reference: reuse]
-    Def -- referencedBy --> Ref3[Reference: reuse]
+## `CitationRegistry`
+
+```ts
+type CitationId = string; // "cite-1", "cite-2", ...
+type CitationStyle = "sfn" | "harv" | "unknown" | "plain-text" | "cite-template";
+
+interface CitationDefinition {
+  id: CitationId;
+  name: null | string;
+  group: null | string;
+  style: CitationStyle;
+  dir: null | "ltr" | "rtl";
+  element: null | Element;
+  snapshotHtml: string;
+  referencedBy: CitationId[];
+  translatableParameters: CitationParameterRef[]; // currently always empty
+}
+
+interface CitationReference {
+  id: CitationId;
+  name: null | string;
+  group: null | string;
+  isDefining: boolean;
+  definitionId: null | CitationId;
+  element: null | Element;
+  snapshotHtml: string;
+}
 ```
 
-The registry is built during Parse, in two passes, specifically so that resolution does not depend
-on document order: a reuse can legally appear before the definition it points to, so definitions are
-registered first, in a complete first pass, before any reference is resolved against them in a
-second. This makes "this reference is unresolved" a statement about the article's actual content,
-never an artifact of where something happened to appear.
+`translatableParameters` is a reserved, currently unpopulated field — nothing in the pipeline sets it.
+This means citation body text (an author name, a title inside a `{{cite web}}` call) is not translated
+today, even though the data model has a stub for eventually doing so via the ordinary
+Extract/Translate/Merge path.
 
-Anomalies the registry encounters — an unresolvable reference, a definition nothing points to, a
-citation whose metadata could not be read — are recorded as warnings rather than treated as
-failures, consistent with Architectural Principle
-[§2](./architectural-principles.md#2-perseus-produces-drafts-humans-decide-what-is-true): the
-pipeline surfaces the anomaly for review rather than deciding on the article's behalf that
-translation cannot proceed.
+## The rule: a snapshot, once taken, is authoritative — never re-derived
 
-## Protected content
+`getReferenceHtml` / `getDefinitionHtml` always return `snapshotHtml`, captured once at parse time,
+NEVER a live re-read of `element.outerHTML`. If a live element is passed in for comparison and its
+current content disagrees with the snapshot, the SNAPSHOT wins, and a `html-drift` warning is logged.
+This is a deliberate trust boundary: nothing downstream of parsing is trusted to have kept a citation's
+DOM representation faithful, so the registry protects citations from any accidental mutation elsewhere
+in the pipeline by simply never looking at the live DOM for their content again.
 
-Citation subtrees are excluded from both of the pipeline stages that would otherwise select or
-mutate them:
+## Building the registry: two passes, and why
 
-```mermaid
-flowchart TB
-    IR[Intermediate Representation] --> Extract[Extract Content]
-    IR --> Resolve[Analyze Wikidata Links]
-    Extract -.excludes.-> Cit[Citation subtrees]
-    Resolve -.excludes.-> Cit
-    Cit --> Generate[Generate Wikitext]
-```
+`buildCitationRegistry` runs in two passes specifically to avoid a document-order dependency. A bare
+reuse (`<ref name="x"/>`) can legitimately appear BEFORE its defining occurrence
+(`<ref name="x">body</ref>`) in document order — MediaWiki's Cite extension does not require
+definition-before-use. Pass one registers every DEFINING occurrence (has a `body`) as both a
+`CitationDefinition` and its own `CitationReference` (a defining `<ref>` is also a call site itself).
+Pass two registers every non-defining occurrence, resolved by name against pass one's definitions.
+Collapsing this into a single pass would make "missing definition" detection dependent on DOM order —
+a subtle regression this two-pass structure exists specifically to avoid.
 
-- **Extraction** never selects a citation definition as translatable content, so its text is never
-  sent to a translator and never overwritten.
-- **Link resolution** never resolves links that happen to appear inside a citation (for example, an
-  author's wikilink inside a citation template). This is a deliberate scope decision: preserving a
-  citation intact is a correctness requirement, while localizing a link inside one is a nice-to-have
-  that can be added later without changing this design.
+## Diagnostics
 
-Within an ordinary paragraph that mixes translatable prose with an inline citation marker, the
-marker itself is represented as a single, non-recursive token during translation — nothing inside it
-is ever visible to a translator — and is restored using its own original markup, verbatim, once
-translation is complete. This is what allows a paragraph to be translated normally while the
-citation marker sitting inside it survives untouched.
+`CitationRegistry.warnings` is the one structured diagnostic channel for this subsystem, covering six
+kinds: `html-drift`, `orphan-definition`, `malformed-reference`, `duplicate-definition`,
+`unsupported-structure`, `missing-named-definition`. `flushWarningsTo(logger)` is idempotent (tracks
+how many warnings it has already logged), so it can safely be called from more than one point in the
+pipeline's lifetime without duplicating log output.
 
-## Why no new reconstruction logic is needed
+## Interaction with the rest of the pipeline
 
-Because citation content is never selected for translation and never rewritten, merging and Wikitext
-generation require no citation-specific logic at all: merging writes translated text only into nodes
-it is given, and generation serializes the whole document — citations included — through the same
-transform used for everything else. Citation fidelity is a consequence of citations never entering
-the parts of the pipeline that change content, not of any dedicated reconstruction step.
-
-This is also why citation-internal translation — translating a human-readable field like a title
-inside a citation — is treated as out of scope by design rather than as a missing feature: doing so
-safely would mean writing translated text back into that same metadata precisely enough not to break
-the serializer's round trip, which is exactly the kind of fragile, narrowly-correct reconstruction
-this architecture otherwise avoids entirely.
+Because citation content is fully opaque, no other stage needs to know anything about citation
+internals beyond recognizing a citation MARKER as something to exclude from translatable text (see
+[Parsing & Parsoid Integration](./parsing-and-parsoid.md#the-placeholder-protocol) — a citation marker
+is a solo placeholder, resolved via the registry, never recursed into) and never re-deriving its
+content from a live DOM read.

@@ -1,0 +1,26 @@
+name = "perseus-backend"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "perseus-db"
+database_id = "001e6bf7-c22d-4ced-9303-0b3dd1737c3e"
+migrations_dir = "migrations"
+
+# Static assets (Tailwind CSS output, future images) served directly by
+# the Cloudflare Workers platform -- requests to /static/* never reach the
+# Worker's fetch handler at all. See src/styles/app.css / docs/frontend-rendering.md.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[vars]
+DEFAULT_WEEKLY_COST_LIMIT = "0.16"
+# Public base URL Perseus is reachable at; used to build OAuth redirect URIs.
+PUBLIC_BASE_URL = "https://perseus-backend.alireza3205.workers.dev"
+
+# Weekly credit-engine evaluation: every Monday at 04:00 UTC.
+[triggers]
+crons = ["0 4 * * 1"]
