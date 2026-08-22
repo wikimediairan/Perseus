@@ -41,8 +41,7 @@
 * امکان ترجمه با LLM انتخابی شما را فراهم می‌کند و همچنین می‌توانید متن را به‌صورت دستی ترجمه کنید.
 
 ## دانلود
-
-[دانلود پرسیوس](!-- DOWNLOAD LINK --)
+[Download Perseus](https://github.com/wikimediairan/Perseus/releases)
 
 ## کلید API
 برای استفاده از پرسیوس می‌توانید از کلید API ویکی‌مدیا که توسط Wikimedia Iran در اختیار کاربران قرار گرفته است استفاده کنید. اگر ترجیح می‌دهید از کلید API اختصاصی خودتان استفاده کنید، می‌توانید با ورود به حساب کاربری ویکی‌مدیای خود، آن را از [perseus-backend.alireza3205.workers.dev](https://perseus-backend.alireza3205.workers.dev) دریافت کنید.
