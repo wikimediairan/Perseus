@@ -34,7 +34,7 @@ Perseus is a Computer-Assisted Translation tool for Wikipedia. It helps you tran
 * Supports translation through an AI provider of your choice, or lets you work through the text yourself.
 
 ## Download
-[Download Perseus](!-- DOWNLOAD LINK --)
+[Download Perseus](https://github.com/wikimediairan/Perseus/releases)
 
 ## API Key
 To use Perseus, you can use the Wikimedia API key provided by Wikimedia Iran. If you prefer to use your own dedicated API key, you can obtain one at [perseus-backend.alireza3205.workers.dev](https://perseus-backend.alireza3205.workers.dev) by signing in with your Wikimedia account.
