@@ -16,9 +16,6 @@
   <img src="assets/logo.png" alt="لوگوی پرسیوس" width="200">
 </p>
 
-[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
-
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
