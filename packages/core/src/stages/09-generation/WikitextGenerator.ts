@@ -77,6 +77,12 @@ export class WikipediaWikitextGenerator implements WikitextGenerator {
       );
     }
 
-    return (await response.text()).trim();
+    const wikitext = (await response.text()).trim();
+
+    if (targetWiki?.translationDisclosureTemplate) {
+      return `${targetWiki.translationDisclosureTemplate}\n${wikitext}`;
+    }
+
+    return wikitext;
   }
 }

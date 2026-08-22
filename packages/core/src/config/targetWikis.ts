@@ -22,6 +22,7 @@ export interface TargetWikiDefinition {
   move: string;
   direction: "ltr" | "rtl";
   templateRemovalDenylist: string[];
+  translationDisclosureTemplate: string | null;
   interwikiFallbackTemplate: string | null;
 }
 
@@ -37,6 +38,7 @@ export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
     direction: "rtl",
     templateRemovalDenylist: COMMON_TEMPLATE_REMOVAL_DENYLIST,
     interwikiFallbackTemplate: "پم",
+    translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
   },
   tj: {
     code: "tj",
@@ -48,8 +50,8 @@ export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
     move: "Википедиа:Дархости_интиқол",
     direction: "ltr",
     templateRemovalDenylist: COMMON_TEMPLATE_REMOVAL_DENYLIST,
-
     interwikiFallbackTemplate: null,
+    translationDisclosureTemplate: null,
   },
 };
 

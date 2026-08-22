@@ -20,6 +20,7 @@ const FA_TARGET_WIKI: TargetWikiDefinition = {
   direction: "rtl",
   templateRemovalDenylist: [],
   interwikiFallbackTemplate: "پم",
+  translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
 };
 
 const TJ_TARGET_WIKI: TargetWikiDefinition = {
@@ -27,6 +28,7 @@ const TJ_TARGET_WIKI: TargetWikiDefinition = {
   code: "tj",
   displayName: "Tajik Wikipedia",
   interwikiFallbackTemplate: null,
+  translationDisclosureTemplate: null,
 };
 
 /** Builds an IR + live root, then applies a WikidataLinkResolver-shaped resolution outcome directly (unit-testing applyInterwikiFallbackLinks in isolation, without a real network call). */
@@ -275,7 +277,9 @@ describe("WikitextGenerator — interwiki fallback integration", () => {
     // through untouched -- Core does not post-process serialized
     // wikitext with string replacement (see the task constraints this
     // fix was built under).
-    expect(result).toBe("See {{پم|label|Some_Obscure_Topic}}.");
+    expect(result).toBe(
+      "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\nSee {{پم|label|Some_Obscure_Topic}}.",
+    );
     expect(result).not.toContain("<nowiki>");
   });
 
@@ -344,6 +348,84 @@ describe("WikitextGenerator — interwiki fallback integration", () => {
 
     expect(sentBody.html).toContain('rel="mw:WikiLink"');
     expect(sentBody.html).not.toContain("mw:Transclusion");
-    expect(result).toBe("[[خورشید]] یک ستاره است.");
+    expect(result).toBe(
+      "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n[[خورشید]] یک ستاره است.",
+    );
+  });
+});
+
+describe("WikitextGenerator — translation disclosure template", () => {
+  it("prepends the disclosure template at the very top of the final wikitext for Persian (fa)", async () => {
+    const html = `<p>Hello.</p>`;
+    const ir = buildIRFromParsoidHtml(html, "Test");
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => "سلام.",
+    })) as unknown as ReturnType<typeof vi.fn>;
+    vi.stubGlobal("fetch", fetchMock);
+
+    const generator = new WikipediaWikitextGenerator();
+    const result = await generator.generate(ir, FA_TARGET_WIKI);
+
+    expect(result).toBe("{{ترجمه با کمک مدل‌های بزرگ زبانی}}\nسلام.");
+    expect(result.startsWith("{{ترجمه با کمک مدل‌های بزرگ زبانی}}")).toBe(true);
+  });
+
+  it("does NOT prepend anything for Tajik (tj)", async () => {
+    const html = `<p>Hello.</p>`;
+    const ir = buildIRFromParsoidHtml(html, "Test");
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => "Салом.",
+    })) as unknown as ReturnType<typeof vi.fn>;
+    vi.stubGlobal("fetch", fetchMock);
+
+    const generator = new WikipediaWikitextGenerator();
+    const result = await generator.generate(ir, TJ_TARGET_WIKI);
+
+    expect(result).toBe("Салом.");
+    expect(result).not.toContain("ترجمه با کمک مدل‌های بزرگ زبانی");
+  });
+
+  it("does not prepend anything when targetWiki is omitted (regression guard)", async () => {
+    const html = `<p>Hello.</p>`;
+    const ir = buildIRFromParsoidHtml(html, "Test");
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => "Hello.",
+    })) as unknown as ReturnType<typeof vi.fn>;
+    vi.stubGlobal("fetch", fetchMock);
+
+    const generator = new WikipediaWikitextGenerator();
+    const result = await generator.generate(ir);
+
+    expect(result).toBe("Hello.");
+  });
+
+  it("prepends exactly once, with a single newline separating it from the rest of the article", async () => {
+    const html = `<p>Hello.</p>`;
+    const ir = buildIRFromParsoidHtml(html, "Test");
+
+    const fetchMock = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      text: async () => "خط اول.\nخط دوم.",
+    })) as unknown as ReturnType<typeof vi.fn>;
+    vi.stubGlobal("fetch", fetchMock);
+
+    const generator = new WikipediaWikitextGenerator();
+    const result = await generator.generate(ir, FA_TARGET_WIKI);
+
+    const lines = result.split("\n");
+    expect(lines[0]).toBe("{{ترجمه با کمک مدل‌های بزرگ زبانی}}");
+    expect(lines[1]).toBe("خط اول.");
+    expect(lines[2]).toBe("خط دوم.");
+    expect(result.split("ترجمه با کمک مدل‌های بزرگ زبانی").length - 1).toBe(1);
   });
 });

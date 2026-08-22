@@ -131,6 +131,7 @@ const TARGET_WIKI = {
   direction: "rtl" as const,
   templateRemovalDenylist: [],
   interwikiFallbackTemplate: "پم",
+  translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
 };
 
 describe("WikidataLinkResolver — Wikimedia User-Agent", () => {
