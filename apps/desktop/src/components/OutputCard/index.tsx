@@ -62,7 +62,7 @@ export function OutputCard({
             }}
             type="button"
           >
-            {t("outputCard.moveLinkText")}
+            {t("outputCard.createLinkText")}
           </button>
 
           {targetWiki === "fa" && (

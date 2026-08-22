@@ -66,6 +66,7 @@
   },
   "outputCard": {
     "title": "Викиматни {{wiki}}",
+    "createLinkText": "Эҷоди саҳифа",
     "draftLinkText": "Эҷоди лоиҳа",
     "moveLinkText": "Дархости интиқоли лоиҳа",
     "copyButton": "Нусхабардории викиматн",

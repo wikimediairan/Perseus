@@ -66,6 +66,7 @@
   },
   "outputCard": {
     "title": "ویکی‌متن {{wiki}}",
+    "createLinkText": "ایجاد صفحه",
     "draftLinkText": "ایجاد پیش‌نویس",
     "moveLinkText": "درخواست انتقال پیش‌نویس",
     "copyButton": "کپی ویکی‌متن",

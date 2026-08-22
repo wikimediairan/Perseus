@@ -66,6 +66,7 @@
   },
   "outputCard": {
     "title": "{{wiki}} Wikitext",
+    "createLinkText": "Create page",
     "draftLinkText": "Create draft",
     "moveLinkText": "Request draft move",
     "copyButton": "Copy Wikitext",
