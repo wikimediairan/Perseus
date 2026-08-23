@@ -15,12 +15,14 @@ const FA_TARGET_WIKI: TargetWikiDefinition = {
   displayName: "Persian Wikipedia",
   languageName: "Persian",
   domain: "fa.wikipedia.org",
+  create: "",
   draft: "",
   move: "",
   direction: "rtl",
   templateRemovalDenylist: [],
   interwikiFallbackTemplate: "پم",
   translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
+  sectionLocalization: null,
 };
 
 const TJ_TARGET_WIKI: TargetWikiDefinition = {

@@ -3,6 +3,7 @@ import type { TargetWikiDefinition } from "../../config/targetWikis";
 import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
 import { PerseusError } from "../../platform/errors/PerseusError";
 import { applyInterwikiFallbackLinks } from "./interwikiFallback";
+import { localizeReferenceSections } from "./sectionLocalization";
 import { removeDenylistedTemplates } from "./templateRemoval";
 
 export interface WikitextGenerator {
@@ -31,6 +32,8 @@ export class WikipediaWikitextGenerator implements WikitextGenerator {
 
     if (targetWiki) {
       removeDenylistedTemplates(root, targetWiki.templateRemovalDenylist);
+
+      localizeReferenceSections(root, targetWiki.sectionLocalization);
 
       applyInterwikiFallbackLinks(root, ir, targetWiki);
     }

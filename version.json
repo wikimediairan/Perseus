@@ -1,6 +1,6 @@
 {
   "packages": {
-    "@perseus/core": "0.5.0"
+    "@perseus/core": "0.7.0"
   },
   "apps": {
     "perseus-cli": "0.2.0",

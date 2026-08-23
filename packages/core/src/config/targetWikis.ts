@@ -12,6 +12,17 @@ const COMMON_TEMPLATE_REMOVAL_DENYLIST = [
   "Redirect",
 ];
 
+export interface SectionLocalizationConfig {
+  /** Localized `== Notes ==` heading text. */
+  notesHeading: string;
+  /** Localized `== References ==` heading text. */
+  referencesHeading: string;
+  /** Localized name for a `{{reflist}}`-family template found in a Notes/References section. */
+  reflistTemplateName: string;
+  /** Extra named parameters merged onto the reflist template specifically within a References section. */
+  referencesTemplateParams: Record<string, string>;
+}
+
 export interface TargetWikiDefinition {
   code: TargetWikiCode;
   displayName: string;
@@ -24,6 +35,13 @@ export interface TargetWikiDefinition {
   templateRemovalDenylist: string[];
   translationDisclosureTemplate: string | null;
   interwikiFallbackTemplate: string | null;
+  /**
+   * Localized strings for the Notes/References sections. `null` means this
+   * target wiki has no confirmed localization yet — the section is left
+   * exactly as authored in English, the pre-existing behavior. Mirrors the
+   * `interwikiFallbackTemplate: null` convention above.
+   */
+  sectionLocalization: SectionLocalizationConfig | null;
 }
 
 export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
@@ -39,6 +57,12 @@ export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
     templateRemovalDenylist: COMMON_TEMPLATE_REMOVAL_DENYLIST,
     interwikiFallbackTemplate: "پم",
     translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
+    sectionLocalization: {
+      notesHeading: "پانویس",
+      referencesHeading: "منابع",
+      reflistTemplateName: "پانویس",
+      referencesTemplateParams: { چپ‌چین: "بله" },
+    },
   },
   tj: {
     code: "tj",
@@ -52,6 +76,10 @@ export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
     templateRemovalDenylist: COMMON_TEMPLATE_REMOVAL_DENYLIST,
     interwikiFallbackTemplate: null,
     translationDisclosureTemplate: null,
+    // No verified Tajik equivalents for these strings have been confirmed
+    // yet; adding them later is just populating this field (see
+    // SectionLocalizationConfig).
+    sectionLocalization: null,
   },
 };
 

@@ -126,12 +126,14 @@ const TARGET_WIKI = {
   displayName: "Persian Wikipedia",
   languageName: "Persian",
   domain: "fa.wikipedia.org",
+  create: "",
   draft: "",
   move: "",
   direction: "rtl" as const,
   templateRemovalDenylist: [],
   interwikiFallbackTemplate: "پم",
   translationDisclosureTemplate: "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
+  sectionLocalization: null,
 };
 
 describe("WikidataLinkResolver — Wikimedia User-Agent", () => {
