@@ -10,28 +10,15 @@
 
 </div>
 
-<div align="center">
-
 <p align="center">
   <img src="assets/logo.png" alt="لوگوی پرسیوس" width="200">
 </p>
-
-[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
-
-</div>
 
 <div dir="rtl">
 
 # پرسیوس
 
-پرسیوس یک ابزار کمک-ترجمه برای ویکی‌پدیا است. این ابزار به شما کمک می‌کند مقاله‌های ویکی‌پدیای انگلیسی را به **فارسی یا تاجیکی** ترجمه و برای انتشار در ویکی‌پدیای فارسی یا تاجیکی آماده کنید. پرسیوس بخش‌های وقت‌گیر و مستعد خطا، مانند پیوندها، یادکردها، الگوها و قالب‌بندی را مدیریت می‌کند تا شما بتوانید روی ویراستاری نهایی و بررسی منابع تمرکز کنید.
+پرسیوس یک ابزار کمک-ترجمه برای ویکی‌پدیا است. این ابزار به شما کمک می‌کند مقاله‌های ویکی‌پدیای انگلیسی را به فارسی یا تاجیکی ترجمه و برای انتشار در ویکی‌پدیای فارسی یا تاجیکی آماده کنید. پرسیوس بخش‌های وقت‌گیر و مستعد خطا، مانند پیوندها، یادکردها، الگوها و قالب‌بندی را مدیریت می‌کند تا شما بتوانید روی ویراستاری نهایی و بررسی منابع تمرکز کنید.
 
 <p align="center">
   <a href="https://github.com/wikimediairan/Perseus/releases">

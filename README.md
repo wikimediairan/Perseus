@@ -7,25 +7,12 @@
 
 </div>
 
-<div align="center">
-
 <p align="center">
   <img src="assets/logo.png" alt="Perseus Logo" width="200">
 </p>
 
-[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
-
-</div>
-
 # Perseus
-Perseus is a Computer-Assisted Translation tool for Wikipedia. It helps you translate English Wikipedia articles into **Persian or Tajik**, preparing them for publication on Persian or Tajik Wikipedia while taking care of the tedious, error-prone parts — links, citations, templates, and formatting — so you can focus on producing an accurate, natural translation.
+Perseus is a translation-assistance tool for Wikipedia. It helps you translate English Wikipedia articles into Persian or Tajik and prepare them for publication on Persian or Tajik Wikipedia. Perseus handles time-consuming and error-prone tasks such as links, citations, templates, and formatting, so you can focus on final editing and checking sources.
 
 <p align="center">
   <a href="https://github.com/wikimediairan/Perseus/releases">

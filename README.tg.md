@@ -10,25 +10,12 @@
 
 </div>
 
-<div align="center">
-
 <p align="center">
   <img src="assets/logo.png" alt="Perseus Logo" width="200">
 </p>
 
-[![Release](https://img.shields.io/github/v/release/wikimediairan/Perseus?display_name=tag)](https://github.com/wikimediairan/Perseus/releases)
-[![License](https://img.shields.io/github/license/wikimediairan/Perseus)](LICENSE)
-
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![Tauri](https://img.shields.io/badge/Tauri-fcbe03?logo=tauri&logoColor=white)](https://v2.tauri.app/)
-[![Vitest](https://img.shields.io/badge/Vitest-6E9F18?logo=vitest&logoColor=white)](https://vitest.dev/)
-[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
-
-</div>
-
 # Perseus
-Perseus як абзори тарҷумаи компютерӣ барои Википедия мебошад. Он ба шумо имкон медиҳад, ки мақолаҳои Википедияи англисиро ба **тоҷикӣ ё форсӣ** тарҷума карда, онҳоро барои нашр дар Википедияи тоҷикӣ ё форсӣ омода намоед. Perseus корҳои душвор ва хатоёби ҳамешагӣ — аз қабили кор бо пайвандҳо, иқтибосҳо, қолабҳо ва сохтори матн —ро ба уҳда мегирад, то шумо тавонед ба таҳияи тарҷумаи дақиқу равон тамаркуз кунед.
+Персеус як абзори ёрирасони тарҷума барои Википедия аст. Ин абзор ба шумо кӯмак мекунад, ки мақолаҳои Википедияи англисиро ба форсӣ ё тоҷикӣ тарҷума карда, онҳоро барои нашр дар Википедияи форсӣ ё тоҷикӣ омода намоед. Персеус бахшҳои вақти зиёдталаб ва хатопазир, аз қабили пайвандҳо, иқтибосҳо, қолабҳо ва қолаббандиро идора мекунад, то шумо тавонед ба таҳрири ниҳоӣ ва санҷиши манбаъҳо диққат диҳед.
 
 <p align="center">
   <a href="https://github.com/wikimediairan/Perseus/releases">
