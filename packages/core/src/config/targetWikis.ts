@@ -52,7 +52,7 @@ export const TARGET_WIKIS: Record<TargetWikiCode, TargetWikiDefinition> = {
     domain: "fa.wikipedia.org",
     create: "ویکی‌پدیا:ایجاد_مقاله",
     draft: "ویکی‌پدیا:پیش‌نویس‌ها",
-    move: "ویکی‌پدیا:درخواست_انتقال?action=edit&section=new&preload=ویکی‌پدیا:درخواست_انتقال/پیش‌بارگذاری",
+    move: "ویکی‌پدیا:درخواست_تغییرنام",
     direction: "rtl",
     templateRemovalDenylist: COMMON_TEMPLATE_REMOVAL_DENYLIST,
     interwikiFallbackTemplate: "پم",
