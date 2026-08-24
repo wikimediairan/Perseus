@@ -40,35 +40,16 @@
   </rect>
 
   <text
-      x="600"
-      y="46"
-      text-anchor="middle"
-      font-family="Segoe UI, Inter, Arial, sans-serif"
-      font-size="30"
-      font-weight="700"
-      fill="white"
-      filter="url(#shadow)">
+    x="600"
+    y="60"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    font-family="Segoe UI, Inter, Arial, sans-serif"
+    font-size="30"
+    font-weight="700"
+    fill="white"
+    filter="url(#shadow)"
+  >
       ⚠ ACTIVE DEVELOPMENT ⚠
   </text>
-
-  <text
-      x="600"
-      y="82"
-      text-anchor="middle"
-      font-family="Segoe UI, Inter, Arial, sans-serif"
-      font-size="18"
-      fill="#ffecec">
-      This repository contains an early prototype published for architectural review.
-  </text>
-
-  <text
-      x="600"
-      y="104"
-      text-anchor="middle"
-      font-family="Segoe UI, Inter, Arial, sans-serif"
-      font-size="15"
-      fill="#ffd5d5">
-      Core functionality is operational, while refactoring, backend services, and desktop UX remain in progress.
-  </text>
-
 </svg>
