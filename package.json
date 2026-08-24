@@ -22,6 +22,6 @@
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint",
-    "pre-push": "pnpm exec nx affected -t test"
+    "pre-push": "pnpm --filter @perseus/core test"
   }
 }
