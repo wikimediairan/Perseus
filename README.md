@@ -12,6 +12,7 @@
 </p>
 
 # Perseus
+[![Watch the video](https://img.youtube.com/vi/IiIlffc__GI/maxresdefault.jpg)](https://youtu.be/IiIlffc__GI)
 Perseus is a translation-assistance tool for Wikipedia. It helps you translate English Wikipedia articles into Persian or Tajik and prepare them for publication on Persian or Tajik Wikipedia. Perseus handles time-consuming and error-prone tasks such as links, citations, templates, and formatting, so you can focus on final editing and checking sources.
 
 <p align="center">
