@@ -1,9 +1,11 @@
 import { z } from "@hono/zod-openapi";
-import { SOURCE_WIKI_CODE } from "@perseus/core";
+import { isWikipediaWikiCode } from "@perseus/core";
 
 export const translateRequest = z.object({
   source: z.object({
-    wiki: z.literal(SOURCE_WIKI_CODE),
+    wiki: z
+      .string()
+      .refine(isWikipediaWikiCode, "Expected a Wikipedia site code."),
     pageId: z.number().int().positive(),
     revisionId: z.number().int().positive(),
   }),

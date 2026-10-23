@@ -18,9 +18,10 @@ import type {
 import {
   createPipeline,
   isTargetWikiCode,
+  isWikipediaWikiCode,
   PerseusError,
-  SOURCE_WIKI_CODE,
   TARGET_WIKIS,
+  wikipediaDomainFromWiki,
 } from "@perseus/core";
 import type { Env } from "@/config/env";
 import { getQuotaStatus, recordQuotaUsage } from "@/repositories/quota";
@@ -102,10 +103,10 @@ export async function handleTranslateRequest(
   user: UserRow,
   input: TranslateRequestInput,
 ): Promise<TranslateResult> {
-  if (input.source.wiki !== SOURCE_WIKI_CODE) {
+  if (!isWikipediaWikiCode(input.source.wiki)) {
     throw new PerseusError(
       "InputError",
-      `Unsupported source wiki "${input.source.wiki}". Perseus only translates from ${SOURCE_WIKI_CODE}.`,
+      `Unsupported source wiki "${input.source.wiki}". Expected a Wikipedia site code such as "enwiki" or "dewiki".`,
       { stage: "load-article" },
     );
   }
@@ -131,6 +132,7 @@ export async function handleTranslateRequest(
       const title = await fetchRevisionTitle(
         input.source.revisionId,
         input.source.pageId,
+        wikipediaDomainFromWiki(input.source.wiki),
       );
       const source: ArticleRevisionSource = {
         wiki: input.source.wiki,

@@ -1,15 +1,3 @@
-/**
- * perseus-cli
- *
- * Headless CLI for automation (Hermes): translate an English Wikipedia
- * article into a target-wiki language via OpenRouter, reusing Perseus
- * Desktop's Core pipeline unchanged. See README.md for usage.
- *
- * IMPORTANT: the DOM polyfill must be installed before any `../*`
- * module that touches DOM globals is imported — Core's Parser/Merger/
- * Generator use `DOMParser`/`Element`/`Document` directly (see
- * dom-polyfill.ts). This import must stay first.
- */
 import { installDomPolyfill } from "./dom-polyfill";
 
 installDomPolyfill();
@@ -22,7 +10,6 @@ import { loadSession } from "./sessionIO";
 import { StderrLogger } from "./stderrLogger";
 import { runTranslateWorkflow } from "./translateWorkflow";
 
-/** Exit codes, documented for Hermes: 0 = full success, 1 = fatal error (nothing usable produced), 2 = partial success (some chunks failed; Wikitext/session were still written). */
 const EXIT_SUCCESS = 0;
 const EXIT_FATAL = 1;
 const EXIT_PARTIAL = 2;
@@ -56,7 +43,7 @@ const program = new Command();
 program
   .name("perseus-cli")
   .description(
-    "Translate an English Wikipedia article via OpenRouter, producing a Wikitext .txt and a Perseus Desktop-compatible Translation Session .json.",
+    "Translate a Wikipedia article via OpenRouter, producing a Wikitext .txt and a Perseus Desktop-compatible Translation Session .json.",
   )
   .version("0.1.0");
 
@@ -65,7 +52,7 @@ program
   .description("Translate a new article, starting a fresh Translation Session.")
   .argument(
     "<wikipedia-url>",
-    "English Wikipedia article URL, e.g. https://en.wikipedia.org/wiki/Example",
+    "Wikipedia article URL in any language, e.g. https://de.wikipedia.org/wiki/Beispiel",
   )
   .option(
     "--model <model>",

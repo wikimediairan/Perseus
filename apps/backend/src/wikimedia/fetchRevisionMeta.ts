@@ -38,8 +38,9 @@ interface BareRevisionResponse {
 export async function fetchRevisionTitle(
   revisionId: number,
   expectedPageId: number,
+  domain: string = WIKIPEDIA_DOMAIN,
 ): Promise<string> {
-  const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/revision/${revisionId}/bare`;
+  const endpoint = `https://${domain}/w/rest.php/v1/revision/${revisionId}/bare`;
 
   let response: Response;
 
