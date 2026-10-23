@@ -114,6 +114,13 @@ export function useChunkWorkspace(config: PerseusConfig) {
     }
   }, [chunkActions, output, resetLog, session]);
 
+  const startNewTranslation = useCallback(() => {
+    resetLog();
+    output.resetWikitext();
+    chunkActions.resetChunkState();
+    session.resetSession();
+  }, [chunkActions, output, resetLog, session]);
+
   return {
     status: session.status,
     currentStage,
@@ -133,6 +140,7 @@ export function useChunkWorkspace(config: PerseusConfig) {
 
     loadArticle,
     openSession,
+    startNewTranslation,
     saveSession: output.saveSession,
     copyGeneralPrompt: chunkActions.copyGeneralPrompt,
     copyChunk: chunkActions.copyChunk,

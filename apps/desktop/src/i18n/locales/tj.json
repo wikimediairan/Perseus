@@ -22,8 +22,9 @@
     "tagline2": "Вақти бештар барои ҷустуҷӯи ҳақиқат"
   },
   "sourceCard": {
-    "articleUrlLabel": "Википедияи манбаъ(англисӣ)",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
+    "articleUrlLabel": "Википедияи манбаъ",
+    "articleUrlPlaceholder": "https://de.wikipedia.org/wiki/...",
+    "detectedSource": "Забони манбаъ муайян шуд: {{language}} ({{code}})"
   },
   "providerCard": {
     "targetWikiLabel": "Викии мақсаднок",
@@ -78,6 +79,8 @@
     "copyGeneralPrompt": "Нусхабардории дастури умумӣ",
     "translateAllBuiltIn": "Тарҷумаи ҳама бо зеҳни сунъӣ",
     "translatingAll": "Тарҷумашавӣ…",
+    "newTranslation": "Тарҷумаи нав",
+    "newTranslationConfirm": "Тарҷумаи навро оғоз мекунед? Мақолаи ҷорӣ ва пешрафти тарҷумаи захиранашуда пок мешаванд.",
     "openSession": "Кушодани ҷаласаи захирашуда…",
     "saveSession": "Захираи ҷаласа",
     "progress": "{{translated}} / {{total}} тарҷумашуда ({{percent}}%)",
@@ -101,6 +104,16 @@
     "translation": "Тарҷума",
     "merge": "Якҷоя кардан",
     "generate": "Сохтани Wikitext"
+  },
+  "help": {
+    "buttonLabel": "Кӯмак",
+    "title": "Дастури Perseus",
+    "videoTutorial": "Дарси видеоӣ (YouTube)",
+    "wikipediaArticle": "Perseus дар Википедия",
+    "documentation": "Ҳуҷҷатҳои техникӣ",
+    "telegram": "Канали расмии Telegram",
+    "doNotShowAgain": "Ин тугмаи кӯмак дигар нишон дода нашавад",
+    "close": "Фаҳмидам"
   },
   "updateDialog": {
     "title": "Версияи нави Perseus дастрас аст",

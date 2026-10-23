@@ -25,7 +25,6 @@ function readStoredLanguage(): SupportedLanguage {
   } catch {
     // localStorage may be unavailable (e.g. disabled); fall back to default.
   }
-
   return "en";
 }
 

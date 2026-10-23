@@ -3,8 +3,8 @@ import type {
   PerseusConfig,
   TargetWikiCode,
 } from "@perseus/core";
-import { TARGET_WIKIS } from "@perseus/core";
-import { useState } from "react";
+import { detectWikipediaSource, TARGET_WIKIS } from "@perseus/core";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,10 +35,30 @@ export function SourceCard({
   config: PerseusConfig;
   onChange(config: PerseusConfig): void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [url, setUrl] = useState("");
 
   const canSubmit = url.trim().length > 0;
+
+  const detectedSource = useMemo(() => detectWikipediaSource(url), [url]);
+
+  const detectedLanguageName = useMemo(() => {
+    if (!detectedSource) {
+      return null;
+    }
+
+    const displayLocale = i18n.language === "tj" ? "tg" : i18n.language;
+
+    try {
+      return (
+        new Intl.DisplayNames([displayLocale], { type: "language" }).of(
+          detectedSource.languageCode,
+        ) ?? detectedSource.languageCode
+      );
+    } catch {
+      return detectedSource.languageCode;
+    }
+  }, [detectedSource, i18n.language]);
 
   function handleSubmit() {
     onSubmit({ url: url.trim() });
@@ -61,6 +81,15 @@ export function SourceCard({
             placeholder={t("sourceCard.articleUrlPlaceholder")}
             value={url}
           />
+
+          {detectedSource && detectedLanguageName && (
+            <p className="text-xs text-muted-foreground" dir="auto">
+              {t("sourceCard.detectedSource", {
+                language: detectedLanguageName,
+                code: detectedSource.languageCode,
+              })}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-1.5">

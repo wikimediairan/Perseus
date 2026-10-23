@@ -22,8 +22,9 @@
     "tagline2": "زمان بیشتر برای حقیقت‌جویی"
   },
   "sourceCard": {
-    "articleUrlLabel": "ویکی مبدا(انگلیسی)",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
+    "articleUrlLabel": "ویکی‌پدیای مبدأ",
+    "articleUrlPlaceholder": "https://de.wikipedia.org/wiki/...",
+    "detectedSource": "زبان مبدأ تشخیص‌داده‌شده: {{language}} ({{code}})"
   },
   "providerCard": {
     "targetWikiLabel": "ویکی مقصد",
@@ -78,8 +79,10 @@
     "copyGeneralPrompt": "کپی پرامپت",
     "translateAllBuiltIn": "ترجمه همه با هوش مصنوعی",
     "translatingAll": "در حال ترجمه…",
+    "newTranslationConfirm": "ترجمهٔ جدیدی را شروع می‌کنید؟ مقالهٔ فعلی و پیشرفت ترجمهٔ ذخیره‌نشده پاک می‌شود.",
     "openSession": "باز کردن نشست",
     "saveSession": "ذخیره کردن نشست",
+    "newTranslation": "ایجاد نشست جدید",
     "progress": "{{translated}} / {{total}} ترجمه‌شده ({{percent}}%)",
     "chunkLabel": "بخش {{index}}",
     "collapse": "جمع کردن",
@@ -101,6 +104,16 @@
     "translation": "ترجمه",
     "merge": "ادغام",
     "generate": "ایجاد ویکی‌متن"
+  },
+  "help": {
+    "buttonLabel": "راهنما",
+    "title": "راهنمای پرسیوس",
+    "videoTutorial": "آموزش ویدیویی (یوتیوب)",
+    "wikipediaArticle": "پرسیوس در ویکی‌پدیا",
+    "documentation": "مستندات فنی",
+    "telegram": "کانال رسمی تلگرام",
+    "doNotShowAgain": "این دکمهٔ راهنما دیگر نمایش داده نشود",
+    "close": "متوجه شدم"
   },
   "updateDialog": {
     "title": "نسخه جدید پرسیوس در دسترس است",

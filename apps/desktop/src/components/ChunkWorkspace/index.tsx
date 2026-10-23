@@ -33,6 +33,7 @@ export function ChunkWorkspace({
   onPasteChunkTranslation,
   onTranslateAllBuiltIn,
   onSaveSession,
+  onStartNewTranslation,
   onGenerateWikitext,
   generateBusy,
 }: {
@@ -47,6 +48,7 @@ export function ChunkWorkspace({
   onPasteChunkTranslation(chunk: Chunk, text: string): void;
   onTranslateAllBuiltIn(): void;
   onSaveSession(): void;
+  onStartNewTranslation(): void;
   onGenerateWikitext(): void;
   generateBusy: boolean;
 }) {
@@ -67,6 +69,12 @@ export function ChunkWorkspace({
     setTimeout(() => {
       setPromptCopied(false);
     }, 1500);
+  }
+
+  function handleStartNewTranslation() {
+    if (window.confirm(t("chunkWorkspace.newTranslationConfirm"))) {
+      onStartNewTranslation();
+    }
   }
 
   const allDone = progress.total > 0 && progress.translated === progress.total;
@@ -110,6 +118,17 @@ export function ChunkWorkspace({
               : saveState === "cancelled"
                 ? t("common.notSaved")
                 : t("chunkWorkspace.saveSession")}
+          </Button>
+          <Button
+            disabled={
+              disabled || translateAllBusy || chunkState.busyChunkIds.size > 0
+            }
+            onClick={handleStartNewTranslation}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            {t("chunkWorkspace.newTranslation")}
           </Button>
         </div>
 

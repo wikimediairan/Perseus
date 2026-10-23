@@ -49,6 +49,7 @@ export function useTranslationSession({
   const resetSession = useCallback(() => {
     setLoadError(null);
     setChunks(null);
+    setStatus("idle");
     extractionRef.current = null;
     irRef.current = null;
   }, []);

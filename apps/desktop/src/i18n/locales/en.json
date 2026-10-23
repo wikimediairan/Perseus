@@ -22,8 +22,9 @@
     "tagline2": "More time seeking truth"
   },
   "sourceCard": {
-    "articleUrlLabel": "Source Wikipedia(English)",
-    "articleUrlPlaceholder": "https://en.wikipedia.org/wiki/..."
+    "articleUrlLabel": "Source Wikipedia",
+    "articleUrlPlaceholder": "https://de.wikipedia.org/wiki/...",
+    "detectedSource": "Detected source: {{language}} ({{code}})"
   },
   "providerCard": {
     "targetWikiLabel": "Target wiki",
@@ -78,6 +79,8 @@
     "copyGeneralPrompt": "Copy general prompt",
     "translateAllBuiltIn": "Translate All with Built-in LLM",
     "translatingAll": "Translating…",
+    "newTranslation": "New translation",
+    "newTranslationConfirm": "Start a new translation? The current article and any unsaved translation progress will be cleared.",
     "openSession": "Open saved session…",
     "saveSession": "Save session",
     "progress": "{{translated}} / {{total}} translated ({{percent}}%)",
@@ -101,6 +104,16 @@
     "translation": "Translation",
     "merge": "Merge",
     "generate": "Generate Wikitext"
+  },
+  "help": {
+    "buttonLabel": "Help",
+    "title": "Perseus help",
+    "videoTutorial": "Video tutorial (YouTube)",
+    "wikipediaArticle": "Perseus on Wikipedia",
+    "documentation": "Technical documentation",
+    "telegram": "Official Telegram channel",
+    "doNotShowAgain": "Do not show this help button again",
+    "close": "Got it"
   },
   "updateDialog": {
     "title": "A new version of Perseus is available",

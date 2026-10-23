@@ -6,6 +6,7 @@ import packageJson from "../package.json";
 const APP_VERSION = packageJson.version;
 
 import { ChunkWorkspace } from "@/components/ChunkWorkspace";
+import { HelpDialog } from "@/components/HelpDialog";
 import { LogPanel } from "@/components/LogPanel";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Header } from "@/components/layout/Header";
@@ -51,6 +52,7 @@ export default function App() {
     generateBusy,
     loadArticle,
     openSession,
+    startNewTranslation,
     saveSession,
     copyGeneralPrompt,
     copyChunk,
@@ -139,6 +141,7 @@ export default function App() {
             onSaveSession={() => {
               void saveSession("translation-session.json");
             }}
+            onStartNewTranslation={startNewTranslation}
             onTranslateAllBuiltIn={translateAllBuiltIn}
             onTranslateChunkBuiltIn={translateChunkBuiltIn}
             progress={progress}
@@ -162,6 +165,8 @@ export default function App() {
           result={updateResult}
         />
       )}
+
+      <HelpDialog />
     </AppLayout>
   );
 }

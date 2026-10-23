@@ -143,6 +143,7 @@ export function WikimediaAuthField({
                   100
                 }
               />
+
               <div
                 className="flex items-center justify-between text-xs text-muted-foreground"
                 dir="ltr"
