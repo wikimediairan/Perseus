@@ -1,4 +1,9 @@
 import { WIKIMEDIA_USER_AGENT, WIKIPEDIA_DOMAIN } from "../../config/constants";
+import {
+  languageCodeFromDomain,
+  wikipediaDomainFromWiki,
+  wikipediaWikiCodeFromDomain,
+} from "../../config/wikipedia";
 import type { CategoryNode } from "../../ir/CategoryNode";
 import type {
   IntermediateRepresentation,
@@ -48,9 +53,10 @@ function isInsideProtectedRegion(el: Element): boolean {
 async function fetchParsoidHtml(
   rawWikitext: string,
   sourceTitle: string,
+  domain: string = WIKIPEDIA_DOMAIN,
 ): Promise<string> {
   const title = encodeURIComponent(sourceTitle || "Untitled");
-  const endpoint = `https://${WIKIPEDIA_DOMAIN}/api/rest_v1/transform/wikitext/to/html/${title}`;
+  const endpoint = `https://${domain}/api/rest_v1/transform/wikitext/to/html/${title}`;
 
   let response: Response;
 
@@ -89,8 +95,11 @@ async function fetchParsoidHtml(
   return response.text();
 }
 
-export async function fetchRevisionHtml(revisionId: number): Promise<string> {
-  const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/revision/${revisionId}/html`;
+export async function fetchRevisionHtml(
+  revisionId: number,
+  domain: string = WIKIPEDIA_DOMAIN,
+): Promise<string> {
+  const endpoint = `https://${domain}/w/rest.php/v1/revision/${revisionId}/html`;
 
   let response: Response;
 
@@ -147,6 +156,7 @@ export function buildIRFromParsoidHtml(
   html: string,
   sourceTitle: string,
   logger?: Logger,
+  sourceDomain: string = WIKIPEDIA_DOMAIN,
 ): IntermediateRepresentation {
   let linkIdCounter = 0;
   let textIdCounter = 0;
@@ -185,7 +195,10 @@ export function buildIRFromParsoidHtml(
     citations.flushWarningsTo(logger);
   }
 
-  const referenceSectionElements = collectReferenceSectionElements(root);
+  const referenceSectionElements = collectReferenceSectionElements(
+    root,
+    languageCodeFromDomain(sourceDomain),
+  );
 
   for (const a of root.querySelectorAll('a[rel~="mw:WikiLink"]')) {
     if (isInsideProtectedRegion(a) || referenceSectionElements.has(a)) {
@@ -222,10 +235,12 @@ export function buildIRFromParsoidHtml(
     const { title: target } = stripFragment(
       decodeURIComponent(href.replace(/^\.\//, "")),
     );
-    const withoutNamespace = target
-      .replace(/^Category:/i, "")
-      .replaceAll("_", " ")
-      .trim();
+    const originalPageTitle = target.replaceAll("_", " ").trim();
+    const namespaceSeparator = originalPageTitle.indexOf(":");
+    const withoutNamespace =
+      namespaceSeparator === -1
+        ? originalPageTitle
+        : originalPageTitle.slice(namespaceSeparator + 1).trim();
 
     if (!withoutNamespace) {
       continue;
@@ -235,6 +250,7 @@ export function buildIRFromParsoidHtml(
     categories.push({
       id,
       originalTarget: withoutNamespace,
+      originalPageTitle,
       resolvedTarget: null,
     });
     categoryElements.set(id, link);
@@ -278,6 +294,8 @@ export function buildIRFromParsoidHtml(
 
   return {
     sourceTitle,
+    sourceWiki: wikipediaWikiCodeFromDomain(sourceDomain),
+    sourceDomain,
     links,
     categories,
     textNodes,
@@ -300,10 +318,17 @@ export class WikipediaParsoidParser implements Parser {
   constructor(private readonly logger?: Logger) {}
 
   async parse(article: LoadedArticle): Promise<IntermediateRepresentation> {
+    const domain = wikipediaDomainFromWiki(article.revision.wiki);
     const html = await fetchParsoidHtml(
       article.rawWikitext,
       article.sourceTitle,
+      domain,
     );
-    return buildIRFromParsoidHtml(html, article.sourceTitle, this.logger);
+    return buildIRFromParsoidHtml(
+      html,
+      article.sourceTitle,
+      this.logger,
+      domain,
+    );
   }
 }

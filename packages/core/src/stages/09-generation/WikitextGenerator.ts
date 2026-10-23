@@ -40,7 +40,8 @@ export class WikipediaWikitextGenerator implements WikitextGenerator {
 
     const html = root.innerHTML;
     const title = encodeURIComponent(ir.sourceTitle || "Untitled");
-    const endpoint = `https://${WIKIPEDIA_DOMAIN}/api/rest_v1/transform/html/to/wikitext/${title}`;
+    const domain = ir.sourceDomain ?? WIKIPEDIA_DOMAIN;
+    const endpoint = `https://${domain}/api/rest_v1/transform/html/to/wikitext/${title}`;
 
     let response: Response;
 

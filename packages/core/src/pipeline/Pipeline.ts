@@ -1,5 +1,6 @@
 import type { TargetWikiCode } from "../config/targetWikis";
 import { getTargetWiki } from "../config/targetWikis";
+import { wikipediaDomainFromWiki } from "../config/wikipedia";
 import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation";
 import type { Logger } from "../platform/logging/Logger";
 import type {
@@ -99,11 +100,13 @@ export class Pipeline {
       .info(
         `Fetching Wikipedia revision ${source.revisionId} of "${source.title}"`,
       );
-    const html = await fetchRevisionHtml(source.revisionId);
+    const sourceDomain = wikipediaDomainFromWiki(source.wiki);
+    const html = await fetchRevisionHtml(source.revisionId, sourceDomain);
     const ir = buildIRFromParsoidHtml(
       html,
       source.title,
       logger.forStage("parse-with-parsoid"),
+      sourceDomain,
     );
 
     logger.forStage("resolve-wikidata-links").info("Resolving Wikidata links");

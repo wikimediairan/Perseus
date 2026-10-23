@@ -23,6 +23,7 @@ interface MediaWikiQueryResponse {
 export async function resolveRedirects(
   titles: string[],
   logger?: Logger,
+  apiBase: string = WIKIPEDIA_API,
 ): Promise<Map<string, string>> {
   const canonicalByInput = new Map<string, string>();
 
@@ -40,7 +41,7 @@ export async function resolveRedirects(
         origin: "*",
       });
 
-      const response = await fetch(`${WIKIPEDIA_API}?${params.toString()}`, {
+      const response = await fetch(`${apiBase}?${params.toString()}`, {
         headers: { "User-Agent": WIKIMEDIA_USER_AGENT },
       });
 

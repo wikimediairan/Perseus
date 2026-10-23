@@ -1,4 +1,4 @@
-import { SOURCE_WIKI_CODE, WIKIPEDIA_DOMAIN } from "../../config/constants";
+import { parseWikipediaArticleUrl } from "../../config/wikipedia";
 import { PerseusError } from "../../platform/errors/PerseusError";
 
 export interface ArticleSource {
@@ -23,51 +23,43 @@ export interface InputLoader {
   load(source: ArticleSource): Promise<LoadedArticle>;
 }
 
-function extractTitleFromUrl(rawUrl: string): string {
-  let url: URL;
+function parseArticleUrl(rawUrl: string) {
+  const parsed = parseWikipediaArticleUrl(rawUrl);
 
-  try {
-    url = new URL(rawUrl);
-  } catch (error) {
-    throw new PerseusError("InputError", `"${rawUrl}" is not a valid URL.`, {
-      stage: "load-article",
-      cause: error,
-    });
+  if (parsed) {
+    return parsed;
   }
 
-  if (
-    !/(^|\.)wikipedia\.org$/.test(url.hostname) ||
-    !url.hostname.startsWith("en.")
-  ) {
+  let hostname: string | undefined;
+
+  try {
+    hostname = new URL(rawUrl).hostname;
+  } catch {
+    try {
+      hostname = new URL(`https://${rawUrl}`).hostname;
+    } catch {
+      hostname = undefined;
+    }
+  }
+
+  if (hostname) {
     throw new PerseusError(
       "InputError",
-      `Perseus only accepts English Wikipedia article URLs (en.wikipedia.org). Got: ${url.hostname}`,
+      `Perseus accepts article URLs from any Wikipedia language edition (for example, https://de.wikipedia.org/wiki/…). Got: ${hostname}`,
       { stage: "load-article" },
     );
   }
 
-  const wikiPathMatch = /^\/wiki\/(.+)$/.exec(url.pathname);
-  const title = wikiPathMatch
-    ? decodeURIComponent(wikiPathMatch[1])
-    : url.searchParams.get("title");
-
-  if (!title) {
-    throw new PerseusError(
-      "InputError",
-      `Could not determine an article title from "${rawUrl}".`,
-      {
-        stage: "load-article",
-      },
-    );
-  }
-
-  return title.replaceAll("_", " ");
+  throw new PerseusError("InputError", `"${rawUrl}" is not a valid URL.`, {
+    stage: "load-article",
+  });
 }
 
 export class WikipediaInputLoader implements InputLoader {
   async load(source: ArticleSource): Promise<LoadedArticle> {
-    const title = extractTitleFromUrl(source.url);
-    const endpoint = `https://${WIKIPEDIA_DOMAIN}/w/rest.php/v1/page/${encodeURIComponent(title)}`;
+    const parsedUrl = parseArticleUrl(source.url);
+    const { domain, title } = parsedUrl;
+    const endpoint = `https://${domain}/w/rest.php/v1/page/${encodeURIComponent(title)}`;
 
     let response: Response;
 
@@ -87,7 +79,7 @@ export class WikipediaInputLoader implements InputLoader {
     if (response.status === 404) {
       throw new PerseusError(
         "InputError",
-        `No English Wikipedia article titled "${title}" was found.`,
+        `No Wikipedia article titled "${title}" was found on ${domain}.`,
         {
           stage: "load-article",
         },
@@ -139,7 +131,7 @@ export class WikipediaInputLoader implements InputLoader {
       rawWikitext: body.source,
       source,
       revision: {
-        wiki: SOURCE_WIKI_CODE,
+        wiki: parsedUrl.wiki,
         pageId: body.id,
         title: sourceTitle,
         revisionId: body.latest.id,

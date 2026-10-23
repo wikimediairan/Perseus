@@ -1,3 +1,4 @@
+import { languageCodeFromWiki } from "../config/wikipedia";
 import type { ExtractionResult } from "../pipeline/Pipeline";
 import { PerseusError } from "../platform/errors/PerseusError";
 import type { Chunk } from "../stages/05-chunking/Chunker";
@@ -52,7 +53,7 @@ export function exportTranslationSession(
     format: PACKAGE_FORMAT_MARKER,
     formatVersion: CURRENT_FORMAT_VERSION,
     meta: {
-      sourceLanguage: "en",
+      sourceLanguage: languageCodeFromWiki(source.wiki),
       targetWiki,
       exportedAt: new Date().toISOString(),
       chunkCharBudget,

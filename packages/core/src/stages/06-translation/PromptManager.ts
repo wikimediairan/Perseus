@@ -5,7 +5,7 @@ function buildDefaultPrompt({
   languageName,
 }: TargetWikiDefinition): string {
   return [
-    `Translate English article text into formal, encyclopedic ${languageName} for ${domain}.`,
+    `Translate the article text from its source language into formal, encyclopedic ${languageName} for ${domain}.`,
     "RULES:",
     "1. Translate natural-language meaning faithfully using formal, encyclopedic language and standard orthography. Do not add, omit, summarize, or reinterpret facts.",
     `2. Convert standard digits in translated text to standard ${languageName} numerals. Never alter digits inside structural markers, tokens, tags, or metadata.`,

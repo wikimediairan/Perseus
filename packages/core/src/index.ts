@@ -28,6 +28,23 @@ export {
   isTargetWikiCode,
   TARGET_WIKIS,
 } from "./config/targetWikis";
+export type {
+  ParsedWikipediaArticleUrl,
+  WikipediaSource,
+} from "./config/wikipedia";
+export {
+  detectWikipediaSource,
+  isWikipediaWikiCode,
+  languageCodeFromDomain,
+  languageCodeFromWiki,
+  parseWikipediaArticleUrl,
+  wikidataSiteKeyFromWiki,
+  wikipediaApiForDomain,
+  wikipediaDomainForLanguage,
+  wikipediaDomainFromWiki,
+  wikipediaWikiCodeForLanguage,
+  wikipediaWikiCodeFromDomain,
+} from "./config/wikipedia";
 export type { CategoryNode } from "./ir/CategoryNode";
 export type {
   IntermediateRepresentation,

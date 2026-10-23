@@ -1,5 +1,5 @@
-import { SOURCE_WIKI_CODE } from "../config/constants";
 import { isTargetWikiCode } from "../config/targetWikis";
+import { isWikipediaWikiCode } from "../config/wikipedia";
 import { PerseusError } from "../platform/errors/PerseusError";
 import type {
   SessionChunk,
@@ -146,10 +146,10 @@ export function validateTranslationSession(data: unknown): TranslationSession {
 
   const wiki = requireString(data.source.wiki, "source.wiki");
 
-  if (wiki !== SOURCE_WIKI_CODE) {
+  if (!isWikipediaWikiCode(wiki)) {
     throw new PerseusError(
       "InputError",
-      `Translation Session is invalid: unsupported source.wiki "${wiki}" (expected "${SOURCE_WIKI_CODE}"). Perseus only translates from English Wikipedia.`,
+      `Translation Session is invalid: unsupported source.wiki "${wiki}". Expected a Wikipedia site code such as "enwiki" or "dewiki".`,
     );
   }
 

@@ -1,5 +1,13 @@
-import { WIKIDATA_API, WIKIMEDIA_USER_AGENT } from "../../config/constants";
+import {
+  SOURCE_WIKI_CODE,
+  WIKIDATA_API,
+  WIKIMEDIA_USER_AGENT,
+} from "../../config/constants";
 import type { TargetWikiDefinition } from "../../config/targetWikis";
+import {
+  wikidataSiteKeyFromWiki,
+  wikipediaApiForDomain,
+} from "../../config/wikipedia";
 import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
 import { normalizeTitle } from "../../ir/wikitextLinkUtils";
 import { PerseusError } from "../../platform/errors/PerseusError";
@@ -36,6 +44,14 @@ function toCategoryPageTitle(categoryName: string): string {
   return `Category:${categoryName}`;
 }
 
+function categoryPageTitle(
+  category: IntermediateRepresentation["categories"][number],
+): string {
+  return normalizeTitle(
+    category.originalPageTitle ?? toCategoryPageTitle(category.originalTarget),
+  );
+}
+
 function fromCategoryPageTitle(pageTitle: string): string {
   const colonIndex = pageTitle.indexOf(":");
   return colonIndex === -1 ? pageTitle : pageTitle.slice(colonIndex + 1);
@@ -60,17 +76,17 @@ export class WikidataLinkResolver implements LinkResolver {
       return ir;
     }
 
+    const sourceSiteKey = wikidataSiteKeyFromWiki(
+      ir.sourceWiki ?? SOURCE_WIKI_CODE,
+    );
     const targetSiteKey = `${this.targetWiki.code}wiki`;
+    const siteFilter = [...new Set([sourceSiteKey, targetSiteKey])].join("|");
 
     const uniqueLinkTitles = [
       ...new Set(ir.links.map((link) => normalizeTitle(link.originalTarget))),
     ];
     const uniqueCategoryTitles = [
-      ...new Set(
-        ir.categories.map((category) =>
-          normalizeTitle(toCategoryPageTitle(category.originalTarget)),
-        ),
-      ),
+      ...new Set(ir.categories.map(categoryPageTitle)),
     ];
     const uniqueTemplateLinkTitles = [
       ...new Set(templateLinkTargets.map((target) => normalizeTitle(target))),
@@ -83,7 +99,11 @@ export class WikidataLinkResolver implements LinkResolver {
       ]),
     ];
 
-    const redirectMap = await resolveRedirects(allOriginalTitles, this.logger);
+    const redirectMap = await resolveRedirects(
+      allOriginalTitles,
+      this.logger,
+      ir.sourceDomain ? wikipediaApiForDomain(ir.sourceDomain) : undefined,
+    );
     const queryTitleFor = (originalNormalizedTitle: string): string =>
       redirectMap.get(originalNormalizedTitle) ?? originalNormalizedTitle;
 
@@ -93,10 +113,10 @@ export class WikidataLinkResolver implements LinkResolver {
     for (const batch of chunk(allQueryTitles, BATCH_SIZE)) {
       const params = new URLSearchParams({
         action: "wbgetentities",
-        sites: "enwiki",
+        sites: sourceSiteKey,
         titles: batch.join("|"),
         props: "sitelinks",
-        sitefilter: `enwiki|${targetSiteKey}`,
+        sitefilter: siteFilter,
         format: "json",
         origin: "*",
       });
@@ -160,11 +180,11 @@ export class WikidataLinkResolver implements LinkResolver {
           continue;
         }
 
-        const enTitle = entity.sitelinks?.enwiki?.title;
+        const sourceTitle = entity.sitelinks?.[sourceSiteKey]?.title;
         const targetTitle = entity.sitelinks?.[targetSiteKey]?.title;
 
-        if (enTitle) {
-          resolved.set(normalizeTitle(enTitle), targetTitle ?? null);
+        if (sourceTitle) {
+          resolved.set(normalizeTitle(sourceTitle), targetTitle ?? null);
         }
       }
 
@@ -194,11 +214,7 @@ export class WikidataLinkResolver implements LinkResolver {
 
     for (const category of ir.categories) {
       const resolvedPageTitle =
-        resolved.get(
-          queryTitleFor(
-            normalizeTitle(toCategoryPageTitle(category.originalTarget)),
-          ),
-        ) ?? null;
+        resolved.get(queryTitleFor(categoryPageTitle(category))) ?? null;
       category.resolvedTarget = resolvedPageTitle
         ? fromCategoryPageTitle(resolvedPageTitle)
         : null;
