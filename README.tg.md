@@ -1,8 +1,6 @@
-<div align="center">
-
+<!-- <div align="center">
 <img src="assets/development-status.svg" width="100%" alt="Ҳолати рушд">
-
-</div>
+</div> -->
 
 <div dir="ltr" align="center">
 
