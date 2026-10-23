@@ -1,6 +1,6 @@
-<div align="center">
+<!-- <div align="center">
   <img src="assets/development-status.svg" width="100%" alt="Development Status">
-</div>
+</div> -->
 <div dir="ltr" align=center>
 
 [**فارسی**](/README.fa.md) / [**English**](README.md) / [**Тоҷикӣ**](README.tg.md)
