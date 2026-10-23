@@ -3,15 +3,6 @@ import { WIKIMEDIA_USER_AGENT } from "../src/config/constants";
 import type { IntermediateRepresentation } from "../src/ir/IntermediateRepresentation";
 import { WikidataLinkResolver } from "../src/stages/03-link-resolution/WikidataLinkResolver";
 
-/**
- * Only the fields WikidataLinkResolver actually reads/writes are
- * populated -- `links`/`categories`/`structure.templateLinkTargets`
- * (input) and `structure.linkElements`/`structure.categoryElements`/
- * `structure.templateLinkResolutions` (output side-effects it may
- * touch). The remaining IR fields (`citations`, `structure.document`,
- * etc.) are never touched by this stage, so they're stubbed rather than
- * fully built.
- */
 function makeIr(overrides?: {
   links?: IntermediateRepresentation["links"];
   categories?: IntermediateRepresentation["categories"];
@@ -28,6 +19,7 @@ function makeIr(overrides?: {
         label: "Ada Lovelace",
       },
     ],
+
     categories: overrides?.categories ?? [],
     citations: {} as IntermediateRepresentation["citations"],
     structure: {
@@ -79,15 +71,6 @@ function lastRequestHeaders(
   return (call?.[1]?.headers as Record<string, string>) ?? {};
 }
 
-/**
- * Mocks `fetch` with per-host responses, so a test can distinguish the
- * redirect-resolution call (MediaWiki's core API, en.wikipedia.org) from
- * the Wikidata call (www.wikidata.org) — `mockJsonFetch`/`mockTextFetch`
- * above deliberately can't do this (same canned response for every
- * call), which is fine for tests that don't care about redirects, but
- * not for tests that need to assert redirect-canonicalization actually
- * changed what gets sent to Wikidata.
- */
 function mockFetchByHost(
   responses: Record<string, unknown>,
 ): ReturnType<typeof vi.fn> {

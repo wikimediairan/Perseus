@@ -5,16 +5,6 @@ import {
   WikipediaParsoidParser,
 } from "../src/stages/02-parsing/ParsoidParser";
 
-/**
- * These tests deliberately only exercise fetchRevisionHtml's
- * request-sending and error-handling paths (never a 2xx response) --
- * the success path additionally parses the response with a global
- * `DOMParser`, which Core intentionally does not polyfill itself (see
- * ParsoidParser.ts's module doc and Backend's domEnvironment.ts, which
- * supplies one at the host level). None of that is what this fix
- * touches, so there's no need to stand up a DOM polyfill just to test
- * the header/error-handling change.
- */
 function mockTextFetch(status: number, body: string): ReturnType<typeof vi.fn> {
   const fn = vi.fn(async () => ({
     ok: status >= 200 && status < 300,
@@ -102,6 +92,31 @@ describe("fetchRevisionHtml — Wikimedia User-Agent", () => {
 
     const headers = lastRequestHeaders(fetchMock);
     expect(headers["User-Agent"]).toBe(WIKIMEDIA_USER_AGENT);
+  });
+
+  it("uses the source wiki's domain for revision and Parsoid requests", async () => {
+    const fetchMock = mockTextFetch(500, "");
+
+    await fetchRevisionHtml(123, "de.wikipedia.org").catch(() => undefined);
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
+      "https://de.wikipedia.org/w/rest.php/v1/revision/123/html",
+    );
+
+    fetchMock.mockClear();
+
+    await new WikipediaParsoidParser()
+      .parse({
+        sourceTitle: "Test",
+        rawWikitext: "hello",
+        source: { url: "https://de.wikipedia.org/wiki/Test" },
+        revision: { wiki: "dewiki", pageId: 1, title: "Test", revisionId: 1 },
+      })
+      .catch(() => undefined);
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
+      "https://de.wikipedia.org/api/rest_v1/transform/wikitext/to/html/Test",
+    );
   });
 
   it("still throws a clean ParsingError (no upstreamMessage) if the body can't be read", async () => {
