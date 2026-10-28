@@ -1,0 +1,120 @@
+name: Release MCP
+
+on:
+  push:
+    tags:
+      - "mcp-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-mcp-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build-and-pack:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify tag and versions
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          node -e "const p=require('./apps/mcp/package.json');if(process.env.TAG_NAME!==('mcp-v'+p.version))throw new Error('Tag '+process.env.TAG_NAME+' does not match package '+p.version)"
+          pnpm version:check
+
+      - name: Check Core
+        run: |
+          pnpm --filter @perseus/core typecheck
+          pnpm --filter @perseus/core test
+
+      - name: Check and build MCP
+        run: |
+          pnpm --filter @perseus/mcp typecheck
+          pnpm --filter @perseus/mcp test
+          pnpm --filter @perseus/mcp build
+          pnpm --filter @perseus/mcp pack:validate
+
+      - name: Exercise MCP stdio
+        working-directory: apps/mcp
+        run: node --input-type=module -e "await import('./tests/stdio.mjs')"
+
+      - name: Create exact release tarball
+        working-directory: apps/mcp
+        run: |
+          mkdir -p ../../artifacts
+          tarball="$(npm pack --pack-destination ../../artifacts)"
+          mv "../../artifacts/$tarball" ../../artifacts/perseus-mcp.tgz
+          PERSEUS_MCP_TARBALL=../../artifacts/perseus-mcp.tgz node --input-type=module -e "process.argv[2]=process.env.PERSEUS_MCP_TARBALL;await import('./tests/packed-smoke.mjs')"
+          cp tests/packed-smoke.mjs ../../artifacts/
+
+      - name: Upload tested package
+        uses: actions/upload-artifact@v6
+        with:
+          name: perseus-mcp-package
+          path: artifacts/
+          if-no-files-found: error
+          retention-days: 7
+
+  independent-install:
+    needs: build-and-pack
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Download package artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: perseus-mcp-package
+          path: package
+
+      - name: Install and exercise without repository checkout
+        env:
+          PERSEUS_MCP_TARBALL: package/perseus-mcp.tgz
+        run: node --input-type=module -e "process.argv[2]=process.env.PERSEUS_MCP_TARBALL;await import('./package/packed-smoke.mjs')"
+
+  publish:
+    needs: independent-install
+    runs-on: ubuntu-24.04
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Setup Node.js for npm
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      - name: Download tested package artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: perseus-mcp-package
+          path: package
+
+      - name: Publish exact tested tarball
+        run: npm publish package/perseus-mcp.tgz --access public --provenance
