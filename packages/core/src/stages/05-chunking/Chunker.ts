@@ -1,7 +1,7 @@
 import type {
   TranslationUnit,
   TranslationWorklist,
-} from "../04-extraction/Extractor";
+} from "../04-extraction/Extractor.js";
 
 export interface Chunk {
   id: string;

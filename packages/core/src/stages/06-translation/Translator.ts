@@ -1,19 +1,19 @@
-import type { TargetWikiDefinition } from "../../config/targetWikis";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { Logger } from "../../platform/logging/Logger";
-import type { Chunk } from "../05-chunking/Chunker";
+import type { TargetWikiDefinition } from "../../config/targetWikis.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { Logger } from "../../platform/logging/Logger.js";
+import type { Chunk } from "../05-chunking/Chunker.js";
 import type {
   TranslatedChunk,
   TranslatedUnit,
-} from "../05-chunking/segmentProtocol";
+} from "../05-chunking/segmentProtocol.js";
 import {
   parseChunkTranslation,
   renderChunkForTranslation,
-} from "../05-chunking/segmentProtocol";
-import type { TextProviderType, TranslationUsage } from "./LLMProvider";
-import type { PromptManager } from "./PromptManager";
+} from "../05-chunking/segmentProtocol.js";
+import type { TextProviderType, TranslationUsage } from "./LLMProvider.js";
+import type { PromptManager } from "./PromptManager.js";
 
-export type { TranslatedChunk } from "../05-chunking/segmentProtocol";
+export type { TranslatedChunk } from "../05-chunking/segmentProtocol.js";
 
 export interface Translator {
   translateChunk(chunk: Chunk): Promise<TranslatedChunk>;

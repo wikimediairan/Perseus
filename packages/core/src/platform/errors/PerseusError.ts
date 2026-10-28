@@ -1,4 +1,4 @@
-import type { PipelineStageName } from "../../pipeline/PipelineStage";
+import type { PipelineStageName } from "../../pipeline/PipelineStage.js";
 
 export type PerseusErrorCategory =
   | "InputError"

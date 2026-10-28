@@ -1,4 +1,4 @@
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
 
 export interface TranslationUnit {
   nodeId: string;

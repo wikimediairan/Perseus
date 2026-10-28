@@ -1,5 +1,5 @@
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { TranslationUsage } from "./LLMProvider";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { TranslationUsage } from "./LLMProvider.js";
 
 export interface ChatCompletionParams {
   url: string;

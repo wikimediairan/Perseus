@@ -1,4 +1,4 @@
-import type { TargetWikiDefinition } from "../../config/targetWikis";
+import type { TargetWikiDefinition } from "../../config/targetWikis.js";
 
 function buildDefaultPrompt({
   domain,

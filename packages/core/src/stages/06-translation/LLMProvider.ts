@@ -1,4 +1,4 @@
-import type { TargetWikiCode } from "../../config/targetWikis";
+import type { TargetWikiCode } from "../../config/targetWikis.js";
 
 export interface TranslationRequest {
   systemPrompt: string;

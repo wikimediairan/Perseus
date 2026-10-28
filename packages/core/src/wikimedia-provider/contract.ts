@@ -1,4 +1,4 @@
-import type { LLMProvider } from "../stages/06-translation/LLMProvider";
+import type { LLMProvider } from "../stages/06-translation/LLMProvider.js";
 
 export type WikimediaRequest = {
   model: string;

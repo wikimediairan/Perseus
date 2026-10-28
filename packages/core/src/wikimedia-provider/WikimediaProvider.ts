@@ -1,10 +1,10 @@
-import { PerseusError } from "../platform/errors/PerseusError";
-import type { TextProviderType } from "../stages/06-translation/LLMProvider";
+import { PerseusError } from "../platform/errors/PerseusError.js";
+import type { TextProviderType } from "../stages/06-translation/LLMProvider.js";
 import type {
   WikimediaProviderType,
   WikimediaRequest,
   WikimediaResponse,
-} from "./contract";
+} from "./contract.js";
 
 export const WIKIMEDIA_BASE_URL =
   "https://perseus-backend.alireza3205.workers.dev";

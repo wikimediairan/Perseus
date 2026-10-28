@@ -1,12 +1,12 @@
-import { isTargetWikiCode } from "../config/targetWikis";
-import { isWikipediaWikiCode } from "../config/wikipedia";
-import { PerseusError } from "../platform/errors/PerseusError";
+import { isTargetWikiCode } from "../config/targetWikis.js";
+import { isWikipediaWikiCode } from "../config/wikipedia.js";
+import { PerseusError } from "../platform/errors/PerseusError.js";
 import type {
   SessionChunk,
   TranslationEntryTuple,
   TranslationSession,
-} from "./types";
-import { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "./types";
+} from "./types.js";
+import { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "./types.js";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

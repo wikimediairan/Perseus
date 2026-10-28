@@ -7,6 +7,24 @@ beforeAll(() => {
   (globalThis as Record<string, unknown>).DOMParser = DOMParser;
 });
 
+it("rebuilds template placeholders deterministically with unique IDs for nested and wikitext tokens", () => {
+  const html = transclusion("table", "Infobox planet", {
+    caption: "A [[Sun|star]] {{lang|la|Sol}} <!--comment--> and [[Moon]]",
+  });
+  const first = buildIRFromParsoidHtml(html, "Earth");
+  buildIRFromParsoidHtml(
+    transclusion("div", "Short description", { "1": "[[Other]]" }),
+    "Other",
+  );
+  const rebuilt = buildIRFromParsoidHtml(html, "Earth");
+  expect(rebuilt.textNodes).toEqual(first.textNodes);
+  const tokens = first.textNodes.flatMap((node) =>
+    [...node.text.matchAll(/⟪(\*?)(\d+)⟫/g)].map((match) => match[2]),
+  );
+  expect(tokens.length).toBeGreaterThan(2);
+  expect(new Set(tokens).size).toBe(tokens.length);
+});
+
 /** Builds a Parsoid-shaped transclusion element's outerHTML, matching the shape templateParameters.ts/templateParameters.test.ts already expect. */
 function transclusion(
   tag: string,

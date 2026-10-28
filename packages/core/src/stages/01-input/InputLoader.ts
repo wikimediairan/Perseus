@@ -1,5 +1,5 @@
-import { parseWikipediaArticleUrl } from "../../config/wikipedia";
-import { PerseusError } from "../../platform/errors/PerseusError";
+import { parseWikipediaArticleUrl } from "../../config/wikipedia.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
 
 export interface ArticleSource {
   url: string;

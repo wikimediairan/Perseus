@@ -1,11 +1,11 @@
-import type { TargetWikiCode } from "../config/targetWikis";
-import { PerseusError } from "../platform/errors/PerseusError";
-import type { Logger } from "../platform/logging/Logger";
-import type { ArticleRevisionSource } from "../stages/01-input/InputLoader";
-import type { Chunk } from "../stages/05-chunking/Chunker";
-import type { TranslatedChunk } from "../stages/05-chunking/segmentProtocol";
-import type { Translator } from "../stages/06-translation/Translator";
-import type { WikimediaProviderType } from "./contract";
+import type { TargetWikiCode } from "../config/targetWikis.js";
+import { PerseusError } from "../platform/errors/PerseusError.js";
+import type { Logger } from "../platform/logging/Logger.js";
+import type { ArticleRevisionSource } from "../stages/01-input/InputLoader.js";
+import type { Chunk } from "../stages/05-chunking/Chunker.js";
+import type { TranslatedChunk } from "../stages/05-chunking/segmentProtocol.js";
+import type { Translator } from "../stages/06-translation/Translator.js";
+import type { WikimediaProviderType } from "./contract.js";
 
 export class WikimediaTranslator implements Translator {
   constructor(

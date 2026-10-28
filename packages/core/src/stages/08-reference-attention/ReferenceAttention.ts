@@ -1,4 +1,4 @@
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
 
 export type ReferenceAttentionClassification = "ok" | "needs-human-review";
 

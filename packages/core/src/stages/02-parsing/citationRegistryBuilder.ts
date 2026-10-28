@@ -3,8 +3,8 @@ import type {
   CitationId,
   CitationReference,
   CitationStyle,
-} from "../../ir/citation";
-import { CitationRegistry } from "../../ir/citation";
+} from "../../ir/citation.js";
+import { CitationRegistry } from "../../ir/citation.js";
 
 const REF_SELECTOR = '[typeof*="mw:Extension/ref"]';
 

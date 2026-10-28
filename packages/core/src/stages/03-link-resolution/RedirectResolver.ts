@@ -1,6 +1,6 @@
-import { WIKIMEDIA_USER_AGENT, WIKIPEDIA_API } from "../../config/constants";
-import { normalizeTitle } from "../../ir/wikitextLinkUtils";
-import type { Logger } from "../../platform/logging/Logger";
+import { WIKIMEDIA_USER_AGENT, WIKIPEDIA_API } from "../../config/constants.js";
+import { normalizeTitle } from "../../ir/wikitextLinkUtils.js";
+import type { Logger } from "../../platform/logging/Logger.js";
 
 const BATCH_SIZE = 50;
 

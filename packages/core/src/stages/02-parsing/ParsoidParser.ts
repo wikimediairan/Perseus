@@ -1,24 +1,27 @@
-import { WIKIMEDIA_USER_AGENT, WIKIPEDIA_DOMAIN } from "../../config/constants";
+import {
+  WIKIMEDIA_USER_AGENT,
+  WIKIPEDIA_DOMAIN,
+} from "../../config/constants.js";
 import {
   languageCodeFromDomain,
   wikipediaDomainFromWiki,
   wikipediaWikiCodeFromDomain,
-} from "../../config/wikipedia";
-import type { CategoryNode } from "../../ir/CategoryNode";
+} from "../../config/wikipedia.js";
+import type { CategoryNode } from "../../ir/CategoryNode.js";
 import type {
   IntermediateRepresentation,
   TextNode,
-} from "../../ir/IntermediateRepresentation";
-import type { LinkNode } from "../../ir/LinkNode";
-import type { TemplateLinkResolution } from "../../ir/wikitextLinkUtils";
-import { stripFragment } from "../../ir/wikitextLinkUtils";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { Logger } from "../../platform/logging/Logger";
-import type { LoadedArticle } from "../01-input/InputLoader";
-import { buildCitationRegistry } from "./citationRegistryBuilder";
-import { flattenToPlaceholderText } from "./placeholders";
-import { collectReferenceSectionElements } from "./referenceSections";
-import { extractTemplateParameterUnits } from "./templateParameters";
+} from "../../ir/IntermediateRepresentation.js";
+import type { LinkNode } from "../../ir/LinkNode.js";
+import type { TemplateLinkResolution } from "../../ir/wikitextLinkUtils.js";
+import { stripFragment } from "../../ir/wikitextLinkUtils.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { Logger } from "../../platform/logging/Logger.js";
+import type { LoadedArticle } from "../01-input/InputLoader.js";
+import { buildCitationRegistry } from "./citationRegistryBuilder.js";
+import { flattenToPlaceholderText } from "./placeholders.js";
+import { collectReferenceSectionElements } from "./referenceSections.js";
+import { extractTemplateParameterUnits } from "./templateParameters.js";
 
 export interface Parser {
   parse(article: LoadedArticle): Promise<IntermediateRepresentation>;

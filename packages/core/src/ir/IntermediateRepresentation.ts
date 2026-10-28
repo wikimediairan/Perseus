@@ -1,7 +1,7 @@
-import type { CategoryNode } from "./CategoryNode";
-import type { CitationId, CitationRegistry } from "./citation";
-import type { LinkNode } from "./LinkNode";
-import type { TemplateLinkResolution } from "./wikitextLinkUtils";
+import type { CategoryNode } from "./CategoryNode.js";
+import type { CitationId, CitationRegistry } from "./citation.js";
+import type { LinkNode } from "./LinkNode.js";
+import type { TemplateLinkResolution } from "./wikitextLinkUtils.js";
 
 export interface TextNode {
   id: string;

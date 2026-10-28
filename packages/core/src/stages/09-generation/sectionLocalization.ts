@@ -1,9 +1,9 @@
-import type { SectionLocalizationConfig } from "../../config/targetWikis";
+import type { SectionLocalizationConfig } from "../../config/targetWikis.js";
 import {
   getTopLevelTemplateName,
   isOutermostTransclusion,
   normalizeTemplateName,
-} from "../02-parsing/templateParameters";
+} from "../02-parsing/templateParameters.js";
 
 const HEADING_LEVEL: Record<string, number> = {
   H1: 1,

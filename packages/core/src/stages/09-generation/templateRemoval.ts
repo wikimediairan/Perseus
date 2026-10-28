@@ -2,7 +2,7 @@ import {
   getTopLevelTemplateName,
   isOutermostTransclusion,
   normalizeTemplateName,
-} from "../02-parsing/templateParameters";
+} from "../02-parsing/templateParameters.js";
 
 export function removeDenylistedTemplates(
   root: Element,

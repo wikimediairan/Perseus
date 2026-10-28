@@ -3,7 +3,7 @@ import {
   renderInterwikiTemplateCall,
   stripFragment,
   type TemplateLinkResolution,
-} from "../../ir/wikitextLinkUtils";
+} from "../../ir/wikitextLinkUtils.js";
 
 let idCounter = 0;
 
@@ -58,6 +58,7 @@ const HTML_COMMENT_PATTERN = /<!--[\s\S]*?-->/;
 
 export interface TokenizeOptions {
   onNestedTemplate: (rawTemplateCall: string) => WikitextTokenSpan;
+  nextId?: () => number;
 }
 
 export function tokenizeWikitextValue(
@@ -65,6 +66,7 @@ export function tokenizeWikitextValue(
   options: TokenizeOptions,
 ): { text: string; spans: WikitextTokenSpan[] } {
   const spans: WikitextTokenSpan[] = [];
+  const nextId = options.nextId ?? (() => ++idCounter);
   let text = "";
   let i = 0;
 
@@ -97,7 +99,7 @@ export function tokenizeWikitextValue(
       const label = pipeIndex === -1 ? inner : inner.slice(pipeIndex + 1);
 
       const { title: target } = stripFragment(rawTarget);
-      const id = ++idCounter;
+      const id = nextId();
       spans.push({
         id,
         kind: "link",
@@ -112,7 +114,7 @@ export function tokenizeWikitextValue(
     const commentMatch = HTML_COMMENT_PATTERN.exec(wt.slice(i));
     if (commentMatch && commentMatch.index === 0) {
       const raw = commentMatch[0];
-      const id = ++idCounter;
+      const id = nextId();
       spans.push({ id, kind: "opaque", render: () => raw });
       text += soloToken(id);
       i += raw.length;
@@ -122,7 +124,7 @@ export function tokenizeWikitextValue(
     const refMatch = REF_TAG_PATTERN.exec(wt.slice(i));
     if (refMatch && refMatch.index === 0) {
       const raw = refMatch[0];
-      const id = ++idCounter;
+      const id = nextId();
       spans.push({ id, kind: "opaque", render: () => raw });
       text += soloToken(id);
       i += raw.length;

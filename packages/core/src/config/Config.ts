@@ -1,5 +1,5 @@
-import type { TargetWikiCode } from "./targetWikis";
-import { DEFAULT_TARGET_WIKI } from "./targetWikis";
+import type { TargetWikiCode } from "./targetWikis.js";
+import { DEFAULT_TARGET_WIKI } from "./targetWikis.js";
 
 export interface OpenRouterProviderConfig {
   kind: "openrouter";

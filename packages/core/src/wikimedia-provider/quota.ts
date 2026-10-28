@@ -1,5 +1,5 @@
-import { PerseusError } from "../platform/errors/PerseusError";
-import { WIKIMEDIA_BASE_URL } from "./WikimediaProvider";
+import { PerseusError } from "../platform/errors/PerseusError.js";
+import { WIKIMEDIA_BASE_URL } from "./WikimediaProvider.js";
 
 export interface WikimediaQuota {
   weeklyLimitCost: number;

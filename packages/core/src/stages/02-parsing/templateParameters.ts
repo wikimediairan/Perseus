@@ -1,10 +1,10 @@
-import type { TextNode } from "../../ir/IntermediateRepresentation";
-import type { TemplateLinkResolution } from "../../ir/wikitextLinkUtils";
+import type { TextNode } from "../../ir/IntermediateRepresentation.js";
+import type { TemplateLinkResolution } from "../../ir/wikitextLinkUtils.js";
 import {
   reconstructWikitextValue,
   tokenizeWikitextValue,
   type WikitextTokenSpan,
-} from "./templateWikitextTokens";
+} from "./templateWikitextTokens.js";
 
 const MAX_RECURSION_DEPTH = 4;
 
@@ -160,6 +160,7 @@ function buildParamNode(
   requestCommit: () => void,
   collectLinkTarget: (target: string) => void,
   templateLinkResolutions: Map<string, TemplateLinkResolution>,
+  nextSpanId: () => number,
 ): () => string {
   if (
     isProtectedParameterName(paramName, templateName) ||
@@ -169,6 +170,7 @@ function buildParamNode(
   }
 
   const { text, spans } = tokenizeWikitextValue(rawWt, {
+    nextId: nextSpanId,
     onNestedTemplate: (rawCall) =>
       buildNestedTemplateSpan(
         rawCall,
@@ -178,6 +180,7 @@ function buildParamNode(
         requestCommit,
         collectLinkTarget,
         templateLinkResolutions,
+        nextSpanId,
       ),
   });
 
@@ -210,8 +213,9 @@ function buildNestedTemplateSpan(
   requestCommit: () => void,
   collectLinkTarget: (target: string) => void,
   templateLinkResolutions: Map<string, TemplateLinkResolution>,
+  nextSpanId: () => number,
 ): WikitextTokenSpan {
-  const id = nextSpanIdCounter();
+  const id = nextSpanId();
   const parsed =
     parentDepth < MAX_RECURSION_DEPTH ? parseTemplateCall(rawCall) : null;
 
@@ -231,6 +235,7 @@ function buildNestedTemplateSpan(
       requestCommit,
       collectLinkTarget,
       templateLinkResolutions,
+      nextSpanId,
     ),
   }));
 
@@ -244,11 +249,6 @@ function buildNestedTemplateSpan(
   };
 
   return { id, kind: "opaque", render };
-}
-
-let spanIdCounter = 0;
-function nextSpanIdCounter(): number {
-  return ++spanIdCounter;
 }
 
 interface DataMwTemplatePart {
@@ -299,6 +299,10 @@ export function extractTemplateParameterUnits(
   templateLinkResolutions: Map<string, TemplateLinkResolution> = new Map(),
 ): { result: TemplateExtractionResult; nextTextIdCounter: number } {
   const textNodes: TextNode[] = [];
+  // One allocator per article, shared by nested templates and wikitext
+  // tokens. Rebuilding the same revision must produce identical markers.
+  let spanIdCounter = 0;
+  const nextSpanId = () => ++spanIdCounter;
   const nodeElements = new Map<string, Element>();
   const templateParamWriters = new Map<string, (t: string) => void>();
   const linkTargets: string[] = [];
@@ -348,6 +352,7 @@ export function extractTemplateParameterUnits(
         requestCommit,
         collectLinkTarget,
         templateLinkResolutions,
+        nextSpanId,
       ),
     }));
 

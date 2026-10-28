@@ -1,6 +1,6 @@
-import type { TargetWikiCode } from "../config/targetWikis";
-import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation";
-import type { ArticleRevisionSource } from "../stages/01-input/InputLoader";
+import type { TargetWikiCode } from "../config/targetWikis.js";
+import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation.js";
+import type { ArticleRevisionSource } from "../stages/01-input/InputLoader.js";
 
 export const PACKAGE_FORMAT_MARKER = "perseus-package" as const;
 export const CURRENT_FORMAT_VERSION = 1 as const;

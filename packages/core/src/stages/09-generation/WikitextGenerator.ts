@@ -1,10 +1,13 @@
-import { WIKIMEDIA_USER_AGENT, WIKIPEDIA_DOMAIN } from "../../config/constants";
-import type { TargetWikiDefinition } from "../../config/targetWikis";
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import { applyInterwikiFallbackLinks } from "./interwikiFallback";
-import { localizeReferenceSections } from "./sectionLocalization";
-import { removeDenylistedTemplates } from "./templateRemoval";
+import {
+  WIKIMEDIA_USER_AGENT,
+  WIKIPEDIA_DOMAIN,
+} from "../../config/constants.js";
+import type { TargetWikiDefinition } from "../../config/targetWikis.js";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import { applyInterwikiFallbackLinks } from "./interwikiFallback.js";
+import { localizeReferenceSections } from "./sectionLocalization.js";
+import { removeDenylistedTemplates } from "./templateRemoval.js";
 
 export interface WikitextGenerator {
   generate(

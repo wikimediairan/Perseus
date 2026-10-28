@@ -1,9 +1,9 @@
-import type { TargetWikiDefinition } from "../../config/targetWikis";
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
+import type { TargetWikiDefinition } from "../../config/targetWikis.js";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
 import {
   buildInterwikiTemplateDataMw,
   normalizeTitle,
-} from "../../ir/wikitextLinkUtils";
+} from "../../ir/wikitextLinkUtils.js";
 
 function createAboutIdMinter(): () => string {
   let counter = 0;

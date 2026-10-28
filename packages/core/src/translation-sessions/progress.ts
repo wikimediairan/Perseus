@@ -1,4 +1,4 @@
-import type { SessionProgress, TranslationSession } from "./types";
+import type { SessionProgress, TranslationSession } from "./types.js";
 
 export function calculateSessionProgress(
   session: Pick<TranslationSession, "chunks">,

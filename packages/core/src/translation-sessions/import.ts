@@ -1,7 +1,7 @@
-import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation";
-import type { TranslatedUnit } from "../stages/05-chunking/segmentProtocol";
-import type { Merger } from "../stages/07-merge/Merger";
-import type { ApplySessionChunkResult, SessionChunk } from "./types";
+import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation.js";
+import type { TranslatedUnit } from "../stages/05-chunking/segmentProtocol.js";
+import type { Merger } from "../stages/07-merge/Merger.js";
+import type { ApplySessionChunkResult, SessionChunk } from "./types.js";
 
 export async function applySessionChunk(
   ir: IntermediateRepresentation,

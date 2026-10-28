@@ -2,17 +2,17 @@ import {
   SOURCE_WIKI_CODE,
   WIKIDATA_API,
   WIKIMEDIA_USER_AGENT,
-} from "../../config/constants";
-import type { TargetWikiDefinition } from "../../config/targetWikis";
+} from "../../config/constants.js";
+import type { TargetWikiDefinition } from "../../config/targetWikis.js";
 import {
   wikidataSiteKeyFromWiki,
   wikipediaApiForDomain,
-} from "../../config/wikipedia";
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
-import { normalizeTitle } from "../../ir/wikitextLinkUtils";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { Logger } from "../../platform/logging/Logger";
-import { resolveRedirects } from "./RedirectResolver";
+} from "../../config/wikipedia.js";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
+import { normalizeTitle } from "../../ir/wikitextLinkUtils.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { Logger } from "../../platform/logging/Logger.js";
+import { resolveRedirects } from "./RedirectResolver.js";
 
 export interface LinkResolver {
   resolve(ir: IntermediateRepresentation): Promise<IntermediateRepresentation>;

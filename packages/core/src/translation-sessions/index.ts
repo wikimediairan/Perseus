@@ -1,9 +1,9 @@
 export {
   EXTERNAL_TRANSLATION_INSTRUCTIONS,
   exportTranslationSession,
-} from "./export";
-export { applySessionChunk } from "./import";
-export { calculateSessionProgress } from "./progress";
+} from "./export.js";
+export { applySessionChunk } from "./import.js";
+export { calculateSessionProgress } from "./progress.js";
 export type {
   ApplySessionChunkResult,
   SessionChunk,
@@ -12,6 +12,6 @@ export type {
   TranslationSession,
   TranslationSessionMeta,
   TranslationSessionSource,
-} from "./types";
+} from "./types.js";
 
-export { validateTranslationSession } from "./validate";
+export { validateTranslationSession } from "./validate.js";

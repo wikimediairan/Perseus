@@ -1,10 +1,10 @@
-import { PerseusError } from "../../../platform/errors/PerseusError";
-import { chatCompletion } from "../chatProtocol";
+import { PerseusError } from "../../../platform/errors/PerseusError.js";
+import { chatCompletion } from "../chatProtocol.js";
 import type {
   TextProviderType,
   TranslationRequest,
   TranslationResponse,
-} from "../LLMProvider";
+} from "../LLMProvider.js";
 
 export interface NineRouterProviderConfig {
   apiKey?: string;

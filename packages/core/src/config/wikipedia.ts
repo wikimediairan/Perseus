@@ -1,4 +1,4 @@
-import { SOURCE_WIKI_CODE } from "./constants";
+import { SOURCE_WIKI_CODE } from "./constants.js";
 
 const WIKIPEDIA_WIKI_CODE_PATTERN = /^[a-z][a-z0-9_-]*wiki$/i;
 const WIKIPEDIA_LANGUAGE_CODE_PATTERN = /^[a-z][a-z0-9-]*$/;

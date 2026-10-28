@@ -1,6 +1,6 @@
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { TranslationUsage } from "../06-translation/LLMProvider";
-import type { Chunk } from "./Chunker";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { TranslationUsage } from "../06-translation/LLMProvider.js";
+import type { Chunk } from "./Chunker.js";
 
 export interface TranslatedUnit {
   nodeId: string;

@@ -1,11 +1,11 @@
-import type { LLMProviderConfig } from "../../config/Config";
-import { DEFAULT_NINEROUTER_BASE_URL } from "../../config/Config";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { WikimediaProviderType } from "../../wikimedia-provider/contract";
-import { WikimediaProvider } from "../../wikimedia-provider/WikimediaProvider";
-import type { TextProviderType } from "./LLMProvider";
-import { NineRouterProvider } from "./providers/NineRouterProvider";
-import { OpenRouterProvider } from "./providers/OpenRouterProvider";
+import type { LLMProviderConfig } from "../../config/Config.js";
+import { DEFAULT_NINEROUTER_BASE_URL } from "../../config/Config.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { WikimediaProviderType } from "../../wikimedia-provider/contract.js";
+import { WikimediaProvider } from "../../wikimedia-provider/WikimediaProvider.js";
+import type { TextProviderType } from "./LLMProvider.js";
+import { NineRouterProvider } from "./providers/NineRouterProvider.js";
+import { OpenRouterProvider } from "./providers/OpenRouterProvider.js";
 
 export function createProvider(
   config: LLMProviderConfig,

@@ -1,4 +1,4 @@
-import type { Logger } from "../platform/logging/Logger";
+import type { Logger } from "../platform/logging/Logger.js";
 
 export type CitationId = string;
 

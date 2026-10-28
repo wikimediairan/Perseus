@@ -1,5 +1,5 @@
-import type { CitationRegistry } from "../../ir/citation";
-import type { PlaceholderSpan } from "../../ir/IntermediateRepresentation";
+import type { CitationRegistry } from "../../ir/citation.js";
+import type { PlaceholderSpan } from "../../ir/IntermediateRepresentation.js";
 
 function assertDefined<T>(value: T | undefined, message: string): T {
   if (value === undefined) {

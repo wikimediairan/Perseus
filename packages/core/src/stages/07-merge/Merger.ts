@@ -1,8 +1,8 @@
-import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation";
-import { PerseusError } from "../../platform/errors/PerseusError";
-import type { Logger } from "../../platform/logging/Logger";
-import { reconstructHtmlFromPlaceholders } from "../02-parsing/placeholders";
-import type { TranslatedChunk } from "../06-translation/Translator";
+import type { IntermediateRepresentation } from "../../ir/IntermediateRepresentation.js";
+import { PerseusError } from "../../platform/errors/PerseusError.js";
+import type { Logger } from "../../platform/logging/Logger.js";
+import { reconstructHtmlFromPlaceholders } from "../02-parsing/placeholders.js";
+import type { TranslatedChunk } from "../06-translation/Translator.js";
 
 export interface Merger {
   merge(

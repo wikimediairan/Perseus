@@ -1,13 +1,13 @@
-import { languageCodeFromWiki } from "../config/wikipedia";
-import type { ExtractionResult } from "../pipeline/Pipeline";
-import { PerseusError } from "../platform/errors/PerseusError";
-import type { Chunk } from "../stages/05-chunking/Chunker";
+import { languageCodeFromWiki } from "../config/wikipedia.js";
+import type { ExtractionResult } from "../pipeline/Pipeline.js";
+import { PerseusError } from "../platform/errors/PerseusError.js";
+import type { Chunk } from "../stages/05-chunking/Chunker.js";
 import type {
   SessionChunk,
   TranslationEntryTuple,
   TranslationSession,
-} from "./types";
-import { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "./types";
+} from "./types.js";
+import { CURRENT_FORMAT_VERSION, PACKAGE_FORMAT_MARKER } from "./types.js";
 
 export const EXTERNAL_TRANSLATION_INSTRUCTIONS =
   'Each chunk below has a "translation" list of [id, tag, text] entries. Replace each entry\'s "text" with its translation, in place. If a text contains tokens that look like ⟪1⟫...⟪/1⟫, keep those exact tokens in your translation, in the same order — they mark links or formatting that Perseus will restore automatically. Leave "id" and "tag" unchanged, and leave any entry you do not want to translate exactly as-is.';

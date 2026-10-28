@@ -1,39 +1,39 @@
-import type { TargetWikiCode } from "../config/targetWikis";
-import { getTargetWiki } from "../config/targetWikis";
-import { wikipediaDomainFromWiki } from "../config/wikipedia";
-import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation";
-import type { Logger } from "../platform/logging/Logger";
+import type { TargetWikiCode } from "../config/targetWikis.js";
+import { getTargetWiki } from "../config/targetWikis.js";
+import { wikipediaDomainFromWiki } from "../config/wikipedia.js";
+import type { IntermediateRepresentation } from "../ir/IntermediateRepresentation.js";
+import type { Logger } from "../platform/logging/Logger.js";
 import type {
   ArticleRevisionSource,
   ArticleSource,
   InputLoader,
-} from "../stages/01-input/InputLoader";
-import type { Parser } from "../stages/02-parsing/ParsoidParser";
+} from "../stages/01-input/InputLoader.js";
+import type { Parser } from "../stages/02-parsing/ParsoidParser.js";
 import {
   buildIRFromParsoidHtml,
   fetchRevisionHtml,
-} from "../stages/02-parsing/ParsoidParser";
-import type { LinkResolver } from "../stages/03-link-resolution/WikidataLinkResolver";
+} from "../stages/02-parsing/ParsoidParser.js";
+import type { LinkResolver } from "../stages/03-link-resolution/WikidataLinkResolver.js";
 import type {
   Extractor,
   TranslationWorklist,
-} from "../stages/04-extraction/Extractor";
-import type { Chunk, Chunker } from "../stages/05-chunking/Chunker";
-import type { TranslatedChunk } from "../stages/05-chunking/segmentProtocol";
-import type { Translator } from "../stages/06-translation/Translator";
-import type { Merger } from "../stages/07-merge/Merger";
-import type { ReferenceAttentionClassifier } from "../stages/08-reference-attention/ReferenceAttention";
-import type { WikitextGenerator } from "../stages/09-generation/WikitextGenerator";
-import { applySessionChunk } from "../translation-sessions/import";
-import { calculateSessionProgress } from "../translation-sessions/progress";
+} from "../stages/04-extraction/Extractor.js";
+import type { Chunk, Chunker } from "../stages/05-chunking/Chunker.js";
+import type { TranslatedChunk } from "../stages/05-chunking/segmentProtocol.js";
+import type { Translator } from "../stages/06-translation/Translator.js";
+import type { Merger } from "../stages/07-merge/Merger.js";
+import type { ReferenceAttentionClassifier } from "../stages/08-reference-attention/ReferenceAttention.js";
+import type { WikitextGenerator } from "../stages/09-generation/WikitextGenerator.js";
+import { applySessionChunk } from "../translation-sessions/import.js";
+import { calculateSessionProgress } from "../translation-sessions/progress.js";
 import type {
   ApplySessionChunkResult,
   SessionProgress,
   TranslationSession,
-} from "../translation-sessions/types";
+} from "../translation-sessions/types.js";
 
-export type { PipelineStageName } from "./PipelineStage";
-export { PIPELINE_STAGE_ORDER } from "./PipelineStage";
+export type { PipelineStageName } from "./PipelineStage.js";
+export { PIPELINE_STAGE_ORDER } from "./PipelineStage.js";
 
 export interface PipelineDependencies {
   logger: Logger;
