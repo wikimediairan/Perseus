@@ -4,11 +4,15 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
+    "paths": {
+      "@perseus/core": ["../../packages/core/dist/index.d.ts"]
+    },
     "strict": true,
     "skipLibCheck": true,
     "rootDir": "src",
     "outDir": "dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"]
 }
