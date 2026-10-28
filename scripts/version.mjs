@@ -11,6 +11,9 @@ const VERSION_FILE = path.join(rootDir, "version.json");
 const WORKSPACE_FILE = path.join(rootDir, "pnpm-workspace.yaml");
 
 const DESKTOP_APP_NAME = "perseus-desktop";
+const MCP_APP_NAME = "@perseus/mcp";
+const MCP_PACKAGE_FILE = path.join(rootDir, "apps", "mcp", "package.json");
+const MCP_README_FILE = path.join(rootDir, "apps", "mcp", "README.md");
 const DESKTOP_CARGO_FILE = path.join(
   rootDir,
   "apps",
@@ -135,7 +138,60 @@ function createCargoVersionTarget(label, filePath) {
   };
 }
 
+function createMcpReleaseReferencesTarget() {
+  const versionPattern =
+    "[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?";
+  return {
+    label: `${MCP_APP_NAME} release references`,
+    read() {
+      const packageJson = readJson(MCP_PACKAGE_FILE);
+      const readme = fs.readFileSync(MCP_README_FILE, "utf8");
+      const values = [
+        packageJson.homepage?.match(
+          new RegExp(`mcp-v(${versionPattern})`),
+        )?.[1],
+        readme.match(new RegExp(`perseus-mcp@(${versionPattern})`))?.[1],
+        ...[
+          ...readme.matchAll(new RegExp(`mcp-v(${versionPattern})`, "g")),
+        ].map((match) => match[1]),
+      ];
+      if (values.some((value) => !value) || new Set(values).size !== 1) {
+        throw new Error(
+          "MCP README/homepage release references are missing or inconsistent.",
+        );
+      }
+      return values[0];
+    },
+    write(version) {
+      const packageJson = readJson(MCP_PACKAGE_FILE);
+      packageJson.homepage = packageJson.homepage.replace(
+        new RegExp(`mcp-v${versionPattern}`),
+        `mcp-v${version}`,
+      );
+      writeJson(MCP_PACKAGE_FILE, packageJson);
+      const readme = fs.readFileSync(MCP_README_FILE, "utf8");
+      fs.writeFileSync(
+        MCP_README_FILE,
+        readme
+          .replace(
+            new RegExp(`perseus-mcp@${versionPattern}`, "g"),
+            `perseus-mcp@${version}`,
+          )
+          .replace(
+            new RegExp(`mcp-v${versionPattern}`, "g"),
+            `mcp-v${version}`,
+          ),
+        "utf8",
+      );
+    },
+  };
+}
+
 const EXTRA_APP_TARGETS = [
+  {
+    appName: MCP_APP_NAME,
+    target: createMcpReleaseReferencesTarget(),
+  },
   {
     appName: DESKTOP_APP_NAME,
     target: createCargoVersionTarget(
