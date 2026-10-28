@@ -1,23 +1,54 @@
 {
   "name": "@perseus/mcp",
   "version": "0.1.0",
-  "private": true,
+  "description": "A local MCP server for durable, agent-assisted English Wikipedia translation to Persian and Tajik.",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wikimediairan/Perseus.git",
+    "directory": "apps/mcp"
+  },
+  "homepage": "https://github.com/wikimediairan/Perseus/tree/mcp-v0.1.0/apps/mcp#readme",
+  "bugs": {
+    "url": "https://github.com/wikimediairan/Perseus/issues"
+  },
+  "keywords": [
+    "mcp",
+    "wikipedia",
+    "wikimedia",
+    "translation",
+    "persian",
+    "tajik"
+  ],
   "type": "module",
   "bin": {
     "perseus-mcp": "./dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENT_GUIDE.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=22"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "pnpm --filter @perseus/core build && tsup",
     "start": "node dist/index.js",
-    "typecheck": "tsc -p tsconfig.test.json",
-    "test": "pnpm --filter @perseus/core build && pnpm build && vitest run"
+    "typecheck": "pnpm --filter @perseus/core build && tsc -p tsconfig.test.json",
+    "test": "pnpm --filter @perseus/core build && vitest run",
+    "test:integration": "node --input-type=module -e \"await import('./tests/stdio.mjs')\"",
+    "pack:validate": "node tests/package-validation.mjs",
+    "pack:smoke": "node --input-type=module -e \"await import('./tests/packed-smoke.mjs')\"",
+    "prepack": "pnpm run build && pnpm run pack:validate"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
-    "@perseus/core": "workspace:*",
     "linkedom": "^0.18.13",
     "proper-lockfile": "^4.1.2",
     "zod": "^4.4.3"
@@ -25,6 +56,8 @@
   "devDependencies": {
     "@types/node": "^26.2.0",
     "@types/proper-lockfile": "^4.1.4",
-    "typescript": "^5.7.2"
+    "tsdown": "^0.23.2",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.10"
   }
 }
