@@ -49,7 +49,7 @@ export class WikimediaProvider implements WikimediaProviderType {
 
     const rawBody = await response.text();
 
-    console.log("Wikimedia backend response", {
+    console.error("Wikimedia backend response", {
       status: response.status,
       body: rawBody,
     });
