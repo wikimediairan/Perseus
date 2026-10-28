@@ -39,9 +39,11 @@ async function main() {
     );
   const { server, drain } = createServer();
   let stopping = false;
+  const keepAlive = setInterval(() => {}, 2 ** 30);
   const shutdown = async () => {
     if (stopping) return;
     stopping = true;
+    clearInterval(keepAlive);
     await drain();
     await server.close();
     process.stdin.pause();
@@ -54,9 +56,10 @@ async function main() {
   };
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
-  process.stdin.once("end", stop);
-  server.server.onclose = stop;
-  await server.connect(new StdioServerTransport());
+  process.stdin.once("data", () => process.stdin.once("end", stop));
+  const transport = new StdioServerTransport();
+  transport.onclose = stop;
+  await server.connect(transport);
 }
 
 main().catch((error) => {

@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { lstat, mkdir, open, readFile, rename, rm } from "node:fs/promises";
 import { homedir } from "node:os";
-import { dirname, isAbsolute, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, posix, resolve, win32 } from "node:path";
 import lockfile from "proper-lockfile";
 import { ToolError } from "./runtime.js";
 import { type SavedSession, sessionIdSchema, sessionSchema } from "./schema.js";
@@ -11,18 +11,19 @@ export function defaultDataDir(
   platform = process.platform,
   home = homedir(),
 ): string {
+  const paths = platform === "win32" ? win32 : posix;
   if (platform === "win32")
-    return join(
-      env.LOCALAPPDATA || join(home, "AppData", "Local"),
+    return paths.join(
+      env.LOCALAPPDATA || paths.join(home, "AppData", "Local"),
       "Perseus",
       "mcp",
     );
   if (platform === "darwin")
-    return join(home, "Library", "Application Support", "Perseus", "mcp");
-  return join(
-    env.XDG_DATA_HOME && isAbsolute(env.XDG_DATA_HOME)
+    return paths.join(home, "Library", "Application Support", "Perseus", "mcp");
+  return paths.join(
+    env.XDG_DATA_HOME && posix.isAbsolute(env.XDG_DATA_HOME)
       ? env.XDG_DATA_HOME
-      : join(home, ".local", "share"),
+      : paths.join(home, ".local", "share"),
     "perseus",
     "mcp",
   );
