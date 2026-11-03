@@ -12,7 +12,7 @@
     "build:core": "pnpm --filter @perseus/core build",
     "build:desktop": "pnpm --filter perseus-desktop tauri build",
     "build:toolforge": "pnpm --filter perseus-toolforge-backend build:toolforge",
-    "heroku-postbuild": "pnpm run build:toolforge",
+    "heroku-build": "pnpm run build:toolforge",
     "deploy": "pnpm --filter perseus-backend deploy",
     "comments": "node scripts/comments.cjs",
     "version:check": "node scripts/version.mjs check",
