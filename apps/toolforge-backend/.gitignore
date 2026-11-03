@@ -1,0 +1,5 @@
+node_modules/
+dist/
+toolforge-dist/
+.env
+*.log

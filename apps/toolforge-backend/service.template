@@ -1,0 +1,7 @@
+# Toolforge web service template for the Perseus API.
+# Start with: toolforge webservice node20 start
+type: node20
+cpu: 1
+mem: 1Gi
+replicas: 1
+health-check-path: /v1/health
