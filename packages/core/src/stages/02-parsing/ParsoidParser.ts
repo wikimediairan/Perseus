@@ -161,10 +161,6 @@ export function buildIRFromParsoidHtml(
   logger?: Logger,
   sourceDomain: string = WIKIPEDIA_DOMAIN,
 ): IntermediateRepresentation {
-  let linkIdCounter = 0;
-  let textIdCounter = 0;
-  let categoryIdCounter = 0;
-
   const document = new DOMParser().parseFromString(
     `<div id="perseus-root">${html}</div>`,
     "text/html",
@@ -180,6 +176,37 @@ export function buildIRFromParsoidHtml(
       },
     );
   }
+
+  return buildIRFromParsoidRoot(root, sourceTitle, logger, sourceDomain);
+}
+
+/**
+ * Builds the IR from an already parsed Parsoid root. Callers such as the
+ * gadget backend prune the source DOM before translation and use this to
+ * avoid serializing and re-parsing HTML (which can damage attribute escaping
+ * in URLs and citation metadata).
+ */
+export function buildIRFromParsoidRoot(
+  root: Element,
+  sourceTitle: string,
+  logger?: Logger,
+  sourceDomain: string = WIKIPEDIA_DOMAIN,
+): IntermediateRepresentation {
+  const document = root.ownerDocument;
+
+  if (!document) {
+    throw new PerseusError(
+      "ParsingError",
+      "Parsoid root has no owning document.",
+      {
+        stage: "parse-with-parsoid",
+      },
+    );
+  }
+
+  let linkIdCounter = 0;
+  let textIdCounter = 0;
+  let categoryIdCounter = 0;
 
   const links: LinkNode[] = [];
   const categories: CategoryNode[] = [];

@@ -9,6 +9,8 @@ export interface ChatCompletionParams {
   userMessage: string;
   extraHeaders?: Record<string, string>;
   providerLabel: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 
 export interface ChatCompletionResult {
@@ -57,8 +59,16 @@ export async function chatCompletion(
     ...params.extraHeaders,
   };
 
+  const controller = new AbortController();
+  const abort = (): void => controller.abort();
+  params.signal?.addEventListener("abort", abort, { once: true });
+  if (params.signal?.aborted) abort();
+  const timeout =
+    params.timeoutMs && params.timeoutMs > 0
+      ? setTimeout(abort, params.timeoutMs)
+      : null;
   let response: Response;
-
+  let body: ChatCompletionResponse;
   try {
     response = await fetch(params.url, {
       method: "POST",
@@ -71,26 +81,29 @@ export async function chatCompletion(
         ],
         temperature: 0.3,
       }),
+      signal: controller.signal,
     });
+    body = (await response.json().catch(() => ({}))) as ChatCompletionResponse;
   } catch (error) {
     throw new PerseusError(
       "ProviderError",
-      `Could not reach ${params.providerLabel} at ${params.url}.`,
+      controller.signal.aborted
+        ? `${params.providerLabel} request was cancelled or timed out.`
+        : `Could not reach ${params.providerLabel}.`,
       {
         stage: "translation",
         cause: error,
       },
     );
+  } finally {
+    if (timeout) clearTimeout(timeout);
+    params.signal?.removeEventListener("abort", abort);
   }
-
-  const body = (await response
-    .json()
-    .catch(() => ({}))) as ChatCompletionResponse;
 
   if (!response.ok) {
     throw new PerseusError(
       "ProviderError",
-      `${params.providerLabel} request failed (HTTP ${response.status}): ${body.error?.message ?? "unknown error"}`,
+      `${params.providerLabel} request failed (HTTP ${response.status}).`,
       { stage: "translation", context: { status: response.status } },
     );
   }

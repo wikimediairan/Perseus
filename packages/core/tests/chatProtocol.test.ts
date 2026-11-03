@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { chatCompletion } from "../src/stages/06-translation/chatProtocol";
 import {
   lastRequestBody,
@@ -78,7 +78,7 @@ describe("chatCompletion", () => {
     });
   });
 
-  it("throws ProviderError on non-2xx with the response error message included", async () => {
+  it("throws ProviderError on non-2xx without exposing upstream error text", async () => {
     mockFetchOnce(429, { error: { message: "rate limited" } });
     await expect(
       chatCompletion({
@@ -90,7 +90,7 @@ describe("chatCompletion", () => {
       }),
     ).rejects.toMatchObject({
       category: "ProviderError",
-      message: expect.stringContaining("rate limited"),
+      message: "Test request failed (HTTP 429).",
     });
   });
 
@@ -105,6 +105,57 @@ describe("chatCompletion", () => {
         providerLabel: "Test",
       }),
     ).rejects.toMatchObject({ category: "ProviderError" });
+  });
+});
+
+afterEach(() => vi.unstubAllGlobals());
+
+describe("chatCompletion request boundaries", () => {
+  const params = {
+    url: "https://provider.test/v1/chat/completions",
+    model: "test-model",
+    providerLabel: "Test provider",
+    systemPrompt: "System prompt",
+    userMessage: "Article text",
+  };
+
+  it("aborts a provider call after its deadline", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener(
+              "abort",
+              () => reject(new Error("aborted")),
+              { once: true },
+            );
+          }),
+      ),
+    );
+    await expect(chatCompletion({ ...params, timeoutMs: 10 })).rejects.toThrow(
+      /cancelled or timed out/,
+    );
+  });
+
+  it("passes caller cancellation into the provider call", async () => {
+    const controller = new AbortController();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        (_url: string, init: RequestInit) =>
+          new Promise<Response>((_resolve, reject) => {
+            init.signal?.addEventListener(
+              "abort",
+              () => reject(new Error("aborted")),
+              { once: true },
+            );
+          }),
+      ),
+    );
+    const request = chatCompletion({ ...params, signal: controller.signal });
+    controller.abort();
+    await expect(request).rejects.toThrow(/cancelled or timed out/);
   });
 });
 

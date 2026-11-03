@@ -84,6 +84,7 @@ export type {
 export { WikipediaInputLoader } from "./stages/01-input/InputLoader.js";
 export {
   buildIRFromParsoidHtml,
+  buildIRFromParsoidRoot,
   fetchRevisionHtml,
   WikipediaParsoidParser,
 } from "./stages/02-parsing/ParsoidParser.js";
@@ -120,6 +121,7 @@ export type {
   TranslatedUnit,
 } from "./stages/05-chunking/segmentProtocol.js";
 export {
+  computeChunkFingerprint,
   parseChunkTranslation,
   renderChunkForTranslation,
   renderTranslatedChunkForEditing,

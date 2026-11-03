@@ -4,6 +4,8 @@ export interface TranslationRequest {
   systemPrompt: string;
   sourceText: string;
   targetLanguage: TargetWikiCode;
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 
 export interface TranslationUsage {

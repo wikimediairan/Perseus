@@ -16,9 +16,17 @@ import type { PromptManager } from "./PromptManager.js";
 export type { TranslatedChunk } from "../05-chunking/segmentProtocol.js";
 
 export interface Translator {
-  translateChunk(chunk: Chunk): Promise<TranslatedChunk>;
+  translateChunk(
+    chunk: Chunk,
+    options?: TranslationOptions,
+  ): Promise<TranslatedChunk>;
 
   translate(chunks: Chunk[]): Promise<TranslatedChunk[]>;
+}
+
+export interface TranslationOptions {
+  signal?: AbortSignal;
+  timeoutMs?: number;
 }
 
 function sumUsage(
@@ -50,7 +58,10 @@ export class LLMTranslator implements Translator {
     private readonly userPrompt?: string,
   ) {}
 
-  async translateChunk(chunk: Chunk): Promise<TranslatedChunk> {
+  async translateChunk(
+    chunk: Chunk,
+    options: TranslationOptions = {},
+  ): Promise<TranslatedChunk> {
     const systemPrompt = `${this.promptManager.buildPrompt(this.targetWiki, this.userPrompt)}`;
 
     this.logger.info(`Translating chunk ${chunk.id}`, {
@@ -67,6 +78,7 @@ export class LLMTranslator implements Translator {
         systemPrompt,
         sourceText: renderChunkForTranslation(chunk),
         targetLanguage: this.targetWiki.code,
+        ...options,
       });
       usageEntries.push(segmented.usage);
 
@@ -93,6 +105,7 @@ export class LLMTranslator implements Translator {
           systemPrompt,
           sourceText: renderChunkForTranslation(chunk),
           targetLanguage: this.targetWiki.code,
+          ...options,
         });
         usageEntries.push(retried.usage);
 
@@ -120,6 +133,7 @@ export class LLMTranslator implements Translator {
           ),
           sourceText: unit.sourceText,
           targetLanguage: this.targetWiki.code,
+          ...options,
         });
         usageEntries.push(single.usage);
         units.push({

@@ -45,6 +45,8 @@ export class OpenRouterProvider implements TextProviderType {
       model: this.config.model,
       systemPrompt: request.systemPrompt,
       userMessage: request.sourceText,
+      signal: request.signal,
+      timeoutMs: request.timeoutMs,
       providerLabel: "OpenRouter",
       extraHeaders: { "X-Title": "Perseus" },
     });

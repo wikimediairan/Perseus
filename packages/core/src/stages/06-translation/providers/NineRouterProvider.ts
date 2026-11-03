@@ -38,6 +38,8 @@ export class NineRouterProvider implements TextProviderType {
       model: this.config.model,
       systemPrompt: request.systemPrompt,
       userMessage: request.sourceText,
+      signal: request.signal,
+      timeoutMs: request.timeoutMs,
       providerLabel: "9Router",
     });
 
