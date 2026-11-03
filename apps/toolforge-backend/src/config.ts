@@ -80,7 +80,11 @@ export interface AppConfig {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
-  const parsed = envSchema.safeParse(env);
+  const parsed = envSchema.safeParse({
+    ...env,
+    DB_USER: env.DB_USER || env.TOOL_TOOLSDB_USER,
+    DB_PASSWORD: env.DB_PASSWORD || env.TOOL_TOOLSDB_PASSWORD,
+  });
 
   if (!parsed.success) {
     const message = parsed.error.issues
