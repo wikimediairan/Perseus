@@ -98,6 +98,9 @@ function isRetryable(error: unknown): boolean {
   }
 
   const category = (error as { category?: string } | null)?.category;
+  const retryable = (error as { context?: { retryable?: boolean } } | null)
+    ?.context?.retryable;
+  if (retryable === false) return false;
   if (category === "ConfigurationError" || category === "InputError") {
     return false;
   }

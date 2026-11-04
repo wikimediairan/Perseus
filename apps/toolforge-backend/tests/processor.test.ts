@@ -81,6 +81,60 @@ function mockFetch(wikitext: string) {
 }
 
 describe("job processor", () => {
+  it("completes when a missing segment is safely translated individually", async () => {
+    const store = new MemoryStore();
+    const user = await store.upsertUser("47", "FallbackSuccessTester");
+    const job = await store.createJob({
+      userId: user.id,
+      source,
+      targetWiki: "fa",
+      selection: { lead: true, sections: {} },
+      sections: [],
+      sourceHtml: "<p>Hello world.</p>",
+      replaceExisting: false,
+    });
+    const claimed = await store.claimNextJob("worker-test", 60);
+    if (!claimed) throw new Error("Expected a claimed job");
+    const providerPrompts: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        const url = String(input);
+        if (url.includes("openrouter.ai")) {
+          const body = JSON.parse(String(init?.body)) as {
+            messages: { role: string; content: string }[];
+          };
+          const prompt = body.messages[0]?.content ?? "";
+          const sourceText = body.messages[1]?.content ?? "";
+          providerPrompts.push(prompt);
+          const translatedText = sourceText.startsWith("[[PERSEUS CHUNK")
+            ? (sourceText.split("\n")[0] ?? "")
+            : "سلام دنیا.";
+          return new Response(
+            JSON.stringify({
+              choices: [{ message: { content: translatedText } }],
+            }),
+            { status: 200 },
+          );
+        }
+        if (url.includes("transform/html/to/wikitext")) {
+          return new Response("سلام دنیا.", { status: 200 });
+        }
+        throw new Error(`Unexpected fetch ${url}`);
+      }),
+    );
+    try {
+      await processJob(store, config, claimed);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(providerPrompts).toHaveLength(2);
+    expect(providerPrompts[0]).toContain("[[PERSEUS CHUNK");
+    expect(providerPrompts[1]).not.toMatch(/\[\[PERSEUS CHUNK|\[\[SEGMENT/);
+    expect((await store.getJob(job.id))?.status).toBe("completed");
+    expect((await store.getJob(job.id))?.resultWikitext).toContain("سلام دنیا");
+  });
+
   it("runs a synthetic job through translation, validation, merge, and generation", async () => {
     const store = new MemoryStore();
     const user = await store.upsertUser("42", "Tester");
@@ -222,5 +276,58 @@ describe("job processor", () => {
       events: await store.listEvents(job.id, 0, 100),
     });
     expect(stored).not.toContain("secret article content");
+  });
+
+  it("does not repeat a whole chunk after two invalid individual responses", async () => {
+    const store = new MemoryStore();
+    const user = await store.upsertUser("46", "FallbackTester");
+    const job = await store.createJob({
+      userId: user.id,
+      source,
+      targetWiki: "fa",
+      selection: { lead: true, sections: {} },
+      sections: [],
+      sourceHtml: "<p>Hello world.</p>",
+      replaceExisting: false,
+    });
+    const claimed = await store.claimNextJob("worker-test", 60);
+    if (!claimed) throw new Error("Expected a claimed job");
+    const providerCalls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
+        if (!String(input).includes("openrouter.ai")) {
+          throw new Error(`Unexpected fetch ${input}`);
+        }
+        const body = JSON.parse(String(init?.body)) as {
+          messages: { role: string; content: string }[];
+        };
+        const sourceText = body.messages[1]?.content ?? "";
+        providerCalls.push(sourceText);
+        const translatedText = sourceText.startsWith("[[PERSEUS CHUNK")
+          ? (sourceText.split("\n")[0] ?? "")
+          : "[[SEGMENT 1]]\nسلام";
+        return new Response(
+          JSON.stringify({
+            choices: [{ message: { content: translatedText } }],
+          }),
+          { status: 200 },
+        );
+      }),
+    );
+    try {
+      await processJob(store, { ...config, chunkRetries: 3 }, claimed);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+    expect(providerCalls).toHaveLength(3);
+    expect(providerCalls[0]).toContain("[[PERSEUS CHUNK");
+    expect(providerCalls[1]).not.toContain("[[PERSEUS CHUNK");
+    expect(providerCalls[2]).toBe(providerCalls[1]);
+    expect((await store.getJob(job.id))?.status).toBe("failed");
+    expect((await store.getChunks(job.id))[0]?.attempts).toBe(1);
+    const events = await store.listEvents(job.id, 0, 100);
+    expect(events.some((event) => event.code === "CHUNK_RETRY")).toBe(false);
+    expect(JSON.stringify(events)).not.toContain("Hello world.");
   });
 });

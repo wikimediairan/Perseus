@@ -24,9 +24,29 @@ function buildDefaultPrompt({
   ].join("\n");
 }
 
+export function buildIndividualSegmentPrompt(
+  { domain, languageName }: TargetWikiDefinition,
+  userPrompt?: string,
+): string {
+  const prompt = [
+    `Translate this single article text segment from its source language into formal, encyclopedic ${languageName} for ${domain}.`,
+    "Translate faithfully. Do not add, omit, summarize, or reinterpret facts.",
+    `Convert standard digits in translated prose to standard ${languageName} numerals. Never alter digits inside protected markers, tokens, tags, or metadata.`,
+    "Preserve every protected marker (⟪n⟫, ⟪/n⟫, and ⟪*n⟫) exactly. Never add, delete, duplicate, reorder, split, merge, or modify marker IDs or boundaries. Preserve spacing immediately adjacent to markers.",
+    "Do not move text into or out of a marker span. Text inside a marker span may be translated, while its opening and closing markers remain attached to that span.",
+    "For personal names, use standard target-language transliteration unless a well-established target-language exonym exists.",
+    "Return only the translated text of this one segment. Do not include chunk identity lines, segment headers, commentary, or formatting wrappers.",
+  ].join("\n");
+  return userPrompt?.trim() ? `${prompt}\n\n${userPrompt.trim()}` : prompt;
+}
+
 export interface PromptManager {
   getDefaultPrompt(targetWiki: TargetWikiDefinition): string;
   buildPrompt(targetWiki: TargetWikiDefinition, userPrompt?: string): string;
+  buildIndividualPrompt?(
+    targetWiki: TargetWikiDefinition,
+    userPrompt?: string,
+  ): string;
 }
 
 export class DefaultPromptManager implements PromptManager {
@@ -42,5 +62,12 @@ export class DefaultPromptManager implements PromptManager {
     }
 
     return `${defaultPrompt}\n\n${userPrompt.trim()}`;
+  }
+
+  buildIndividualPrompt(
+    targetWiki: TargetWikiDefinition,
+    userPrompt?: string,
+  ): string {
+    return buildIndividualSegmentPrompt(targetWiki, userPrompt);
   }
 }

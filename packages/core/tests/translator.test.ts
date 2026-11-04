@@ -209,3 +209,118 @@ describe("LLMTranslator — chunk identity (Layer 1)", () => {
     expect(provider.calls).toHaveLength(2);
   });
 });
+
+describe("LLMTranslator — individual segment fallback", () => {
+  it("uses a segment-only prompt and retranslates only the missing segment", async () => {
+    const provider = fakeProvider([
+      { translatedText: withIdentity(chunk, "[[SEGMENT 1]]\nسلام") },
+      { translatedText: "دنیا" },
+    ]);
+    const translator = new LLMTranslator(
+      provider,
+      new DefaultPromptManager(),
+      getTargetWiki("fa"),
+      new ConsoleLogger(),
+      "Keep proper names consistent.",
+    );
+
+    const result = await translator.translateChunk(chunk);
+
+    expect(provider.calls).toHaveLength(2);
+    expect(provider.calls[0]?.sourceText).toContain("[[PERSEUS CHUNK");
+    expect(provider.calls[0]?.systemPrompt).toContain("[[PERSEUS CHUNK");
+    expect(provider.calls[1]?.sourceText).toBe("World");
+    expect(provider.calls[1]?.systemPrompt).not.toMatch(
+      /\[\[PERSEUS CHUNK|\[\[SEGMENT/,
+    );
+    expect(provider.calls[1]?.systemPrompt).toContain("⟪n⟫");
+    expect(provider.calls[1]?.systemPrompt).toContain(
+      "Keep proper names consistent.",
+    );
+    expect(result.units.map((unit) => unit.translatedText)).toEqual([
+      "سلام",
+      "دنیا",
+    ]);
+  });
+
+  it("rejects protocol-marker leakage from an individual response", async () => {
+    const provider = fakeProvider([
+      { translatedText: withIdentity(chunk, "[[SEGMENT 1]]\nسلام") },
+      { translatedText: "[[SEGMENT 2]]\nدنیا" },
+      { translatedText: "[[SEGMENT 2]]\nدنیا" },
+    ]);
+    const translator = new LLMTranslator(
+      provider,
+      new DefaultPromptManager(),
+      getTargetWiki("fa"),
+      new ConsoleLogger(),
+    );
+
+    await expect(translator.translateChunk(chunk)).rejects.toMatchObject({
+      category: "TranslationError",
+    });
+  });
+
+  it("rejects an individual response that drops a protected marker", async () => {
+    const protectedChunk: Chunk = {
+      id: "chunk-protected",
+      units: [{ nodeId: "text-1", sourceText: "Hello ⟪1⟫world⟪/1⟫." }],
+    };
+    const provider = fakeProvider([
+      { translatedText: withIdentity(protectedChunk, "") },
+      { translatedText: "سلام دنیا." },
+      { translatedText: "سلام دنیا." },
+    ]);
+    const translator = new LLMTranslator(
+      provider,
+      new DefaultPromptManager(),
+      getTargetWiki("fa"),
+      new ConsoleLogger(),
+    );
+
+    await expect(
+      translator.translateChunk(protectedChunk),
+    ).rejects.toMatchObject({
+      category: "TranslationError",
+    });
+  });
+
+  it("preserves the individual response without trimming its boundary whitespace", async () => {
+    const provider = fakeProvider([
+      { translatedText: withIdentity(chunk, "[[SEGMENT 1]]\nسلام") },
+      { translatedText: "  دنیا  " },
+    ]);
+    const translator = new LLMTranslator(
+      provider,
+      new DefaultPromptManager(),
+      getTargetWiki("fa"),
+      new ConsoleLogger(),
+    );
+    const result = await translator.translateChunk(chunk);
+    expect(result.units[1]?.translatedText).toBe("  دنیا  ");
+  });
+
+  it("retries only the invalid individual segment and retains successful chunk segments", async () => {
+    const provider = fakeProvider([
+      { translatedText: withIdentity(chunk, "[[SEGMENT 1]]\nسلام") },
+      { translatedText: "[[SEGMENT 2]]\nدنیا" },
+      { translatedText: "دنیا" },
+    ]);
+    const translator = new LLMTranslator(
+      provider,
+      new DefaultPromptManager(),
+      getTargetWiki("fa"),
+      new ConsoleLogger(),
+    );
+    const result = await translator.translateChunk(chunk);
+    expect(provider.calls.map((call) => call.sourceText)).toEqual([
+      expect.stringContaining("[[PERSEUS CHUNK"),
+      "World",
+      "World",
+    ]);
+    expect(result.units.map((unit) => unit.translatedText)).toEqual([
+      "سلام",
+      "دنیا",
+    ]);
+  });
+});

@@ -307,7 +307,7 @@ This writes `apps/toolforge-backend/toolforge-dist/`.
 
 ```bash
 # from your machine, after building
-scp -r toolforge-dist/* <tool>@login.toolforge.org:/home/<tool>/www/js/
+scp -r apps/toolforge-backend/toolforge-dist/. <shell-user>@login.toolforge.org:/data/project/<tool>/www/js/
 
 # on Toolforge
 become <tool>
@@ -330,7 +330,7 @@ webservice.
 toolforge jobs run perseus-worker \
   --image node20 \
   --continuous \
-  --command "npm --prefix /home/<tool>/www/js run start:worker" \
+  --command "npm --prefix $HOME/www/js run start:worker" \
   --mem 1Gi \
   --cpu 1
 ```
@@ -338,6 +338,40 @@ toolforge jobs run perseus-worker \
 Check `toolforge jobs run --help` for the exact flags in your Toolforge
 environment. Only one worker is expected. The lease columns make a second
 worker safe, but the MVP is sized for one.
+
+### Redeploy Core and worker changes to an existing tool
+
+From the repository root on your development machine, rebuild Core before the
+backend bundle. Replace `<shell-user>` with your Wikimedia developer shell
+username and `<tool>` with the Toolforge tool name:
+
+```bash
+pnpm --filter @perseus/core build
+pnpm --filter perseus-toolforge-backend build:toolforge
+scp -r apps/toolforge-backend/toolforge-dist/. <shell-user>@login.toolforge.org:/data/project/<tool>/www/js/
+ssh <shell-user>@login.toolforge.org
+```
+
+On the Toolforge bastion, switch to the tool account, install the packaged
+runtime dependencies inside the Node 20 webservice shell, then restart both
+long-running processes:
+
+```bash
+become <tool>
+toolforge webservice node20 shell
+cd "$HOME/www/js"
+npm install --omit=dev
+exit
+toolforge webservice node20 restart
+toolforge jobs restart perseus-worker
+toolforge jobs show perseus-worker
+toolforge jobs logs perseus-worker
+```
+
+This change has no database migration. Check `/v1/health`, run a fresh
+translation that needs an individual segment fallback, and confirm the job
+reaches `completed` with no protocol markers in its output. An existing failed
+job may be retried through `POST /v1/jobs/:id/retry` after the worker restarts.
 
 ### 5. Verify
 

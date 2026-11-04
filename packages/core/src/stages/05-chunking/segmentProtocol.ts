@@ -133,6 +133,49 @@ function markersMatch(sourceText: string, translatedText: string): boolean {
   return true;
 }
 
+export function validateIndividualSegmentTranslation(
+  sourceText: string,
+  translatedText: string,
+): void {
+  const invalid = (): never => {
+    throw new PerseusError(
+      "TranslationError",
+      "An individual segment response failed protocol or protected-marker validation.",
+      { stage: "translation", context: { retryable: false } },
+    );
+  };
+
+  if (
+    !translatedText.trim() ||
+    /\[\[\s*(?:PERSEUS|SEGMENT)\b/i.test(translatedText)
+  ) {
+    invalid();
+  }
+  const markers = /⟪(\*|\/)?(\d+)⟫/g;
+  if (
+    [...translatedText.matchAll(markers)].length !==
+      (translatedText.match(/⟪/g) ?? []).length ||
+    (translatedText.match(/⟪/g) ?? []).length !==
+      (translatedText.match(/⟫/g) ?? []).length ||
+    !markersMatch(sourceText, translatedText)
+  ) {
+    invalid();
+  }
+
+  const stack: string[] = [];
+  for (const marker of translatedText.matchAll(markers)) {
+    if (marker[1] === "*") continue;
+    const id = marker[2];
+    if (!id) invalid();
+    if (marker[1] === "/") {
+      if (stack.pop() !== id) invalid();
+    } else {
+      stack.push(id);
+    }
+  }
+  if (stack.length > 0) invalid();
+}
+
 export function parseChunkTranslation(
   chunk: Chunk,
   responseText: string,

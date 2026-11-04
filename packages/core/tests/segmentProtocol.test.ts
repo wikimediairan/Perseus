@@ -6,6 +6,7 @@ import {
   parseChunkTranslation,
   renderChunkForTranslation,
   renderTranslatedChunkForEditing,
+  validateIndividualSegmentTranslation,
 } from "../src/stages/05-chunking/segmentProtocol";
 
 const chunkA: Chunk = {
@@ -164,6 +165,38 @@ describe("Chunk identity — Layer 1 (the newly discovered root cause)", () => {
     expect(computeChunkFingerprint(chunkA)).not.toBe(
       computeChunkFingerprint(chunkB),
     );
+  });
+});
+
+describe("individual segment response validation", () => {
+  const source = "Hello ⟪1⟫world⟪/1⟫ and ⟪*2⟫.";
+
+  it("accepts the same protected markers without a chunk envelope", () => {
+    expect(() =>
+      validateIndividualSegmentTranslation(source, "سلام ⟪1⟫دنیا⟪/1⟫ و ⟪*2⟫."),
+    ).not.toThrow();
+  });
+
+  it.each([
+    "[[SEGMENT 1]]\nسلام ⟪1⟫دنیا⟪/1⟫ و ⟪*2⟫.",
+    "[[PERSEUS CHUNK chunk-1 deadbeef]]\nسلام ⟪1⟫دنیا⟪/1⟫ و ⟪*2⟫.",
+    "سلام دنیا و ⟪*2⟫.",
+    "سلام ⟪1⟫دنیا⟪/۱⟫ و ⟪*2⟫.",
+    "سلام ⟪1⟫دنیا⟪/1⟫ و ⟪*2⟫ ⟪*2⟫.",
+    "   ",
+  ])("rejects a malformed individual response", (response) => {
+    expect(() =>
+      validateIndividualSegmentTranslation(source, response),
+    ).toThrow(/failed protocol or protected-marker validation/);
+  });
+
+  it("rejects crossed protected spans", () => {
+    expect(() =>
+      validateIndividualSegmentTranslation(
+        "⟪1⟫A ⟪2⟫B⟪/2⟫ C⟪/1⟫",
+        "⟪1⟫الف ⟪2⟫ب⟪/1⟫ پ⟪/2⟫",
+      ),
+    ).toThrow(/failed protocol or protected-marker validation/);
   });
 });
 

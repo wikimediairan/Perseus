@@ -9,9 +9,13 @@ import type {
 import {
   parseChunkTranslation,
   renderChunkForTranslation,
+  validateIndividualSegmentTranslation,
 } from "../05-chunking/segmentProtocol.js";
 import type { TextProviderType, TranslationUsage } from "./LLMProvider.js";
-import type { PromptManager } from "./PromptManager.js";
+import {
+  buildIndividualSegmentPrompt,
+  type PromptManager,
+} from "./PromptManager.js";
 
 export type { TranslatedChunk } from "../05-chunking/segmentProtocol.js";
 
@@ -121,25 +125,59 @@ export class LLMTranslator implements Translator {
         `Chunk ${chunk.id}: ${missingUnitIds.length} segment(s) missing or failed marker validation in the model's response; retranslating individually`,
       );
 
+      const individualPrompt =
+        this.promptManager.buildIndividualPrompt?.(
+          this.targetWiki,
+          this.userPrompt,
+        ) ?? buildIndividualSegmentPrompt(this.targetWiki, this.userPrompt);
+
       for (const nodeId of missingUnitIds) {
         const unit = chunk.units.find((u) => u.nodeId === nodeId);
 
         if (!unit) throw Error("unit is null");
 
-        const single = await this.provider.translate({
-          systemPrompt: this.promptManager.buildPrompt(
-            this.targetWiki,
-            this.userPrompt,
-          ),
-          sourceText: unit.sourceText,
-          targetLanguage: this.targetWiki.code,
-          ...options,
-        });
-        usageEntries.push(single.usage);
+        let translatedText: string | null = null;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          const single = await this.provider.translate({
+            systemPrompt: individualPrompt,
+            sourceText: unit.sourceText,
+            targetLanguage: this.targetWiki.code,
+            ...options,
+          });
+          usageEntries.push(single.usage);
+          try {
+            validateIndividualSegmentTranslation(
+              unit.sourceText,
+              single.translatedText,
+            );
+            translatedText = single.translatedText;
+            break;
+          } catch (error) {
+            if (
+              !(
+                error instanceof PerseusError &&
+                error.category === "TranslationError"
+              )
+            ) {
+              throw error;
+            }
+            if (attempt === 2) throw error;
+            this.logger.warn(
+              `Chunk ${chunk.id}: an individual segment failed validation; retrying that segment once`,
+            );
+          }
+        }
+        if (translatedText === null) {
+          throw new PerseusError(
+            "TranslationError",
+            "An individual segment could not be translated safely.",
+            { stage: "translation", context: { retryable: false } },
+          );
+        }
         units.push({
           nodeId: unit.nodeId,
           sourceText: unit.sourceText,
-          translatedText: single.translatedText.trim(),
+          translatedText,
         });
       }
     }
