@@ -235,6 +235,39 @@ describe("validateGeneratedStructure", () => {
     ).toThrow(/references list/);
   });
 
+  it("accepts the supported Persian references-list template", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root"><div typeof="mw:Extension/references"></div></div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n{{ پانویس | چپ‌چین = بله }}",
+        "fa",
+      ),
+    ).not.toThrow();
+  });
+
+  it("requires a list when section selection requested a fallback", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root"><sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"html":"Source"}}'></sup></div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n<ref>Source</ref>",
+        "fa",
+        true,
+      ),
+    ).toThrow(/references list/);
+  });
+
   it("accepts named definitions, self-closing usages, and anonymous refs without counting the references list", () => {
     const doc = new DOMParser().parseFromString(
       `<div id="root">

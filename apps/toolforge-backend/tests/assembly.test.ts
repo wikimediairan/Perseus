@@ -106,4 +106,89 @@ describe("assembly", () => {
       vi.unstubAllGlobals();
     }
   });
+
+  it("appends and then validates a Persian references list", async () => {
+    const html = `<p>Lead.<sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-source"}}'></sup></p><div typeof="mw:Extension/references"><span id="mw-reference-text-source">Source</span></div>`;
+    const document = parseHtml(html);
+    const root = document.getElementById("perseus-root");
+    if (!root) throw new Error("missing test root");
+    const ir = buildIRFromParsoidRoot(
+      root,
+      "Reference fallback test",
+      undefined,
+      "en.wikipedia.org",
+    );
+    const worklist = await new WikipediaExtractor().extract(ir);
+    const chunks = await new SizeBoundedChunker().chunk(worklist);
+    const translations: TranslatedChunkRecord[] = chunks.map((chunk) => ({
+      id: chunk.id,
+      units: chunk.units.map((unit) => ({
+        nodeId: unit.nodeId,
+        sourceText: unit.sourceText,
+        translatedText: unit.sourceText,
+      })),
+    }));
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () => new Response("Lead.<ref>Source</ref>", { status: 200 }),
+      ),
+    );
+
+    try {
+      await expect(
+        assemble(ir, chunks, translations, "fa", new ConsoleLogger(), true),
+      ).resolves.toContain("== منابع ==\n{{پانویس}}");
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("does not append a duplicate when Persian wikitext already has {{پانویس}}", async () => {
+    const html = `<p>Lead.<sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-source"}}'></sup></p><div typeof="mw:Extension/references"><span id="mw-reference-text-source">Source</span></div>`;
+    const document = parseHtml(html);
+    const root = document.getElementById("perseus-root");
+    if (!root) throw new Error("missing test root");
+    const ir = buildIRFromParsoidRoot(
+      root,
+      "Existing references test",
+      undefined,
+      "en.wikipedia.org",
+    );
+    const worklist = await new WikipediaExtractor().extract(ir);
+    const chunks = await new SizeBoundedChunker().chunk(worklist);
+    const translations: TranslatedChunkRecord[] = chunks.map((chunk) => ({
+      id: chunk.id,
+      units: chunk.units.map((unit) => ({
+        nodeId: unit.nodeId,
+        sourceText: unit.sourceText,
+        translatedText: unit.sourceText,
+      })),
+    }));
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(
+        async () =>
+          new Response("Lead.<ref>Source</ref>\n\n== منابع ==\n{{پانویس}}", {
+            status: 200,
+          }),
+      ),
+    );
+
+    try {
+      const output = await assemble(
+        ir,
+        chunks,
+        translations,
+        "fa",
+        new ConsoleLogger(),
+        true,
+      );
+      expect(output.match(/\{\{پانویس\}\}/g)).toHaveLength(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
 });

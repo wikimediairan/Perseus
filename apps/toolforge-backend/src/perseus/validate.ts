@@ -1,5 +1,6 @@
 import type {
   ChunkPlan,
+  TargetWikiCode,
   TranslatedChunkRecord,
   WorkUnit,
 } from "../domain/types.js";
@@ -7,6 +8,47 @@ import { ApiError } from "../util/errors.js";
 
 const TOKEN_PATTERN = /⟪(\*|\/)?(\d+)⟫/g;
 const REF_SELECTOR = '[typeof~="mw:Extension/ref"]';
+const REFERENCE_LIST_TEMPLATES: Record<TargetWikiCode, ReadonlySet<string>> = {
+  fa: new Set(["پانویس"]),
+  tg: new Set(),
+};
+
+function normalizeTemplate(name: string): string {
+  return name
+    .replace(/^template\s*:/i, "")
+    .replaceAll("_", " ")
+    .trim()
+    .toLocaleLowerCase()
+    .replace(/\s+/g, " ");
+}
+
+export function countGeneratedReferenceLists(
+  wikitext: string,
+  targetWiki: TargetWikiCode,
+): number {
+  const output = wikitext
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<nowiki\b[^>]*>[\s\S]*?<\/nowiki\s*>/gi, "")
+    .replace(/<pre\b[^>]*>[\s\S]*?<\/pre\s*>/gi, "");
+  let count = (output.match(/<references\b/gi) ?? []).length;
+  const supportedTemplates = REFERENCE_LIST_TEMPLATES[targetWiki];
+
+  for (const match of output.matchAll(
+    /\{\{\s*(?:subst\s*:\s*)?([^{}|\n]+)/gi,
+  )) {
+    const name = match[1];
+    if (name && supportedTemplates.has(normalizeTemplate(name))) count++;
+  }
+
+  return count;
+}
+
+export function hasGeneratedReferenceList(
+  wikitext: string,
+  targetWiki: TargetWikiCode,
+): boolean {
+  return countGeneratedReferenceLists(wikitext, targetWiki) > 0;
+}
 
 interface TokenCounts {
   counts: Map<string, number>;
@@ -401,7 +443,8 @@ export function validateOutputCoverage(
 export function validateGeneratedStructure(
   root: Element,
   wikitext: string,
-  targetWiki: string,
+  targetWiki: TargetWikiCode,
+  requireReferencesList = false,
 ): void {
   const outsideTemplate = (element: Element): boolean =>
     !element.closest('[typeof*="mw:Transclusion"]');
@@ -417,7 +460,7 @@ export function validateGeneratedStructure(
   const output = wikitext.replace(/<!--[\s\S]*?-->/g, "");
   const generatedRefs = generatedReferenceInventory(output);
   const generated = {
-    referenceLists: (output.match(/<references\b/gi) ?? []).length,
+    referenceLists: countGeneratedReferenceLists(output, targetWiki),
     tables: (output.match(/\{\||<table\b/gi) ?? []).length,
     templates: Math.max(
       0,
@@ -431,7 +474,11 @@ export function validateGeneratedStructure(
   };
   assertReferencesPreserved(sourceRefs, generatedRefs);
 
-  if (generated.referenceLists < source.referenceLists) {
+  const requiredReferenceLists = Math.max(
+    source.referenceLists,
+    requireReferencesList ? 1 : 0,
+  );
+  if (generated.referenceLists < requiredReferenceLists) {
     throw new ApiError(
       422,
       "OUTPUT_STRUCTURE_LOSS",
@@ -449,13 +496,6 @@ export function validateGeneratedStructure(
     }
   }
 
-  const normalizeTemplate = (name: string): string =>
-    name
-      .replace(/^template\s*:/i, "")
-      .replaceAll("_", " ")
-      .trim()
-      .toLocaleLowerCase()
-      .replace(/\s+/g, " ");
   const expectedTemplates = new Map<string, number>();
   for (const element of root.querySelectorAll('[typeof*="mw:Transclusion"]')) {
     const raw = element.getAttribute("data-mw");

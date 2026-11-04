@@ -24,7 +24,10 @@ import type {
 } from "../domain/types.js";
 import { ApiError } from "../util/errors.js";
 import { selectSections } from "./sections.js";
-import { validateGeneratedStructure } from "./validate.js";
+import {
+  hasGeneratedReferenceList,
+  validateGeneratedStructure,
+} from "./validate.js";
 
 export interface PreparedArticle {
   ir: IntermediateRepresentation;
@@ -203,14 +206,21 @@ export async function assemble(
       "The generated article lost its document root.",
     );
   }
-  validateGeneratedStructure(generatedRoot, wikitext, targetWiki);
-
-  if (needsReferencesList && !hasReferencesSection(wikitext)) {
-    wikitext +=
-      targetWiki === "fa"
-        ? "\n\n== منابع ==\n{{پانویس}}"
-        : "\n\n== Сарчашмаҳо ==\n<references />";
+  if (needsReferencesList && !hasGeneratedReferenceList(wikitext, targetWiki)) {
+    const list = targetWiki === "fa" ? "{{پانویس}}" : "<references />";
+    wikitext += hasReferencesSection(wikitext)
+      ? `\n${list}`
+      : targetWiki === "fa"
+        ? `\n\n== منابع ==\n${list}`
+        : `\n\n== Сарчашмаҳо ==\n${list}`;
   }
+
+  validateGeneratedStructure(
+    generatedRoot,
+    wikitext,
+    targetWiki,
+    needsReferencesList,
+  );
 
   return wikitext;
 }
