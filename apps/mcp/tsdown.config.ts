@@ -17,6 +17,9 @@ export default defineConfig({
   define: {
     __PACKAGE_VERSION__: JSON.stringify(packageJson.version),
   },
+  outputOptions: {
+    entryFileNames: "[name].js",
+  },
   alias: {
     "@perseus/core": path.resolve("../../packages/core/dist/index.js"),
   },
