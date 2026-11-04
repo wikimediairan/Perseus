@@ -24,7 +24,7 @@ const TRANSPARENT_INLINE_TAGS = new Set([
   "u",
 ]);
 
-const CITATION_MARKER_SELECTOR = '[typeof*="mw:Extension/ref"]';
+const CITATION_MARKER_SELECTOR = '[typeof~="mw:Extension/ref"]';
 
 function openToken(id: number): string {
   return `\u27EA${id}\u27EB`;

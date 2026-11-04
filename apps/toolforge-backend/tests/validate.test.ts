@@ -211,4 +211,104 @@ describe("validateGeneratedStructure", () => {
       ),
     ).toThrow(/protected template/);
   });
+
+  it("does not count a Parsoid references-list extension as a ref", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root"><div class="mw-references-wrap" typeof="mw:Extension/references"></div></div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n<references />",
+        "fa",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}",
+        "fa",
+      ),
+    ).toThrow(/references list/);
+  });
+
+  it("accepts named definitions, self-closing usages, and anonymous refs without counting the references list", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root">
+        <sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"alpha"},"body":{"id":"mw-reference-text-alpha"}}'></sup>
+        <sup typeof="mw:Extension/ref" data-mw='{"attrs":{"name":"alpha"}}'></sup>
+        <sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-beta"}}'></sup>
+        <div typeof="mw:Extension/references"><span id="mw-reference-text-alpha">Alpha source</span><span id="mw-reference-text-beta">Beta source</span></div>
+      </div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+    const disclosure = "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n";
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        `${disclosure}<ref name="alpha">Alpha source</ref><ref name="alpha" /><ref>Beta source</ref><references />`,
+        "fa",
+      ),
+    ).not.toThrow();
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        `${disclosure}<ref name="alpha" /><ref name="alpha" /><ref>Beta source</ref><references />`,
+        "fa",
+      ),
+    ).toThrow(/omitted refs/);
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        `${disclosure}<ref name="alpha">Alpha source</ref><ref name="alpha">Duplicate definition</ref><ref>Beta source</ref><references />`,
+        "fa",
+      ),
+    ).toThrow(/omitted refs/);
+  });
+
+  it("rejects malformed refs instead of accepting their opening tags", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root"><sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-source"}}'></sup><div typeof="mw:Extension/references"><span id="mw-reference-text-source">Source</span></div></div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n<ref>Source",
+        "fa",
+      ),
+    ).toThrow(/malformed refs/);
+  });
+
+  it("validates a reference-list template separately from inline refs", () => {
+    const doc = new DOMParser().parseFromString(
+      `<div id="root"><span typeof="mw:Transclusion" data-mw='{"parts":[{"template":{"target":{"wt":"پانویس"}}}]}'></span></div>`,
+      "text/html",
+    );
+    const referencesRoot = doc.getElementById("root") as unknown as Element;
+
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n{{پانویس}}",
+        "fa",
+      ),
+    ).not.toThrow();
+    expect(() =>
+      validateGeneratedStructure(
+        referencesRoot,
+        "{{ترجمه با کمک مدل‌های بزرگ زبانی}}\n<references />",
+        "fa",
+      ),
+    ).toThrow(/templates/);
+  });
 });

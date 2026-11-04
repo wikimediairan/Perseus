@@ -6,6 +6,7 @@ import type {
 import { ApiError } from "../util/errors.js";
 
 const TOKEN_PATTERN = /⟪(\*|\/)?(\d+)⟫/g;
+const REF_SELECTOR = '[typeof~="mw:Extension/ref"]';
 
 interface TokenCounts {
   counts: Map<string, number>;
@@ -133,6 +134,239 @@ function occurrences(haystack: string, needle: string): number {
   }
 }
 
+interface ReferenceKindCounts {
+  definitions: number;
+  usages: number;
+}
+
+interface ReferenceInventory extends ReferenceKindCounts {
+  total: number;
+  anonymousDefinitions: number;
+  unknown: number;
+  byName: Map<string, ReferenceKindCounts>;
+  malformed: boolean;
+}
+
+function emptyReferenceInventory(): ReferenceInventory {
+  return {
+    total: 0,
+    definitions: 0,
+    usages: 0,
+    anonymousDefinitions: 0,
+    unknown: 0,
+    byName: new Map(),
+    malformed: false,
+  };
+}
+
+function decodeReferenceAttribute(value: string): string {
+  return value.replace(
+    /&(?:#(\d+)|#x([\da-f]+)|amp|quot|apos|lt|gt);/gi,
+    (entity, decimal: string | undefined, hex: string | undefined) => {
+      const numeric = decimal
+        ? Number.parseInt(decimal, 10)
+        : hex
+          ? Number.parseInt(hex, 16)
+          : null;
+      if (numeric !== null) {
+        return numeric <= 0x10ffff ? String.fromCodePoint(numeric) : entity;
+      }
+      switch (entity.toLowerCase()) {
+        case "&amp;":
+          return "&";
+        case "&quot;":
+          return '"';
+        case "&apos;":
+          return "'";
+        case "&lt;":
+          return "<";
+        case "&gt;":
+          return ">";
+        default:
+          return entity;
+      }
+    },
+  );
+}
+
+function referenceKey(name: string, group: string | null): string {
+  return JSON.stringify([
+    decodeReferenceAttribute(group ?? ""),
+    decodeReferenceAttribute(name),
+  ]);
+}
+
+function incrementNamedReference(
+  inventory: ReferenceInventory,
+  name: string,
+  group: string | null,
+  kind: keyof ReferenceKindCounts,
+): void {
+  const key = referenceKey(name, group);
+  const counts = inventory.byName.get(key) ?? { definitions: 0, usages: 0 };
+  counts[kind]++;
+  inventory.byName.set(key, counts);
+}
+
+function sourceReferenceInventory(
+  root: Element,
+  outsideTemplate: (element: Element) => boolean,
+): ReferenceInventory {
+  const inventory = emptyReferenceInventory();
+
+  for (const element of Array.from(root.querySelectorAll(REF_SELECTOR)).filter(
+    outsideTemplate,
+  )) {
+    inventory.total++;
+    const raw = element.getAttribute("data-mw");
+    if (!raw) {
+      inventory.unknown++;
+      continue;
+    }
+
+    let data: {
+      attrs?: { name?: unknown; group?: unknown };
+      body?: { html?: unknown; id?: unknown };
+    };
+    try {
+      data = JSON.parse(raw) as typeof data;
+    } catch {
+      inventory.unknown++;
+      continue;
+    }
+
+    const name = typeof data.attrs?.name === "string" ? data.attrs.name : null;
+    const group =
+      typeof data.attrs?.group === "string" ? data.attrs.group : null;
+    const isDefinition =
+      typeof data.body?.html === "string" || typeof data.body?.id === "string";
+
+    if (isDefinition) {
+      inventory.definitions++;
+      if (name === null) {
+        inventory.anonymousDefinitions++;
+      } else {
+        incrementNamedReference(inventory, name, group, "definitions");
+      }
+    } else if (name !== null) {
+      inventory.usages++;
+      incrementNamedReference(inventory, name, group, "usages");
+    } else {
+      inventory.unknown++;
+    }
+  }
+
+  return inventory;
+}
+
+function wikitextAttribute(
+  attributes: string,
+  attributeName: string,
+): string | null {
+  const match = attributes.match(
+    new RegExp(
+      `(?:^|\\s)${attributeName}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s"'=<>]+))`,
+      "i",
+    ),
+  );
+  return match?.[1] ?? match?.[2] ?? match?.[3] ?? null;
+}
+
+function generatedReferenceInventory(wikitext: string): ReferenceInventory {
+  const inventory = emptyReferenceInventory();
+  const openingTag = /<ref\b((?:"[^"]*"|'[^']*'|[^'">])*)>/gi;
+
+  for (const match of wikitext.matchAll(openingTag)) {
+    const fullTag = match[0];
+    const attributes = match[1] ?? "";
+    const name = wikitextAttribute(attributes, "name");
+    const group = wikitextAttribute(attributes, "group");
+    const isUsage = /\/\s*>$/.test(fullTag);
+
+    inventory.total++;
+    if (isUsage) {
+      if (name === null) {
+        inventory.unknown++;
+      } else {
+        inventory.usages++;
+        incrementNamedReference(inventory, name, group, "usages");
+      }
+    } else {
+      inventory.definitions++;
+      if (name === null) {
+        inventory.anonymousDefinitions++;
+      } else {
+        incrementNamedReference(inventory, name, group, "definitions");
+      }
+    }
+  }
+
+  const closingTags = (wikitext.match(/<\/ref\s*>/gi) ?? []).length;
+  inventory.malformed = closingTags !== inventory.definitions;
+  return inventory;
+}
+
+function assertReferencesPreserved(
+  source: ReferenceInventory,
+  generated: ReferenceInventory,
+): void {
+  const diagnostic = {
+    source: {
+      total: source.total,
+      definitions: source.definitions,
+      usages: source.usages,
+      anonymousDefinitions: source.anonymousDefinitions,
+      unknown: source.unknown,
+    },
+    generated: {
+      total: generated.total,
+      definitions: generated.definitions,
+      usages: generated.usages,
+      anonymousDefinitions: generated.anonymousDefinitions,
+      unknown: generated.unknown,
+      malformed: generated.malformed,
+    },
+  };
+
+  if (generated.malformed) {
+    throw new ApiError(
+      422,
+      "OUTPUT_STRUCTURE_LOSS",
+      "The generated wikitext contains malformed refs.",
+      diagnostic,
+    );
+  }
+
+  if (
+    generated.total < source.total ||
+    generated.definitions < source.definitions ||
+    generated.usages < source.usages ||
+    generated.anonymousDefinitions < source.anonymousDefinitions
+  ) {
+    throw new ApiError(
+      422,
+      "OUTPUT_STRUCTURE_LOSS",
+      "The generated wikitext omitted refs.",
+      diagnostic,
+    );
+  }
+
+  for (const [key, expected] of source.byName) {
+    const actual = generated.byName.get(key);
+    if (
+      (actual?.definitions ?? 0) < expected.definitions ||
+      (actual?.usages ?? 0) < expected.usages
+    ) {
+      throw new ApiError(
+        422,
+        "OUTPUT_STRUCTURE_LOSS",
+        "The generated wikitext omitted refs.",
+        diagnostic,
+      );
+    }
+  }
+}
+
 export function validateOutputCoverage(
   wikitext: string,
   translations: TranslatedChunkRecord[],
@@ -173,15 +407,17 @@ export function validateGeneratedStructure(
     !element.closest('[typeof*="mw:Transclusion"]');
   const count = (selector: string): number =>
     Array.from(root.querySelectorAll(selector)).filter(outsideTemplate).length;
+  const sourceRefs = sourceReferenceInventory(root, outsideTemplate);
   const source = {
-    refs: count('[typeof*="mw:Extension/ref"]'),
+    referenceLists: count('[typeof~="mw:Extension/references"]'),
     tables: count("table"),
     templates: root.querySelectorAll('[typeof*="mw:Transclusion"]').length,
     links: count('a[rel~="mw:WikiLink"]'),
   };
   const output = wikitext.replace(/<!--[\s\S]*?-->/g, "");
+  const generatedRefs = generatedReferenceInventory(output);
   const generated = {
-    refs: (output.match(/<ref\b/gi) ?? []).length,
+    referenceLists: (output.match(/<references\b/gi) ?? []).length,
     tables: (output.match(/\{\||<table\b/gi) ?? []).length,
     templates: Math.max(
       0,
@@ -193,7 +429,17 @@ export function validateGeneratedStructure(
         ? (output.match(/\{\{\s*پم\s*\|/g) ?? []).length
         : 0),
   };
-  for (const kind of ["refs", "tables", "templates", "links"] as const) {
+  assertReferencesPreserved(sourceRefs, generatedRefs);
+
+  if (generated.referenceLists < source.referenceLists) {
+    throw new ApiError(
+      422,
+      "OUTPUT_STRUCTURE_LOSS",
+      "The generated wikitext omitted a references list.",
+    );
+  }
+
+  for (const kind of ["tables", "templates", "links"] as const) {
     if (generated[kind] < source[kind]) {
       throw new ApiError(
         422,

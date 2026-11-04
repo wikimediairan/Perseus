@@ -3,7 +3,7 @@ import type { SectionNode, SectionSelection } from "../domain/types.js";
 import { ApiError } from "../util/errors.js";
 
 const HEADING_SELECTOR = "h1, h2, h3, h4, h5, h6";
-const REF_SELECTOR = '[typeof*="mw:Extension/ref"]';
+const REF_SELECTOR = '[typeof~="mw:Extension/ref"]';
 
 const REFERENCE_HEADINGS = new Set(
   [
@@ -184,7 +184,7 @@ function buildSectionsFromRoot(root: Element): SectionBuildResult {
 
 function parseDataMw(element: Element): {
   attrs?: { name?: string; group?: string };
-  body?: { html?: string };
+  body?: { html?: string; id?: string };
 } | null {
   const raw =
     (element as HTMLElement).dataset?.mw ?? element.getAttribute("data-mw");
@@ -192,7 +192,7 @@ function parseDataMw(element: Element): {
   try {
     return JSON.parse(raw) as {
       attrs?: { name?: string; group?: string };
-      body?: { html?: string };
+      body?: { html?: string; id?: string };
     };
   } catch {
     return null;
@@ -204,9 +204,16 @@ function refName(element: Element): string | null {
   return typeof data?.attrs?.name === "string" ? data.attrs.name : null;
 }
 
+function refBodyId(element: Element): string | null {
+  const data = parseDataMw(element);
+  return typeof data?.body?.id === "string" ? data.body.id : null;
+}
+
 function isDefiningRef(element: Element): boolean {
   const data = parseDataMw(element);
-  return typeof data?.body?.html === "string";
+  return (
+    typeof data?.body?.html === "string" || typeof data?.body?.id === "string"
+  );
 }
 
 function referenceSectionIds(result: SectionBuildResult): Set<string> {
@@ -283,9 +290,11 @@ export function selectSections(
 
   const warnings: string[] = [];
   const keptRefNames = new Set<string>();
+  const keptRefs = new Set<Element>();
 
   for (const block of keptBlocks) {
     for (const ref of block.querySelectorAll(REF_SELECTOR)) {
+      keptRefs.add(ref);
       const name = refName(ref);
       if (name) keptRefNames.add(name);
     }
@@ -295,27 +304,33 @@ export function selectSections(
   const definitionBlocks = new Set<Element>();
   const assignedBlocks = [...built.blocksBySection.values()].flat();
 
+  const isInsideKeptBlock = (element: Element): boolean => {
+    let cursor: Element | null = element;
+    while (cursor) {
+      if (keptBlocks.has(cursor)) return true;
+      cursor = cursor.parentElement;
+    }
+    return false;
+  };
+
+  const retainDependency = (element: Element): void => {
+    if (isInsideKeptBlock(element)) return;
+    const owner = assignedBlocks.find(
+      (block) => block === element || block.contains(element),
+    );
+    definitionBlocks.add(owner ?? element);
+    needsReferenceDefinitions = true;
+  };
+
   for (const ref of Array.from(root.querySelectorAll(REF_SELECTOR))) {
     if (!isDefiningRef(ref)) continue;
     const name = refName(ref);
-    if (!name || !keptRefNames.has(name)) continue;
+    if (!keptRefs.has(ref) && (!name || !keptRefNames.has(name))) continue;
 
-    let insideKeptBlock = false;
-    let cursor: Element | null = ref;
-    while (cursor) {
-      if (keptBlocks.has(cursor)) {
-        insideKeptBlock = true;
-        break;
-      }
-      cursor = cursor.parentElement;
-    }
-    if (insideKeptBlock) continue;
-
-    const owner = assignedBlocks.find(
-      (block) => block === ref || block.contains(ref),
-    );
-    definitionBlocks.add(owner ?? ref);
-    needsReferenceDefinitions = true;
+    retainDependency(ref);
+    const bodyId = refBodyId(ref);
+    const body = bodyId ? document.getElementById(bodyId) : null;
+    if (body) retainDependency(body);
   }
 
   if (needsReferenceDefinitions) {
@@ -394,6 +409,6 @@ export function selectSections(
     document,
     tree: built.tree,
     warnings,
-    needsReferencesList: keptRefNames.size > 0 && !keptReferenceSection,
+    needsReferencesList: keptRefs.size > 0 && !keptReferenceSection,
   };
 }

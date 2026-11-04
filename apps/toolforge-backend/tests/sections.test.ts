@@ -16,6 +16,11 @@ function ref(name: string, body?: string): string {
   return `<sup typeof="mw:Extension/ref" data-mw='${JSON.stringify(dataMw).replaceAll("'", "&#39;")}'></sup>`;
 }
 
+function refWithBodyId(name: string, bodyId: string): string {
+  const dataMw = { name: "ref", attrs: { name }, body: { id: bodyId } };
+  return `<sup typeof="mw:Extension/ref" data-mw='${JSON.stringify(dataMw)}'></sup>`;
+}
+
 describe("section tree", () => {
   it("builds a heading hierarchy with lead excluded from the tree", () => {
     const html = `
@@ -128,7 +133,8 @@ describe("reference preservation", () => {
       <h2>Usage</h2>
       <p>Selected sentence.${ref("a")}</p>
       <h2>Sources</h2>
-      <p>${ref("a", "<p>Source body</p>")}</p>
+      <p>${refWithBodyId("a", "mw-reference-text-a")}</p>
+      <div typeof="mw:Extension/references"><span id="mw-reference-text-a">Source body</span></div>
     `;
 
     const built = buildSections(html);
@@ -145,6 +151,8 @@ describe("reference preservation", () => {
 
     expect(selected.html).toContain("Selected sentence.");
     expect(selected.html).toContain("Source body");
+    expect(selected.html).toContain("mw:Extension/references");
+    expect(selected.needsReferencesList).toBe(false);
     expect(selected.warnings.join(" ")).toMatch(/منابع/);
   });
 
@@ -169,6 +177,37 @@ describe("reference preservation", () => {
     });
 
     expect(selected.html).toContain("Source body");
+    expect(selected.needsReferencesList).toBe(true);
+  });
+
+  it("retains a body.id target when its defining marker is already selected", () => {
+    const html = `
+      <h2>Usage</h2>
+      <p>Selected sentence.${refWithBodyId("a", "mw-reference-text-a")}</p>
+      <h2>Sources</h2>
+      <div typeof="mw:Extension/references"><span id="mw-reference-text-a">Source body</span></div>
+    `;
+
+    const built = buildSections(html);
+    const usage = requireSection(built, "Usage");
+    const sources = requireSection(built, "Sources");
+    const selected = selectSections(html, {
+      lead: false,
+      sections: {
+        [usage.id]: { selected: true, ownText: true },
+        [sources.id]: { selected: false, ownText: false },
+      },
+    });
+
+    expect(selected.html).toContain("Source body");
+    expect(selected.html).toContain("mw:Extension/references");
+    expect(selected.needsReferencesList).toBe(false);
+  });
+
+  it("requests a references list for a selected anonymous ref", () => {
+    const html = `<p>Selected sentence.<sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"html":"Source body"}}'></sup></p>`;
+    const selected = selectSections(html, { lead: true, sections: {} });
+
     expect(selected.needsReferencesList).toBe(true);
   });
 });

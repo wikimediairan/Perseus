@@ -1,9 +1,15 @@
-import { describe, expect, it, vi } from "vitest";
+import { DOMParser } from "linkedom";
+import { beforeAll, describe, expect, it, vi } from "vitest";
 import { WIKIMEDIA_USER_AGENT } from "../src/config/constants";
 import {
+  buildIRFromParsoidHtml,
   fetchRevisionHtml,
   WikipediaParsoidParser,
 } from "../src/stages/02-parsing/ParsoidParser";
+
+beforeAll(() => {
+  (globalThis as Record<string, unknown>).DOMParser = DOMParser;
+});
 
 function mockTextFetch(status: number, body: string): ReturnType<typeof vi.fn> {
   const fn = vi.fn(async () => ({
@@ -154,5 +160,22 @@ describe("fetchRevisionHtml — Wikimedia User-Agent", () => {
       category: "ParsingError",
       message: expect.stringContaining("could not be found"),
     });
+  });
+});
+
+describe("Parsoid reference classification", () => {
+  it("registers ref definitions and usages but not mw:Extension/references", () => {
+    const ir = buildIRFromParsoidHtml(
+      `<p>Lead.<sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"alpha"},"body":{"id":"mw-reference-text-alpha"}}'></sup> Reuse.<sup typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"alpha"}}'></sup></p><div class="mw-references-wrap" typeof="mw:Extension/references"><span id="mw-reference-text-alpha">Alpha source</span></div>`,
+      "Reference test",
+    );
+
+    expect(ir.citations.allDefinitions()).toHaveLength(1);
+    expect(ir.citations.allReferences()).toHaveLength(2);
+    expect(
+      ir.citations.warnings.filter(
+        (warning) => warning.kind === "malformed-reference",
+      ),
+    ).toHaveLength(0);
   });
 });

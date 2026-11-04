@@ -6,7 +6,7 @@ import type {
 } from "../../ir/citation.js";
 import { CitationRegistry } from "../../ir/citation.js";
 
-const REF_SELECTOR = '[typeof*="mw:Extension/ref"]';
+const REF_SELECTOR = '[typeof~="mw:Extension/ref"]';
 
 interface ParsedRefAttrs {
   name: null | string;
@@ -30,11 +30,17 @@ function readRefAttrs(el: Element): ParsedRefAttrs {
       attrs?: { name?: string; group?: string };
       body?: { html?: string; id?: string };
     };
+    const bodyHtml =
+      typeof parsed.body?.html === "string"
+        ? parsed.body.html
+        : typeof parsed.body?.id === "string"
+          ? (el.ownerDocument?.getElementById(parsed.body.id)?.innerHTML ?? "")
+          : null;
     return {
       name: typeof parsed.attrs?.name === "string" ? parsed.attrs.name : null,
       group:
         typeof parsed.attrs?.group === "string" ? parsed.attrs.group : null,
-      bodyHtml: typeof parsed.body?.html === "string" ? parsed.body.html : null,
+      bodyHtml,
       dir,
       malformed: false,
     };
